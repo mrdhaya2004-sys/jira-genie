@@ -1,123 +1,163 @@
 import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
+import { loginSchema, LoginFormData } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Bot, Shield, Sparkles, Zap } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Separator } from '@/components/ui/separator';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import AuthLayout from './AuthLayout';
+import PasswordInput from './PasswordInput';
+import SocialLoginButtons from './SocialLoginButtons';
 
 const LoginForm: React.FC = () => {
-  const { login, isLoading } = useAuth();
-  const [email, setEmail] = useState('');
-  const [employeeId, setEmployeeId] = useState('');
+  const navigate = useNavigate();
+  const { signIn, signInWithGoogle, isLoading } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email || !employeeId) {
-      toast.error('Please fill in all fields');
-      return;
-    }
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const handleSubmit = async (data: LoginFormData) => {
+    setIsSubmitting(true);
     
     try {
-      await login(email, employeeId);
-      toast.success('Welcome back!');
+      const { error } = await signIn(data.email, data.password);
+      
+      if (error) {
+        // Handle specific error cases
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error('Invalid email or password');
+        } else if (error.message.includes('Email not confirmed')) {
+          toast.error('Please verify your email before logging in');
+        } else if (error.message.includes('User not found')) {
+          toast.error('Account not found. Please sign up first.');
+        } else {
+          toast.error(error.message || 'Login failed. Please try again.');
+        }
+      } else {
+        toast.success('Welcome back!');
+        navigate('/');
+      }
     } catch (error) {
-      toast.error('Invalid credentials. Please try again.');
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const features = [
-    { icon: Bot, text: 'AI-powered ticket creation' },
-    { icon: Sparkles, text: 'Smart duplicate detection' },
-    { icon: Zap, text: 'Auto-classification & assignment' },
-  ];
+  const handleGoogleLogin = async () => {
+    const { error } = await signInWithGoogle();
+    if (error) {
+      toast.error('Google login failed. Please try again.');
+    }
+  };
+
+  const handleMicrosoftLogin = () => {
+    toast.info('Microsoft login coming soon!');
+  };
+
+  const isFormLoading = isLoading || isSubmitting;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
-      <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-8 items-center">
-        {/* Left side - Branding */}
-        <div className="hidden lg:flex flex-col space-y-8 p-8">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center shadow-soft-lg">
-              <Bot className="h-7 w-7 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">TicketBot</h1>
-              <p className="text-sm text-muted-foreground">AI Jira Assistant</p>
-            </div>
-          </div>
-          
-          <div className="space-y-6">
-            <h2 className="text-4xl font-bold text-foreground leading-tight">
-              Create Jira tickets
-              <br />
-              <span className="text-primary">with AI assistance</span>
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Skip the manual forms. Just describe your issue naturally and let AI handle the rest.
-            </p>
-          </div>
-          
-          <div className="space-y-4">
-            {features.map((feature, index) => (
-              <div 
-                key={index} 
-                className="flex items-center gap-3 p-4 rounded-lg bg-card border border-border shadow-soft animate-slide-in-up"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <feature.icon className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-foreground font-medium">{feature.text}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+    <AuthLayout 
+      title="Testzone" 
+      subtitle="Welcome back! Let's build great things together."
+    >
+      <Card className="shadow-soft-lg border-border/50">
+        <CardHeader className="space-y-1 text-center pb-4">
+          <CardTitle className="text-2xl font-bold">Sign in</CardTitle>
+          <CardDescription>
+            Enter your credentials to access your account
+          </CardDescription>
+        </CardHeader>
 
-        {/* Right side - Login Form */}
-        <Card className="w-full max-w-md mx-auto shadow-soft-lg border-border/50">
-          <CardHeader className="space-y-1 text-center pb-6">
-            <div className="flex justify-center mb-4 lg:hidden">
-              <div className="h-14 w-14 rounded-xl bg-primary flex items-center justify-center shadow-soft-lg">
-                <Bot className="h-8 w-8 text-primary-foreground" />
-              </div>
+        <CardContent className="space-y-4">
+          {/* Social Login */}
+          <SocialLoginButtons
+            onGoogleClick={handleGoogleLogin}
+            onMicrosoftClick={handleMicrosoftLogin}
+            isLoading={isFormLoading}
+            mode="login"
+          />
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <Separator className="w-full" />
             </div>
-            <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-            <CardDescription>
-              Sign in with your company credentials
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Work Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="john.doe@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                  className="h-11"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="employeeId">Employee ID</Label>
-                <Input
-                  id="employeeId"
-                  type="text"
-                  placeholder="EMP001"
-                  value={employeeId}
-                  onChange={(e) => setEmployeeId(e.target.value)}
-                  disabled={isLoading}
-                  className="h-11"
-                />
-              </div>
-              
-              <Button type="submit" className="w-full h-11" disabled={isLoading}>
-                {isLoading ? (
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          {/* Login Form */}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email ID or Chatbot ID</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="you@company.com"
+                        type="email"
+                        disabled={isFormLoading}
+                        className="h-11"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Password</FormLabel>
+                      <Link
+                        to="/auth/forgot-password"
+                        className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                      >
+                        Forgot Password?
+                      </Link>
+                    </div>
+                    <FormControl>
+                      <PasswordInput
+                        placeholder="Enter your password"
+                        disabled={isFormLoading}
+                        className="h-11"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button 
+                type="submit" 
+                className="w-full h-11" 
+                disabled={isFormLoading}
+              >
+                {isFormLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Signing in...
@@ -126,32 +166,23 @@ const LoginForm: React.FC = () => {
                   'Sign In'
                 )}
               </Button>
-              
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-border" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">
-                    Demo credentials
-                  </span>
-                </div>
-              </div>
-              
-              <div className="text-center text-sm text-muted-foreground">
-                <p>Email: <code className="bg-muted px-1 py-0.5 rounded text-xs">john.doe@company.com</code></p>
-                <p>Employee ID: <code className="bg-muted px-1 py-0.5 rounded text-xs">EMP001</code></p>
-              </div>
             </form>
-            
-            <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <Shield className="h-3 w-3" />
-              <span>Secured by enterprise SSO</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          </Form>
+        </CardContent>
+
+        <CardFooter className="flex justify-center border-t pt-6">
+          <p className="text-sm text-muted-foreground">
+            Don't have an account?{' '}
+            <Link
+              to="/auth/signup"
+              className="font-medium text-primary hover:text-primary/80 transition-colors"
+            >
+              Sign up
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
+    </AuthLayout>
   );
 };
 

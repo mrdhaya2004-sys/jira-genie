@@ -158,7 +158,7 @@ const getConversationSteps = (metadata: JiraMetadata | null): ConversationStep[]
 };
 
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { profile } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentStep, setCurrentStep] = useState(-1);
   const [ticketData, setTicketData] = useState<Partial<TicketData>>({
@@ -368,7 +368,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Welcome message
     addMessage({
       type: 'bot',
-      content: `Hello ${user?.name || 'there'}! 👋\n\nI'm **TicketBot**, your AI-powered IT support assistant. I'll help you create Jira tickets quickly and efficiently.${projectInfo}\n\nI can:\n• Classify and prioritize your issues automatically\n• Detect duplicate tickets\n• Suggest the right assignee\n• Enhance your descriptions with AI\n\nLet's get started!`,
+      content: `Hello ${profile?.full_name || 'there'}! 👋\n\nI'm **TicketBot**, your AI-powered IT support assistant. I'll help you create Jira tickets quickly and efficiently.${projectInfo}\n\nI can:\n• Classify and prioritize your issues automatically\n• Detect duplicate tickets\n• Suggest the right assignee\n• Enhance your descriptions with AI\n\nLet's get started!`,
     });
     
     await simulateBotTyping(800);
@@ -380,7 +380,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       content: firstStep.question,
       inputType: firstStep.inputType,
     });
-  }, [user, jiraMetadata, conversationSteps, addMessage, simulateBotTyping]);
+  }, [profile, jiraMetadata, conversationSteps, addMessage, simulateBotTyping]);
 
   const resetChat = useCallback(() => {
     setMessages([]);
