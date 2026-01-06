@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import Sidebar from './Sidebar';
 
 const Header: React.FC = () => {
-  const { user } = useAuth();
+  const { profile } = useAuth();
 
   const getInitials = (name: string) => {
     return name
@@ -52,13 +52,13 @@ const Header: React.FC = () => {
         
         <div className="hidden md:flex items-center gap-2 ml-2">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.avatar} />
+            <AvatarImage src={profile?.avatar_url || undefined} />
             <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-              {user?.name ? getInitials(user.name) : 'U'}
+              {profile?.full_name ? getInitials(profile.full_name) : 'U'}
             </AvatarFallback>
           </Avatar>
           <div className="text-sm">
-            <p className="font-medium">{user?.name}</p>
+            <p className="font-medium">{profile?.full_name}</p>
           </div>
         </div>
       </div>

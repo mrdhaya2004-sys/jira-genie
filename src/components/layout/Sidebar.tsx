@@ -21,7 +21,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ className }) => {
-  const { user, logout } = useAuth();
+  const { profile, signOut } = useAuth();
   const { startNewTicket, resetChat } = useChat();
 
   const handleNewTicket = () => {
@@ -112,20 +112,20 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       <div className="p-3">
         <div className="flex items-center gap-3 p-2 rounded-lg bg-sidebar-accent/50">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={user?.avatar} />
+            <AvatarImage src={profile?.avatar_url || undefined} />
             <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-sm">
-              {user?.name ? getInitials(user.name) : 'U'}
+              {profile?.full_name ? getInitials(profile.full_name) : 'U'}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user?.name}</p>
-            <p className="text-xs text-sidebar-foreground/60 truncate">{user?.team}</p>
+            <p className="text-sm font-medium truncate">{profile?.full_name}</p>
+            <p className="text-xs text-sidebar-foreground/60 truncate">{profile?.employee_id}</p>
           </div>
           <Button 
             variant="ghost" 
             size="icon-sm"
             className="text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-            onClick={logout}
+            onClick={signOut}
           >
             <LogOut className="h-4 w-4" />
           </Button>

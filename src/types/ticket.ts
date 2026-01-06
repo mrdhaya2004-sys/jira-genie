@@ -2,16 +2,6 @@ export type IssueType = 'Bug' | 'Task' | 'Story' | 'Incident';
 export type Priority = 'Low' | 'Medium' | 'High' | 'Critical';
 export type TicketStatus = 'draft' | 'pending' | 'created' | 'failed';
 
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  employeeId: string;
-  team: string;
-  role: string;
-  avatar?: string;
-}
-
 export interface Attachment {
   id: string;
   name: string;
@@ -38,7 +28,7 @@ export interface JiraTicket extends TicketData {
   key: string;
   status: TicketStatus;
   createdAt: Date;
-  createdBy: User;
+  createdById: string;
   jiraUrl?: string;
 }
 
