@@ -1,1 +1,10 @@
 project_id = "eykuzauxcxaaroadybst"
+
+[functions.jira-create-ticket]
+verify_jwt = false
+
+[functions.jira-search-duplicates]
+verify_jwt = false
+
+[functions.jira-get-metadata]
+verify_jwt = false
