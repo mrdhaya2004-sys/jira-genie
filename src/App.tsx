@@ -6,7 +6,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import Index from "./pages/Index";
+import DashboardPage from "./pages/DashboardPage";
+import ChatPage from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
@@ -37,7 +38,15 @@ const AppRoutes = () => (
       path="/" 
       element={
         <ProtectedRoute>
-          <Index />
+          <DashboardPage />
+        </ProtectedRoute>
+      } 
+    />
+    <Route 
+      path="/chat" 
+      element={
+        <ProtectedRoute>
+          <ChatPage />
         </ProtectedRoute>
       } 
     />

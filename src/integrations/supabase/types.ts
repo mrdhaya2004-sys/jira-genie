@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      mentions: {
+        Row: {
+          content_snippet: string
+          created_at: string
+          id: string
+          is_read: boolean
+          mention_type: string
+          mentioned_by_user_id: string
+          mentioned_user_id: string | null
+          source_id: string | null
+          source_title: string | null
+          source_type: string
+        }
+        Insert: {
+          content_snippet: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          mention_type: string
+          mentioned_by_user_id: string
+          mentioned_user_id?: string | null
+          source_id?: string | null
+          source_title?: string | null
+          source_type: string
+        }
+        Update: {
+          content_snippet?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          mention_type?: string
+          mentioned_by_user_id?: string
+          mentioned_user_id?: string | null
+          source_id?: string | null
+          source_title?: string | null
+          source_type?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
