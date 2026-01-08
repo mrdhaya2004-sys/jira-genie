@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import MentionsPanel from '@/components/dashboard/MentionsPanel';
+import AgenticAIModule from '@/components/workspace/AgenticAIModule';
 
-export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history';
+export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai';
 
 const DashboardPage: React.FC = () => {
   const [activeModule, setActiveModule] = useState<ActiveModule>('mentions');
@@ -39,6 +40,7 @@ const DashboardPage: React.FC = () => {
               History module coming soon
             </div>
           )}
+          {activeModule === 'agentic-ai' && <AgenticAIModule />}
         </main>
       </div>
     </div>
