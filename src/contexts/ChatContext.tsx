@@ -367,22 +367,47 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
     
-    // AI enhancement feedback with structured formatting
+    // AI enhancement with Lovable AI
     if (step.aiEnhance) {
-      await simulateBotTyping(600);
-      
       if (step.field === 'description') {
-        // Format description in structured Jira format
-        const formattedDescription = formatDescriptionAsJiraFormat(value, ticketData.summary || '');
-        setTicketData(prev => ({
-          ...prev,
-          description: formattedDescription,
-        }));
+        setIsTyping(true);
         addMessage({
           type: 'system',
-          content: `✨ AI enhanced your description with structured format:\n• Environment details\n• Step-by-step procedure\n• Actual/Expected results`,
+          content: '🤖 AI is enhancing your description with structured format...',
         });
+        
+        // Call AI enhancement service
+        const { enhancedDescription, error } = await jiraService.enhanceDescription(
+          ticketData.summary || '',
+          value,
+          ticketData.issueType
+        );
+        
+        setIsTyping(false);
+        
+        if (enhancedDescription && !error) {
+          setTicketData(prev => ({
+            ...prev,
+            description: enhancedDescription,
+          }));
+          addMessage({
+            type: 'system',
+            content: `✨ AI enhanced your description with:\n• Environment details\n• Step-by-step procedure\n• Actual Result\n• Expected Result`,
+          });
+        } else {
+          // Fallback to local formatting
+          const formattedDescription = formatDescriptionAsJiraFormat(value, ticketData.summary || '');
+          setTicketData(prev => ({
+            ...prev,
+            description: formattedDescription,
+          }));
+          addMessage({
+            type: 'system',
+            content: `✨ Description formatted with structured template.`,
+          });
+        }
       } else {
+        await simulateBotTyping(600);
         addMessage({
           type: 'system',
           content: `✨ AI enhanced your ${step.field}: improved clarity and formatting.`,

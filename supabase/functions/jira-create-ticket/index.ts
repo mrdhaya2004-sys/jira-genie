@@ -71,26 +71,58 @@ serve(async (req) => {
     );
 
     let issueTypeId: string | null = null;
+    let issueTypeName: string = 'Task'; // Default fallback
     
     if (projectResponse.ok) {
       const projectData = await projectResponse.json();
       const issueTypes = projectData.issueTypes || [];
       
-      // Try to find matching issue type by name (case-insensitive)
-      const requestedType = ticketData.issueType.toLowerCase();
-      const matchingType = issueTypes.find((it: { name: string; id: string }) => 
-        it.name.toLowerCase() === requestedType ||
-        it.name.toLowerCase().includes(requestedType) ||
-        requestedType.includes(it.name.toLowerCase())
-      );
+      // Normalize the requested type
+      const requestedType = ticketData.issueType.toLowerCase().trim();
+      
+      // Define type mappings for common variations
+      const typeAliases: Record<string, string[]> = {
+        'bug': ['bug', 'defect', 'error', 'issue'],
+        'task': ['task', 'to-do', 'todo', 'work'],
+        'story': ['story', 'user story', 'feature'],
+        'epic': ['epic', 'initiative'],
+        'incident': ['incident', 'outage', 'emergency'],
+      };
+      
+      // Find matching issue type
+      let matchingType = issueTypes.find((it: { name: string; id: string }) => {
+        const typeName = it.name.toLowerCase();
+        // Direct match
+        if (typeName === requestedType) return true;
+        // Check aliases
+        for (const [canonical, aliases] of Object.entries(typeAliases)) {
+          if (aliases.includes(requestedType) && typeName === canonical) return true;
+          if (aliases.includes(requestedType) && aliases.includes(typeName)) return true;
+        }
+        // Partial match
+        return typeName.includes(requestedType) || requestedType.includes(typeName);
+      });
+
+      // If still no match, try to find Bug specifically for bug-like requests
+      if (!matchingType && ['bug', 'defect', 'error', 'issue', 'incident'].includes(requestedType)) {
+        matchingType = issueTypes.find((it: { name: string }) => 
+          it.name.toLowerCase() === 'bug' || it.name.toLowerCase() === 'defect'
+        );
+      }
 
       if (matchingType) {
         issueTypeId = matchingType.id;
+        issueTypeName = matchingType.name;
         console.log(`Found matching issue type: ${matchingType.name} (ID: ${issueTypeId})`);
       } else if (issueTypes.length > 0) {
-        // Fallback to first available issue type
-        issueTypeId = issueTypes[0].id;
-        console.log(`Using fallback issue type: ${issueTypes[0].name} (ID: ${issueTypeId})`);
+        // Fallback to Task if available, otherwise first type
+        const taskType = issueTypes.find((it: { name: string }) => 
+          it.name.toLowerCase() === 'task'
+        );
+        const fallbackType = taskType || issueTypes[0];
+        issueTypeId = fallbackType.id;
+        issueTypeName = fallbackType.name;
+        console.log(`Using fallback issue type: ${fallbackType.name} (ID: ${issueTypeId})`);
       }
     }
 

@@ -105,4 +105,30 @@ export const jiraService = {
       return null;
     }
   },
+
+  async enhanceDescription(
+    summary: string, 
+    rawDescription: string, 
+    issueType?: string
+  ): Promise<{ enhancedDescription: string | null; error?: string }> {
+    try {
+      const { data, error } = await supabase.functions.invoke('ticket-ai-enhance', {
+        body: { summary, rawDescription, issueType },
+      });
+
+      if (error) {
+        console.error('AI enhancement error:', error);
+        return { enhancedDescription: null, error: error.message };
+      }
+
+      if (data?.error) {
+        return { enhancedDescription: null, error: data.error };
+      }
+
+      return { enhancedDescription: data?.enhancedDescription || null };
+    } catch (err) {
+      console.error('Error enhancing description:', err);
+      return { enhancedDescription: null, error: 'Failed to enhance description' };
+    }
+  },
 };
