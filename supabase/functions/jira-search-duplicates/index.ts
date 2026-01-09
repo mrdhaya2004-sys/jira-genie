@@ -6,6 +6,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Sanitize domain - remove protocol and trailing slashes
+function sanitizeDomain(domain: string): string {
+  return domain
+    .replace(/^https?:\/\//i, '')
+    .replace(/\/+$/, '')
+    .trim();
+}
+
 interface SearchRequest {
   summary: string;
   description?: string;
@@ -18,7 +26,8 @@ serve(async (req) => {
   }
 
   try {
-    const jiraDomain = Deno.env.get('JIRA_DOMAIN');
+    const jiraDomainRaw = Deno.env.get('JIRA_DOMAIN');
+    const jiraDomain = jiraDomainRaw ? sanitizeDomain(jiraDomainRaw) : null;
     const jiraEmail = Deno.env.get('JIRA_USER_EMAIL');
     const jiraApiToken = Deno.env.get('JIRA_API_TOKEN');
     const jiraProjectKey = Deno.env.get('JIRA_PROJECT_KEY');
