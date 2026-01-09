@@ -57,16 +57,43 @@ serve(async (req) => {
       'Low': '4',
     };
 
-    // Map issue types
-    const issueTypeMap: Record<string, string> = {
-      'Bug': 'Bug',
-      'Task': 'Task',
-      'Story': 'Story',
-      'Incident': 'Bug', // Map incident to Bug or create custom type
-    };
-
     const auth = btoa(`${jiraEmail}:${jiraApiToken}`);
+
+    // First, fetch the project's valid issue types
+    const projectResponse = await fetch(
+      `https://${jiraDomain}/rest/api/3/project/${jiraProjectKey}`,
+      {
+        headers: {
+          'Authorization': `Basic ${auth}`,
+          'Accept': 'application/json',
+        },
+      }
+    );
+
+    let issueTypeId: string | null = null;
     
+    if (projectResponse.ok) {
+      const projectData = await projectResponse.json();
+      const issueTypes = projectData.issueTypes || [];
+      
+      // Try to find matching issue type by name (case-insensitive)
+      const requestedType = ticketData.issueType.toLowerCase();
+      const matchingType = issueTypes.find((it: { name: string; id: string }) => 
+        it.name.toLowerCase() === requestedType ||
+        it.name.toLowerCase().includes(requestedType) ||
+        requestedType.includes(it.name.toLowerCase())
+      );
+
+      if (matchingType) {
+        issueTypeId = matchingType.id;
+        console.log(`Found matching issue type: ${matchingType.name} (ID: ${issueTypeId})`);
+      } else if (issueTypes.length > 0) {
+        // Fallback to first available issue type
+        issueTypeId = issueTypes[0].id;
+        console.log(`Using fallback issue type: ${issueTypes[0].name} (ID: ${issueTypeId})`);
+      }
+    }
+
     // Build the issue payload
     const issuePayload: Record<string, unknown> = {
       fields: {
@@ -89,9 +116,7 @@ serve(async (req) => {
             },
           ],
         },
-        issuetype: {
-          name: issueTypeMap[ticketData.issueType] || 'Task',
-        },
+        issuetype: issueTypeId ? { id: issueTypeId } : { name: 'Task' },
         priority: {
           id: priorityMap[ticketData.priority] || '3',
         },
