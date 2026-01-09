@@ -38,9 +38,13 @@ const priorityConfig: Record<Priority, { color: string; bgColor: string }> = {
 };
 
 const TicketPreview: React.FC<TicketPreviewProps> = ({ ticket, onConfirm, onCancel }) => {
-  const IssueIcon = ticket.issueType ? issueTypeConfig[ticket.issueType]?.icon : CheckSquare;
-  const issueColor = ticket.issueType ? issueTypeConfig[ticket.issueType]?.color : 'text-muted-foreground';
-  const priority = ticket.priority ? priorityConfig[ticket.priority] : priorityConfig.Medium;
+  const issueTypeKey = ticket.issueType as IssueType | undefined;
+  const issueConfig = issueTypeKey && issueTypeConfig[issueTypeKey] ? issueTypeConfig[issueTypeKey] : null;
+  const IssueIcon = issueConfig?.icon ?? CheckSquare;
+  const issueColor = issueConfig?.color ?? 'text-muted-foreground';
+  
+  const priorityKey = ticket.priority as Priority | undefined;
+  const priority = priorityKey && priorityConfig[priorityKey] ? priorityConfig[priorityKey] : priorityConfig.Medium;
 
   return (
     <Card className="w-full max-w-md mt-2 shadow-soft-lg border-border/50 animate-slide-in-up">
