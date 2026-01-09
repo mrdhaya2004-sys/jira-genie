@@ -3,8 +3,9 @@ import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import MentionsPanel from '@/components/dashboard/MentionsPanel';
 import AgenticAIModule from '@/components/workspace/AgenticAIModule';
+import JiraTicketRaiserModule from '@/components/jira/JiraTicketRaiserModule';
 
-export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai';
+export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser';
 
 const DashboardPage: React.FC = () => {
   const [activeModule, setActiveModule] = useState<ActiveModule>('mentions');
@@ -41,6 +42,7 @@ const DashboardPage: React.FC = () => {
             </div>
           )}
           {activeModule === 'agentic-ai' && <AgenticAIModule />}
+          {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule />}
         </main>
       </div>
     </div>
