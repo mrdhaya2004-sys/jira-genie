@@ -54,6 +54,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
   const automationItems = [
     { icon: LayoutDashboard, label: 'Agentic AI – Core Workspace', module: 'agentic-ai' as ActiveModule },
+    { icon: Ticket, label: 'Jira Ticket Raiser', module: 'jira-ticket-raiser' as ActiveModule },
   ];
 
   return (
