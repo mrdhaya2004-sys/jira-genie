@@ -19,6 +19,54 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
+// Format description in structured Jira ticket format
+const formatDescriptionAsJiraFormat = (rawDescription: string, summary: string): string => {
+  // Check if already formatted
+  if (rawDescription.includes('Environment:') || rawDescription.includes('Procedure:')) {
+    return rawDescription;
+  }
+
+  // Extract any version/environment info if present
+  const versionMatch = rawDescription.match(/(\d+\.\d+\.?\d*)/);
+  const environment = versionMatch ? versionMatch[1] : 'N/A';
+
+  // Parse description for steps if user provided numbered items or bullet points
+  const lines = rawDescription.split(/[\n,;]/).map(l => l.trim()).filter(Boolean);
+  
+  // Try to detect actual vs expected results
+  let actualResult = '';
+  let expectedResult = '';
+  let procedureSteps: string[] = [];
+  
+  lines.forEach(line => {
+    const lowerLine = line.toLowerCase();
+    if (lowerLine.includes('actual') || lowerLine.includes('result:') || lowerLine.includes('happens')) {
+      actualResult = line.replace(/^(actual result:?|result:?)/i, '').trim();
+    } else if (lowerLine.includes('expected') || lowerLine.includes('should')) {
+      expectedResult = line.replace(/^(expected result:?|should:?)/i, '').trim();
+    } else {
+      procedureSteps.push(line);
+    }
+  });
+
+  // If no structured steps found, use the whole description as context
+  if (procedureSteps.length === 0) {
+    procedureSteps = [rawDescription];
+  }
+
+  // Build formatted description
+  let formatted = `*Environment:* ${environment}\n\n`;
+  formatted += `*Summary:* ${summary}\n\n`;
+  formatted += `*Procedure:*\n`;
+  procedureSteps.forEach((step, i) => {
+    formatted += `${i + 1}. ${step}\n`;
+  });
+  formatted += `\n*Actual Result:* ${actualResult || procedureSteps[procedureSteps.length - 1] || 'See above'}\n`;
+  formatted += `*Expected Result:* ${expectedResult || 'System should function correctly without errors'}\n`;
+
+  return formatted;
+};
+
 const getConversationSteps = (metadata: JiraMetadata | null): ConversationStep[] => {
   const moduleOptions = metadata?.components?.length 
     ? metadata.components.map((comp, i) => ({
@@ -319,13 +367,27 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
     
-    // AI enhancement feedback
+    // AI enhancement feedback with structured formatting
     if (step.aiEnhance) {
       await simulateBotTyping(600);
-      addMessage({
-        type: 'system',
-        content: `✨ AI enhanced your ${step.field}: improved clarity and formatting.`,
-      });
+      
+      if (step.field === 'description') {
+        // Format description in structured Jira format
+        const formattedDescription = formatDescriptionAsJiraFormat(value, ticketData.summary || '');
+        setTicketData(prev => ({
+          ...prev,
+          description: formattedDescription,
+        }));
+        addMessage({
+          type: 'system',
+          content: `✨ AI enhanced your description with structured format:\n• Environment details\n• Step-by-step procedure\n• Actual/Expected results`,
+        });
+      } else {
+        addMessage({
+          type: 'system',
+          content: `✨ AI enhanced your ${step.field}: improved clarity and formatting.`,
+        });
+      }
     }
     
     await moveToNextStep();
