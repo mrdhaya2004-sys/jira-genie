@@ -19,54 +19,6 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-// Format description in structured Jira ticket format
-const formatDescriptionAsJiraFormat = (rawDescription: string, summary: string): string => {
-  // Check if already formatted
-  if (rawDescription.includes('Environment:') || rawDescription.includes('Procedure:')) {
-    return rawDescription;
-  }
-
-  // Extract any version/environment info if present
-  const versionMatch = rawDescription.match(/(\d+\.\d+\.?\d*)/);
-  const environment = versionMatch ? versionMatch[1] : 'N/A';
-
-  // Parse description for steps if user provided numbered items or bullet points
-  const lines = rawDescription.split(/[\n,;]/).map(l => l.trim()).filter(Boolean);
-  
-  // Try to detect actual vs expected results
-  let actualResult = '';
-  let expectedResult = '';
-  let procedureSteps: string[] = [];
-  
-  lines.forEach(line => {
-    const lowerLine = line.toLowerCase();
-    if (lowerLine.includes('actual') || lowerLine.includes('result:') || lowerLine.includes('happens')) {
-      actualResult = line.replace(/^(actual result:?|result:?)/i, '').trim();
-    } else if (lowerLine.includes('expected') || lowerLine.includes('should')) {
-      expectedResult = line.replace(/^(expected result:?|should:?)/i, '').trim();
-    } else {
-      procedureSteps.push(line);
-    }
-  });
-
-  // If no structured steps found, use the whole description as context
-  if (procedureSteps.length === 0) {
-    procedureSteps = [rawDescription];
-  }
-
-  // Build formatted description
-  let formatted = `*Environment:* ${environment}\n\n`;
-  formatted += `*Summary:* ${summary}\n\n`;
-  formatted += `*Procedure:*\n`;
-  procedureSteps.forEach((step, i) => {
-    formatted += `${i + 1}. ${step}\n`;
-  });
-  formatted += `\n*Actual Result:* ${actualResult || procedureSteps[procedureSteps.length - 1] || 'See above'}\n`;
-  formatted += `*Expected Result:* ${expectedResult || 'System should function correctly without errors'}\n`;
-
-  return formatted;
-};
-
 const getConversationSteps = (metadata: JiraMetadata | null): ConversationStep[] => {
   const moduleOptions = metadata?.components?.length 
     ? metadata.components.map((comp, i) => ({
@@ -112,8 +64,17 @@ const getConversationSteps = (metadata: JiraMetadata | null): ConversationStep[]
         { id: 'auto', label: 'Auto-assign', value: 'auto', icon: '🤖', description: 'Let AI assign based on workload' },
       ];
 
+  // Always include Bug as an option, plus any from metadata
+  const defaultIssueTypes = [
+    { id: 'bug', label: 'Bug', value: 'Bug', icon: '🐛', description: 'Something is broken', color: 'destructive' as const },
+    { id: 'task', label: 'Task', value: 'Task', icon: '✅', description: 'A piece of work to be done', color: 'primary' as const },
+    { id: 'story', label: 'Story', value: 'Story', icon: '📖', description: 'A new feature', color: 'success' as const },
+    { id: 'epic', label: 'Epic', value: 'Epic', icon: '🚀', description: 'Large initiative', color: 'secondary' as const },
+    { id: 'incident', label: 'Incident', value: 'Incident', icon: '🚨', description: 'Production issue', color: 'warning' as const },
+  ];
+
   const issueTypeOptions = metadata?.issueTypes?.length
-    ? metadata.issueTypes.slice(0, 4).map((type) => {
+    ? (() => {
         const iconMap: Record<string, string> = {
           'Bug': '🐛',
           'Task': '✅',
@@ -121,19 +82,30 @@ const getConversationSteps = (metadata: JiraMetadata | null): ConversationStep[]
           'Epic': '🚀',
           'Incident': '🚨',
         };
-        return {
+        const descMap: Record<string, string> = {
+          'Bug': 'Something is broken',
+          'Task': 'A piece of work to be done',
+          'Story': 'A new feature',
+          'Epic': 'Large initiative',
+          'Incident': 'Production issue',
+        };
+        const metadataTypes = metadata.issueTypes.map((type) => ({
           id: type.toLowerCase(),
           label: type,
           value: type,
           icon: iconMap[type] || '📋',
-        };
-      })
-    : [
-        { id: 'bug', label: 'Bug', value: 'Bug', icon: '🐛', description: 'Something is broken', color: 'destructive' as const },
-        { id: 'task', label: 'Task', value: 'Task', icon: '✅', description: 'A piece of work to be done', color: 'primary' as const },
-        { id: 'story', label: 'Story', value: 'Story', icon: '📖', description: 'A new feature', color: 'success' as const },
-        { id: 'incident', label: 'Incident', value: 'Incident', icon: '🚨', description: 'Production issue', color: 'warning' as const },
-      ];
+          description: descMap[type] || '',
+        }));
+        
+        // Ensure Bug is always available - add it if not present
+        const hasBug = metadataTypes.some(t => t.value.toLowerCase() === 'bug');
+        if (!hasBug) {
+          metadataTypes.unshift({ id: 'bug', label: 'Bug', value: 'Bug', icon: '🐛', description: 'Something is broken' });
+        }
+        
+        return metadataTypes.slice(0, 5);
+      })()
+    : defaultIssueTypes;
 
   return [
     {
@@ -144,18 +116,32 @@ const getConversationSteps = (metadata: JiraMetadata | null): ConversationStep[]
       aiEnhance: true,
     },
     {
-      id: 'description',
-      field: 'description',
-      question: "Got it! Now, could you provide more **details** about this issue? Include any error messages, steps to reproduce, or relevant context.",
-      inputType: 'text',
-      aiEnhance: true,
-    },
-    {
       id: 'issueType',
       field: 'issueType',
-      question: "Based on your description, I'll help categorize this. What **type of issue** is this?",
+      question: "What **type of issue** is this?",
       inputType: 'select',
       options: issueTypeOptions,
+    },
+    {
+      id: 'description',
+      field: 'description',
+      question: "Now, please provide the **steps to reproduce** or describe the procedure. Include any relevant details like version, environment, or error messages.",
+      inputType: 'text',
+      aiEnhance: false,
+    },
+    {
+      id: 'actualResult',
+      field: 'actualResult',
+      question: "What is the **Actual Result**? Describe what actually happened or what you observed.",
+      inputType: 'text',
+      aiEnhance: false,
+    },
+    {
+      id: 'expectedResult',
+      field: 'expectedResult',
+      question: "What is the **Expected Result**? Describe what should have happened or the correct behavior.",
+      inputType: 'text',
+      aiEnhance: false,
     },
     {
       id: 'priority',
@@ -261,7 +247,24 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const createJiraTicket = useCallback(async (): Promise<{ success: boolean; ticketKey?: string; ticketUrl?: string; error?: string }> => {
-    const result = await jiraService.createTicket(ticketData as TicketData);
+    // Combine description with actual/expected results into structured format
+    const structuredDescription = `*Environment:* N/A
+
+*Summary:* ${ticketData.summary || ''}
+
+*Procedure:*
+${ticketData.description || 'No steps provided'}
+
+*Actual Result:* ${ticketData.actualResult || 'Not specified'}
+
+*Expected Result:* ${ticketData.expectedResult || 'Not specified'}`;
+
+    const finalTicketData = {
+      ...ticketData,
+      description: structuredDescription,
+    } as TicketData;
+
+    const result = await jiraService.createTicket(finalTicketData);
     return result;
   }, [ticketData]);
 
@@ -273,15 +276,16 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const step = conversationSteps[nextStep];
       
-      // Check for duplicates before confirmation
-      if (step.field === 'confirmation' && ticketData.summary && ticketData.description) {
+      // Check for duplicates before confirmation - use combined description
+      if (step.field === 'confirmation' && ticketData.summary) {
         setIsTyping(true);
         addMessage({
           type: 'system',
           content: "🔍 Checking for duplicate tickets...",
         });
         
-        const duplicates = await checkForDuplicates(ticketData.summary, ticketData.description);
+        const combinedDesc = `${ticketData.description || ''} ${ticketData.actualResult || ''} ${ticketData.expectedResult || ''}`;
+        const duplicates = await checkForDuplicates(ticketData.summary, combinedDesc);
         setIsTyping(false);
         
         if (duplicates.length > 0) {
@@ -300,12 +304,18 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
       
+      // Build preview with structured description
+      const ticketPreviewData = step.field === 'confirmation' ? {
+        ...ticketData,
+        description: `*Procedure:* ${ticketData.description || 'N/A'}\n*Actual Result:* ${ticketData.actualResult || 'N/A'}\n*Expected Result:* ${ticketData.expectedResult || 'N/A'}`,
+      } : undefined;
+      
       addMessage({
         type: 'bot',
         content: step.question,
         options: step.options,
         inputType: step.inputType,
-        ticketPreview: step.field === 'confirmation' ? ticketData : undefined,
+        ticketPreview: ticketPreviewData,
       });
       
       setCurrentStep(nextStep);
@@ -367,52 +377,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
     
-    // AI enhancement with Lovable AI
-    if (step.aiEnhance) {
-      if (step.field === 'description') {
-        setIsTyping(true);
-        addMessage({
-          type: 'system',
-          content: '🤖 AI is enhancing your description with structured format...',
-        });
-        
-        // Call AI enhancement service
-        const { enhancedDescription, error } = await jiraService.enhanceDescription(
-          ticketData.summary || '',
-          value,
-          ticketData.issueType
-        );
-        
-        setIsTyping(false);
-        
-        if (enhancedDescription && !error) {
-          setTicketData(prev => ({
-            ...prev,
-            description: enhancedDescription,
-          }));
-          addMessage({
-            type: 'system',
-            content: `✨ AI enhanced your description with:\n• Environment details\n• Step-by-step procedure\n• Actual Result\n• Expected Result`,
-          });
-        } else {
-          // Fallback to local formatting
-          const formattedDescription = formatDescriptionAsJiraFormat(value, ticketData.summary || '');
-          setTicketData(prev => ({
-            ...prev,
-            description: formattedDescription,
-          }));
-          addMessage({
-            type: 'system',
-            content: `✨ Description formatted with structured template.`,
-          });
-        }
-      } else {
-        await simulateBotTyping(600);
-        addMessage({
-          type: 'system',
-          content: `✨ AI enhanced your ${step.field}: improved clarity and formatting.`,
-        });
-      }
+    // AI enhancement for summary only
+    if (step.aiEnhance && step.field === 'summary') {
+      await simulateBotTyping(600);
+      addMessage({
+        type: 'system',
+        content: `✨ AI enhanced your summary: improved clarity and formatting.`,
+      });
     }
     
     await moveToNextStep();
