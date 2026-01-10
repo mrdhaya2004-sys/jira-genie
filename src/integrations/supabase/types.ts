@@ -26,6 +26,7 @@ export type Database = {
           source_id: string | null
           source_title: string | null
           source_type: string
+          workspace_id: string | null
         }
         Insert: {
           content_snippet: string
@@ -38,6 +39,7 @@ export type Database = {
           source_id?: string | null
           source_title?: string | null
           source_type: string
+          workspace_id?: string | null
         }
         Update: {
           content_snippet?: string
@@ -50,8 +52,17 @@ export type Database = {
           source_id?: string | null
           source_title?: string | null
           source_type?: string
+          workspace_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mentions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
