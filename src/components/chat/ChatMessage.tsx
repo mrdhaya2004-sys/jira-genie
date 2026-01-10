@@ -1,4 +1,5 @@
 import React from 'react';
+import DOMPurify from 'dompurify';
 import { ChatMessage as ChatMessageType } from '@/types/ticket';
 import { Bot, User, Info, ExternalLink, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -7,6 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import ChatOptions from './ChatOptions';
 import TicketPreview from './TicketPreview';
 
+// Configure DOMPurify to allow only safe HTML tags and attributes
+const sanitizeConfig = {
+  ALLOWED_TAGS: ['strong', 'a', 'br', 'li'],
+  ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+};
 interface ChatMessageProps {
   message: ChatMessageType;
   onOptionSelect?: (option: any) => void;
@@ -79,7 +85,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
           )}
         >
           <div 
-            dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
+            dangerouslySetInnerHTML={{ 
+              __html: DOMPurify.sanitize(formatContent(message.content), sanitizeConfig) 
+            }}
             className="[&_li]:list-disc [&_a]:inline-flex [&_a]:items-center [&_a]:gap-1"
           />
         </div>

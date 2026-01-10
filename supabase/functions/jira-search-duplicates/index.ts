@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,6 +27,34 @@ serve(async (req) => {
   }
 
   try {
+    // Validate authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized', duplicates: [], totalCount: 0 }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Server configuration error');
+    }
+
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized', duplicates: [], totalCount: 0 }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const jiraDomainRaw = Deno.env.get('JIRA_DOMAIN');
     const jiraDomain = jiraDomainRaw ? sanitizeDomain(jiraDomainRaw) : null;
     const jiraEmail = Deno.env.get('JIRA_USER_EMAIL');
@@ -41,7 +70,7 @@ serve(async (req) => {
     }
 
     const { summary, description }: SearchRequest = await req.json();
-    console.log('Searching for duplicates with summary:', summary);
+    console.log('Searching for duplicates for user:', user.id);
 
     const auth = btoa(`${jiraEmail}:${jiraApiToken}`);
     

@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -32,6 +33,34 @@ serve(async (req) => {
   }
 
   try {
+    // Validate authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Server configuration error');
+    }
+
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const jiraDomainRaw = Deno.env.get('JIRA_DOMAIN');
     const jiraDomain = jiraDomainRaw ? sanitizeDomain(jiraDomainRaw) : null;
     const jiraEmail = Deno.env.get('JIRA_USER_EMAIL');
@@ -47,7 +76,7 @@ serve(async (req) => {
     }
 
     const ticketData: TicketRequest = await req.json();
-    console.log('Creating Jira ticket with data:', JSON.stringify(ticketData));
+    console.log('Creating Jira ticket for user:', user.id);
 
     // Map priority to Jira priority IDs (these are standard Jira priority IDs)
     const priorityMap: Record<string, string> = {
@@ -160,7 +189,7 @@ serve(async (req) => {
       (issuePayload.fields as Record<string, unknown>).components = [{ name: ticketData.module }];
     }
 
-    console.log('Sending to Jira API:', JSON.stringify(issuePayload));
+    console.log('Sending to Jira API');
 
     const response = await fetch(`https://${jiraDomain}/rest/api/3/issue`, {
       method: 'POST',
@@ -174,7 +203,6 @@ serve(async (req) => {
 
     const responseText = await response.text();
     console.log('Jira API response status:', response.status);
-    console.log('Jira API response:', responseText);
 
     if (!response.ok) {
       let errorMessage = 'Failed to create Jira ticket';
