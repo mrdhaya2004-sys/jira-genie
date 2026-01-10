@@ -15,6 +15,7 @@ interface ChatContextType {
   handleOptionSelect: (option: ChatOption) => void;
   resetChat: () => void;
   startNewTicket: () => void;
+  handleEditTicket: () => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -304,10 +305,9 @@ ${ticketData.description || 'No steps provided'}
         }
       }
       
-      // Build preview with structured description
+      // Build preview with all ticket data for display
       const ticketPreviewData = step.field === 'confirmation' ? {
         ...ticketData,
-        description: `*Procedure:* ${ticketData.description || 'N/A'}\n*Actual Result:* ${ticketData.actualResult || 'N/A'}\n*Expected Result:* ${ticketData.expectedResult || 'N/A'}`,
       } : undefined;
       
       addMessage({
@@ -449,6 +449,17 @@ ${ticketData.description || 'No steps provided'}
     });
   }, [jiraMetadata]);
 
+  const handleEditTicket = useCallback(async () => {
+    // Go back to the first step while keeping the ticket data for re-editing
+    await simulateBotTyping(400);
+    addMessage({
+      type: 'bot',
+      content: "📝 Let's re-edit your ticket. I'll walk you through each field again. You can update any details you'd like to change.\n\nWhat's the **issue or request** you'd like to report? (Current: " + (ticketData.summary || 'Not set') + ")",
+      inputType: 'text',
+    });
+    setCurrentStep(0);
+  }, [ticketData, addMessage, simulateBotTyping]);
+
   return (
     <ChatContext.Provider
       value={{
@@ -462,6 +473,7 @@ ${ticketData.description || 'No steps provided'}
         handleOptionSelect,
         resetChat,
         startNewTicket,
+        handleEditTicket,
       }}
     >
       {children}

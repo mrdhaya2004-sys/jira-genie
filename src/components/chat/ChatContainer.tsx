@@ -5,7 +5,7 @@ import ChatInput from './ChatInput';
 import TypingIndicator from './TypingIndicator';
 
 const ChatContainer: React.FC = () => {
-  const { messages, isTyping, handleUserInput, handleOptionSelect, startNewTicket } = useChat();
+  const { messages, isTyping, handleUserInput, handleOptionSelect, startNewTicket, handleEditTicket } = useChat();
   const scrollRef = useRef<HTMLDivElement>(null);
   const hasStarted = useRef(false);
 
@@ -30,6 +30,10 @@ const ChatContainer: React.FC = () => {
     handleUserInput('cancel');
   };
 
+  const handleEdit = () => {
+    handleEditTicket();
+  };
+
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Messages Area */}
@@ -45,6 +49,7 @@ const ChatContainer: React.FC = () => {
               onOptionSelect={handleOptionSelect}
               onConfirm={handleConfirm}
               onCancel={handleCancel}
+              onEdit={handleEdit}
             />
           ))}
           {isTyping && <TypingIndicator />}

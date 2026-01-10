@@ -18,13 +18,15 @@ interface ChatMessageProps {
   onOptionSelect?: (option: any) => void;
   onConfirm?: () => void;
   onCancel?: () => void;
+  onEdit?: () => void;
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ 
   message, 
   onOptionSelect,
   onConfirm,
-  onCancel 
+  onCancel,
+  onEdit
 }) => {
   const isUser = message.type === 'user';
   const isSystem = message.type === 'system';
@@ -141,6 +143,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
             ticket={message.ticketPreview} 
             onConfirm={onConfirm!}
             onCancel={onCancel!}
+            onEdit={onEdit}
           />
         )}
 
