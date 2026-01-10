@@ -1,4 +1,4 @@
-export type IssueType = 'Bug' | 'Task' | 'Story' | 'Incident';
+export type IssueType = 'Bug' | 'Task' | 'Story' | 'Epic' | 'Incident';
 export type Priority = 'Low' | 'Medium' | 'High' | 'Critical';
 export type TicketStatus = 'draft' | 'pending' | 'created' | 'failed';
 
@@ -14,6 +14,8 @@ export interface Attachment {
 export interface TicketData {
   summary: string;
   description: string;
+  actualResult: string;
+  expectedResult: string;
   issueType: IssueType;
   priority: Priority;
   module: string;

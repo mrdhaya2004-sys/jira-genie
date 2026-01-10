@@ -8,6 +8,7 @@ import {
   CheckSquare, 
   BookOpen, 
   AlertTriangle, 
+  Rocket,
   User, 
   Calendar, 
   Layers, 
@@ -27,6 +28,7 @@ const issueTypeConfig: Record<IssueType, { icon: any; color: string }> = {
   Bug: { icon: Bug, color: 'text-status-bug' },
   Task: { icon: CheckSquare, color: 'text-status-task' },
   Story: { icon: BookOpen, color: 'text-status-story' },
+  Epic: { icon: Rocket, color: 'text-primary' },
   Incident: { icon: AlertTriangle, color: 'text-status-incident' },
 };
 
