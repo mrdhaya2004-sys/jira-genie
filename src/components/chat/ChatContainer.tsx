@@ -3,9 +3,10 @@ import { useChat } from '@/contexts/ChatContext';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import TypingIndicator from './TypingIndicator';
+import DynamicInputForm from './DynamicInputForm';
 
 const ChatContainer: React.FC = () => {
-  const { messages, isTyping, handleUserInput, handleOptionSelect, startNewTicket, handleEditTicket } = useChat();
+  const { messages, isTyping, handleUserInput, handleOptionSelect, handleDynamicInputSubmit, startNewTicket, handleEditTicket, currentPhase, dynamicInputs } = useChat();
   const scrollRef = useRef<HTMLDivElement>(null);
   const hasStarted = useRef(false);
 
@@ -53,6 +54,14 @@ const ChatContainer: React.FC = () => {
             />
           ))}
           {isTyping && <TypingIndicator />}
+          
+          {/* Dynamic Input Form */}
+          {currentPhase === 'dynamic_questions' && dynamicInputs.length > 0 && (
+            <DynamicInputForm 
+              inputs={dynamicInputs}
+              onSubmit={handleDynamicInputSubmit}
+            />
+          )}
         </div>
       </div>
 
@@ -60,7 +69,7 @@ const ChatContainer: React.FC = () => {
       <div className="max-w-3xl mx-auto w-full">
         <ChatInput
           onSend={handleUserInput}
-          disabled={isTyping}
+          disabled={isTyping || currentPhase === 'dynamic_questions'}
           placeholder="Type your response..."
         />
       </div>

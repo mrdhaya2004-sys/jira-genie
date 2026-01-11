@@ -1,18 +1,44 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { ChatMessage, TicketData, ConversationStep, ChatOption, DuplicateTicket } from '@/types/ticket';
+import { ChatMessage, TicketData, ChatOption, DuplicateTicket, DynamicInput, Platform, Environment, TitleAnalysisResult } from '@/types/ticket';
 import { useAuth } from './AuthContext';
 import { jiraService, JiraMetadata, DuplicateIssue } from '@/services/jiraService';
 import { toast } from 'sonner';
 
+// Intelligent flow phases
+type FlowPhase = 
+  | 'welcome'
+  | 'title_input'
+  | 'analyzing_title'
+  | 'issue_type'
+  | 'platform_selection'
+  | 'dynamic_questions'
+  | 'generating_steps'
+  | 'steps_review'
+  | 'actual_result'
+  | 'expected_result'
+  | 'enhancing_results'
+  | 'priority'
+  | 'module'
+  | 'sprint'
+  | 'assignee'
+  | 'environment'
+  | 'attachments'
+  | 'confirmation'
+  | 'creating_ticket'
+  | 'completed';
+
 interface ChatContextType {
   messages: ChatMessage[];
-  currentStep: number;
+  currentPhase: FlowPhase;
   ticketData: Partial<TicketData>;
   isTyping: boolean;
   jiraMetadata: JiraMetadata | null;
+  dynamicInputs: DynamicInput[];
+  userDynamicInputs: Record<string, string>;
   addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
   handleUserInput: (value: string, attachments?: File[]) => void;
   handleOptionSelect: (option: ChatOption) => void;
+  handleDynamicInputSubmit: (inputs: Record<string, string>) => void;
   resetChat: () => void;
   startNewTicket: () => void;
   handleEditTicket: () => void;
@@ -20,189 +46,19 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-const getConversationSteps = (metadata: JiraMetadata | null): ConversationStep[] => {
-  const moduleOptions = metadata?.components?.length 
-    ? metadata.components.map((comp, i) => ({
-        id: `comp-${i}`,
-        label: comp,
-        value: comp,
-        icon: '📦',
-      }))
-    : [
-        { id: 'auth', label: 'Authentication', value: 'Authentication', icon: '🔐' },
-        { id: 'database', label: 'Database', value: 'Database', icon: '🗄️' },
-        { id: 'api', label: 'API Services', value: 'API Services', icon: '🔌' },
-        { id: 'ui', label: 'User Interface', value: 'User Interface', icon: '🖥️' },
-        { id: 'infra', label: 'Infrastructure', value: 'Infrastructure', icon: '☁️' },
-        { id: 'security', label: 'Security', value: 'Security', icon: '🛡️' },
-      ];
-
-  const sprintOptions = metadata?.sprints?.length
-    ? metadata.sprints.map((sprint) => ({
-        id: `sprint-${sprint.id}`,
-        label: sprint.name,
-        value: sprint.name,
-        icon: '🏃',
-      }))
-    : [
-        { id: 'current', label: 'Current Sprint', value: 'Current Sprint', icon: '🏃' },
-        { id: 'next', label: 'Next Sprint', value: 'Next Sprint', icon: '📅' },
-        { id: 'backlog', label: 'Backlog', value: 'Backlog', icon: '📋' },
-      ];
-
-  const assigneeOptions = metadata?.users?.length
-    ? [
-        { id: 'auto', label: 'Auto-assign', value: 'auto', icon: '🤖', description: 'Let AI assign based on workload' },
-        ...metadata.users.slice(0, 6).map((user) => ({
-          id: user.accountId,
-          label: user.displayName,
-          value: user.accountId,
-          icon: '👤',
-          description: user.emailAddress || '',
-        })),
-      ]
-    : [
-        { id: 'auto', label: 'Auto-assign', value: 'auto', icon: '🤖', description: 'Let AI assign based on workload' },
-      ];
-
-  // Always include Bug as an option, plus any from metadata
-  const defaultIssueTypes = [
-    { id: 'bug', label: 'Bug', value: 'Bug', icon: '🐛', description: 'Something is broken', color: 'destructive' as const },
-    { id: 'task', label: 'Task', value: 'Task', icon: '✅', description: 'A piece of work to be done', color: 'primary' as const },
-    { id: 'story', label: 'Story', value: 'Story', icon: '📖', description: 'A new feature', color: 'success' as const },
-    { id: 'epic', label: 'Epic', value: 'Epic', icon: '🚀', description: 'Large initiative', color: 'secondary' as const },
-    { id: 'incident', label: 'Incident', value: 'Incident', icon: '🚨', description: 'Production issue', color: 'warning' as const },
-  ];
-
-  const issueTypeOptions = metadata?.issueTypes?.length
-    ? (() => {
-        const iconMap: Record<string, string> = {
-          'Bug': '🐛',
-          'Task': '✅',
-          'Story': '📖',
-          'Epic': '🚀',
-          'Incident': '🚨',
-        };
-        const descMap: Record<string, string> = {
-          'Bug': 'Something is broken',
-          'Task': 'A piece of work to be done',
-          'Story': 'A new feature',
-          'Epic': 'Large initiative',
-          'Incident': 'Production issue',
-        };
-        const metadataTypes = metadata.issueTypes.map((type) => ({
-          id: type.toLowerCase(),
-          label: type,
-          value: type,
-          icon: iconMap[type] || '📋',
-          description: descMap[type] || '',
-        }));
-        
-        // Ensure Bug is always available - add it if not present
-        const hasBug = metadataTypes.some(t => t.value.toLowerCase() === 'bug');
-        if (!hasBug) {
-          metadataTypes.unshift({ id: 'bug', label: 'Bug', value: 'Bug', icon: '🐛', description: 'Something is broken' });
-        }
-        
-        return metadataTypes.slice(0, 5);
-      })()
-    : defaultIssueTypes;
-
-  return [
-    {
-      id: 'summary',
-      field: 'summary',
-      question: "Hi! 👋 I'm your IT Support Assistant. I'll help you create a Jira ticket. Let's start with the basics.\n\nWhat's the **issue or request** you'd like to report? Please provide a brief summary.",
-      inputType: 'text',
-      aiEnhance: true,
-    },
-    {
-      id: 'issueType',
-      field: 'issueType',
-      question: "What **type of issue** is this?",
-      inputType: 'select',
-      options: issueTypeOptions,
-    },
-    {
-      id: 'description',
-      field: 'description',
-      question: "Now, please provide the **steps to reproduce** or describe the procedure. Include any relevant details like version, environment, or error messages.",
-      inputType: 'text',
-      aiEnhance: false,
-    },
-    {
-      id: 'actualResult',
-      field: 'actualResult',
-      question: "What is the **Actual Result**? Describe what actually happened or what you observed.",
-      inputType: 'text',
-      aiEnhance: false,
-    },
-    {
-      id: 'expectedResult',
-      field: 'expectedResult',
-      question: "What is the **Expected Result**? Describe what should have happened or the correct behavior.",
-      inputType: 'text',
-      aiEnhance: false,
-    },
-    {
-      id: 'priority',
-      field: 'priority',
-      question: "What's the **priority** level for this issue?",
-      inputType: 'select',
-      options: [
-        { id: 'critical', label: 'Critical', value: 'Critical', icon: '🔴', description: 'System down, blocking all work', color: 'destructive' as const },
-        { id: 'high', label: 'High', value: 'High', icon: '🟠', description: 'Major impact, needs urgent attention', color: 'warning' as const },
-        { id: 'medium', label: 'Medium', value: 'Medium', icon: '🔵', description: 'Moderate impact, can wait a bit', color: 'primary' as const },
-        { id: 'low', label: 'Low', value: 'Low', icon: '🟢', description: 'Minor issue, no rush', color: 'success' as const },
-      ],
-    },
-    {
-      id: 'module',
-      field: 'module',
-      question: "Which **module or component** is affected?",
-      inputType: 'select',
-      options: moduleOptions,
-    },
-    {
-      id: 'sprint',
-      field: 'sprint',
-      question: "Which **sprint** should this be assigned to?",
-      inputType: 'select',
-      options: sprintOptions,
-    },
-    {
-      id: 'assignee',
-      field: 'assignee',
-      question: "Who should this be **assigned** to? I can suggest team members based on the module.",
-      inputType: 'select',
-      options: assigneeOptions,
-    },
-    {
-      id: 'attachments',
-      field: 'attachments',
-      question: "Would you like to add any **attachments**? Screenshots or videos can help resolve issues faster.",
-      inputType: 'file',
-    },
-    {
-      id: 'confirmation',
-      field: 'confirmation',
-      question: "Great! I've prepared your ticket. Please review the details below and confirm to create it.",
-      inputType: 'confirmation',
-    },
-  ];
-};
-
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { profile } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [currentStep, setCurrentStep] = useState(-1);
+  const [currentPhase, setCurrentPhase] = useState<FlowPhase>('welcome');
   const [ticketData, setTicketData] = useState<Partial<TicketData>>({
     projectKey: 'CLOUD',
     attachments: [],
   });
   const [isTyping, setIsTyping] = useState(false);
   const [jiraMetadata, setJiraMetadata] = useState<JiraMetadata | null>(null);
-  const [conversationSteps, setConversationSteps] = useState<ConversationStep[]>(getConversationSteps(null));
+  const [dynamicInputs, setDynamicInputs] = useState<DynamicInput[]>([]);
+  const [userDynamicInputs, setUserDynamicInputs] = useState<Record<string, string>>({});
+  const [titleAnalysis, setTitleAnalysis] = useState<TitleAnalysisResult | null>(null);
 
   // Fetch Jira metadata on mount
   useEffect(() => {
@@ -210,7 +66,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const metadata = await jiraService.getMetadata();
       if (metadata) {
         setJiraMetadata(metadata);
-        setConversationSteps(getConversationSteps(metadata));
         setTicketData(prev => ({
           ...prev,
           projectKey: metadata.projectKey,
@@ -229,7 +84,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMessages(prev => [...prev, newMessage]);
   }, []);
 
-  const simulateBotTyping = useCallback(async (delay: number = 1000) => {
+  const simulateBotTyping = useCallback(async (delay: number = 800) => {
     setIsTyping(true);
     await new Promise(resolve => setTimeout(resolve, delay));
     setIsTyping(false);
@@ -242,19 +97,28 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       key: dup.key,
       summary: dup.summary,
       status: dup.status,
-      similarity: 0.75, // Approximate similarity score
+      similarity: 0.75,
       url: dup.url,
     }));
   }, []);
 
   const createJiraTicket = useCallback(async (): Promise<{ success: boolean; ticketKey?: string; ticketUrl?: string; error?: string }> => {
-    // Combine description with actual/expected results into structured format
-    const structuredDescription = `*Environment:* N/A
+    // Format the description with generated steps
+    const stepsText = ticketData.generatedSteps?.length 
+      ? ticketData.generatedSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')
+      : ticketData.description || 'No steps provided';
+
+    const preconditionsText = ticketData.preconditions?.length
+      ? ticketData.preconditions.map(p => `- ${p}`).join('\n')
+      : '';
+
+    const structuredDescription = `*Environment:* ${ticketData.environment || 'N/A'}
+*Platform:* ${ticketData.platform || 'N/A'}
 
 *Summary:* ${ticketData.summary || ''}
 
-*Procedure:*
-${ticketData.description || 'No steps provided'}
+${preconditionsText ? `*Preconditions:*\n${preconditionsText}\n\n` : ''}*Steps to Reproduce:*
+${stepsText}
 
 *Actual Result:* ${ticketData.actualResult || 'Not specified'}
 
@@ -269,24 +133,241 @@ ${ticketData.description || 'No steps provided'}
     return result;
   }, [ticketData]);
 
-  const moveToNextStep = useCallback(async () => {
-    const nextStep = currentStep + 1;
-    
-    if (nextStep < conversationSteps.length) {
-      await simulateBotTyping(800);
-      
-      const step = conversationSteps[nextStep];
-      
-      // Check for duplicates before confirmation - use combined description
-      if (step.field === 'confirmation' && ticketData.summary) {
+  // Get options based on metadata
+  const getModuleOptions = useCallback((): ChatOption[] => {
+    if (jiraMetadata?.components?.length) {
+      return jiraMetadata.components.map((comp, i) => ({
+        id: `comp-${i}`,
+        label: comp,
+        value: comp,
+        icon: '📦',
+      }));
+    }
+    return [
+      { id: 'auth', label: 'Authentication', value: 'Authentication', icon: '🔐' },
+      { id: 'database', label: 'Database', value: 'Database', icon: '🗄️' },
+      { id: 'api', label: 'API Services', value: 'API Services', icon: '🔌' },
+      { id: 'ui', label: 'User Interface', value: 'User Interface', icon: '🖥️' },
+    ];
+  }, [jiraMetadata]);
+
+  const getSprintOptions = useCallback((): ChatOption[] => {
+    if (jiraMetadata?.sprints?.length) {
+      return jiraMetadata.sprints.map((sprint) => ({
+        id: `sprint-${sprint.id}`,
+        label: sprint.name,
+        value: sprint.name,
+        icon: '🏃',
+      }));
+    }
+    return [
+      { id: 'current', label: 'Current Sprint', value: 'Current Sprint', icon: '🏃' },
+      { id: 'next', label: 'Next Sprint', value: 'Next Sprint', icon: '📅' },
+      { id: 'backlog', label: 'Backlog', value: 'Backlog', icon: '📋' },
+    ];
+  }, [jiraMetadata]);
+
+  const getAssigneeOptions = useCallback((): ChatOption[] => {
+    const options: ChatOption[] = [
+      { id: 'auto', label: 'Auto-assign', value: 'auto', icon: '🤖', description: 'Let AI assign based on workload' },
+    ];
+    if (jiraMetadata?.users?.length) {
+      options.push(...jiraMetadata.users.slice(0, 6).map((user) => ({
+        id: user.accountId,
+        label: user.displayName,
+        value: user.accountId,
+        icon: '👤',
+        description: user.emailAddress || '',
+      })));
+    }
+    return options;
+  }, [jiraMetadata]);
+
+  const getIssueTypeOptions = useCallback((): ChatOption[] => {
+    const defaultTypes: ChatOption[] = [
+      { id: 'bug', label: 'Bug', value: 'Bug', icon: '🐛', description: 'Something is broken' },
+      { id: 'task', label: 'Task', value: 'Task', icon: '✅', description: 'A piece of work to be done' },
+      { id: 'story', label: 'Story', value: 'Story', icon: '📖', description: 'A new feature' },
+      { id: 'epic', label: 'Epic', value: 'Epic', icon: '🚀', description: 'Large initiative' },
+      { id: 'incident', label: 'Incident', value: 'Incident', icon: '🚨', description: 'Production issue' },
+    ];
+
+    if (jiraMetadata?.issueTypes?.length) {
+      const iconMap: Record<string, string> = { Bug: '🐛', Task: '✅', Story: '📖', Epic: '🚀', Incident: '🚨' };
+      const descMap: Record<string, string> = {
+        Bug: 'Something is broken',
+        Task: 'A piece of work to be done',
+        Story: 'A new feature',
+        Epic: 'Large initiative',
+        Incident: 'Production issue',
+      };
+      return jiraMetadata.issueTypes.slice(0, 5).map((type) => ({
+        id: type.toLowerCase(),
+        label: type,
+        value: type,
+        icon: iconMap[type] || '📋',
+        description: descMap[type] || '',
+      }));
+    }
+    return defaultTypes;
+  }, [jiraMetadata]);
+
+  // Phase transition handlers
+  const moveToPhase = useCallback(async (phase: FlowPhase) => {
+    setCurrentPhase(phase);
+    await simulateBotTyping(600);
+
+    switch (phase) {
+      case 'title_input':
+        addMessage({
+          type: 'bot',
+          content: "Please provide a **short title** for the Jira ticket.\n\nExample: \"Login issue\", \"Payment failing on checkout\", \"App crashes on profile page\"",
+          inputType: 'text',
+        });
+        break;
+
+      case 'issue_type':
+        addMessage({
+          type: 'bot',
+          content: "What **type of issue** is this?",
+          inputType: 'select',
+          options: getIssueTypeOptions(),
+        });
+        break;
+
+      case 'platform_selection':
+        addMessage({
+          type: 'bot',
+          content: "Which **platform** is affected?",
+          inputType: 'select',
+          options: [
+            { id: 'android', label: 'Android', value: 'Android', icon: '🤖', description: 'Android devices' },
+            { id: 'ios', label: 'iOS', value: 'iOS', icon: '🍎', description: 'iPhone/iPad' },
+            { id: 'web', label: 'Web', value: 'Web', icon: '🌐', description: 'Web browser' },
+            { id: 'both', label: 'Both Mobile', value: 'Both', icon: '📱', description: 'Android and iOS' },
+          ],
+        });
+        break;
+
+      case 'dynamic_questions':
+        if (dynamicInputs.length > 0) {
+          const questionsText = dynamicInputs.map((q, i) => 
+            `${i + 1}. ${q.question}`
+          ).join('\n');
+          
+          addMessage({
+            type: 'bot',
+            content: `Based on your title, I need some additional information to generate accurate steps:\n\n${questionsText}`,
+            inputType: 'dynamic',
+            dynamicInputs: dynamicInputs,
+          });
+        } else {
+          // Skip to steps generation if no questions needed
+          moveToPhase('generating_steps');
+        }
+        break;
+
+      case 'steps_review':
+        if (ticketData.generatedSteps?.length) {
+          addMessage({
+            type: 'bot',
+            content: "✅ **Steps to Reproduce** generated successfully!\n\nReview the steps below:",
+            generatedSteps: ticketData.generatedSteps,
+          });
+          await simulateBotTyping(500);
+          moveToPhase('actual_result');
+        }
+        break;
+
+      case 'actual_result':
+        addMessage({
+          type: 'bot',
+          content: "Please describe the **Actual Result** — what actually happened or what you observed?",
+          inputType: 'text',
+        });
+        break;
+
+      case 'expected_result':
+        addMessage({
+          type: 'bot',
+          content: "What is the **Expected Result** — what should have happened or the correct behavior?",
+          inputType: 'text',
+        });
+        break;
+
+      case 'priority':
+        addMessage({
+          type: 'bot',
+          content: "What's the **priority** level for this issue?",
+          inputType: 'select',
+          options: [
+            { id: 'critical', label: 'Critical', value: 'Critical', icon: '🔴', description: 'System down, blocking all work' },
+            { id: 'high', label: 'High', value: 'High', icon: '🟠', description: 'Major impact, needs urgent attention' },
+            { id: 'medium', label: 'Medium', value: 'Medium', icon: '🔵', description: 'Moderate impact, can wait a bit' },
+            { id: 'low', label: 'Low', value: 'Low', icon: '🟢', description: 'Minor issue, no rush' },
+          ],
+        });
+        break;
+
+      case 'module':
+        addMessage({
+          type: 'bot',
+          content: "Which **module or component** is affected?",
+          inputType: 'select',
+          options: getModuleOptions(),
+        });
+        break;
+
+      case 'sprint':
+        addMessage({
+          type: 'bot',
+          content: "Which **sprint** should this be assigned to?",
+          inputType: 'select',
+          options: getSprintOptions(),
+        });
+        break;
+
+      case 'assignee':
+        addMessage({
+          type: 'bot',
+          content: "Who should this be **assigned** to?",
+          inputType: 'select',
+          options: getAssigneeOptions(),
+        });
+        break;
+
+      case 'environment':
+        addMessage({
+          type: 'bot',
+          content: "Which **environment** does this issue occur in?",
+          inputType: 'select',
+          options: [
+            { id: 'prod', label: 'Production', value: 'Production', icon: '🚀', description: 'Live production environment' },
+            { id: 'uat', label: 'UAT', value: 'UAT', icon: '🧪', description: 'User acceptance testing' },
+            { id: 'beta', label: 'Beta', value: 'Beta', icon: '🔬', description: 'Beta/staging environment' },
+            { id: 'dev', label: 'Development', value: 'Development', icon: '💻', description: 'Development environment' },
+          ],
+        });
+        break;
+
+      case 'attachments':
+        addMessage({
+          type: 'bot',
+          content: "Would you like to add any **attachments**? Screenshots or videos can help resolve issues faster.\n\nType 'skip' to continue without attachments.",
+          inputType: 'file',
+        });
+        break;
+
+      case 'confirmation':
+        // Check for duplicates first
         setIsTyping(true);
         addMessage({
           type: 'system',
           content: "🔍 Checking for duplicate tickets...",
         });
         
-        const combinedDesc = `${ticketData.description || ''} ${ticketData.actualResult || ''} ${ticketData.expectedResult || ''}`;
-        const duplicates = await checkForDuplicates(ticketData.summary, combinedDesc);
+        const combinedDesc = `${ticketData.generatedSteps?.join(' ') || ''} ${ticketData.actualResult || ''} ${ticketData.expectedResult || ''}`;
+        const duplicates = await checkForDuplicates(ticketData.summary || '', combinedDesc);
         setIsTyping(false);
         
         if (duplicates.length > 0) {
@@ -303,121 +384,316 @@ ${ticketData.description || 'No steps provided'}
           });
           await simulateBotTyping(300);
         }
-      }
-      
-      // Build preview with all ticket data for display
-      const ticketPreviewData = step.field === 'confirmation' ? {
-        ...ticketData,
-      } : undefined;
-      
+
+        addMessage({
+          type: 'bot',
+          content: "Great! I've prepared your ticket. Please review the details below and confirm to create it.",
+          inputType: 'confirmation',
+          ticketPreview: ticketData,
+        });
+        break;
+
+      case 'completed':
+        // Do nothing, ticket creation is handled separately
+        break;
+    }
+  }, [addMessage, simulateBotTyping, ticketData, dynamicInputs, checkForDuplicates, getIssueTypeOptions, getModuleOptions, getSprintOptions, getAssigneeOptions]);
+
+  // Handle analyzing title with AI
+  const analyzeTitle = useCallback(async (title: string) => {
+    setCurrentPhase('analyzing_title');
+    setIsTyping(true);
+    
+    addMessage({
+      type: 'system',
+      content: "🧠 Analyzing your title with AI Core Brain...",
+    });
+
+    const { result, error } = await jiraService.analyzeTitle(
+      title,
+      ticketData.issueType,
+      ticketData.platform
+    );
+
+    setIsTyping(false);
+
+    if (error || !result) {
+      addMessage({
+        type: 'system',
+        content: "⚠️ AI analysis encountered an issue. Proceeding with standard flow.",
+      });
+      await moveToPhase('issue_type');
+      return;
+    }
+
+    setTitleAnalysis(result);
+    
+    // Show AI understanding
+    addMessage({
+      type: 'system',
+      content: `✨ **AI Understanding:** ${result.understanding}\n\n*Module detected:* ${result.module}`,
+    });
+
+    // Update module from AI analysis
+    setTicketData(prev => ({
+      ...prev,
+      module: result.module,
+    }));
+
+    // Set dynamic inputs for the next phase
+    if (result.questions && result.questions.length > 0) {
+      setDynamicInputs(result.questions);
+    }
+
+    await simulateBotTyping(500);
+    await moveToPhase('issue_type');
+  }, [ticketData, addMessage, simulateBotTyping, moveToPhase]);
+
+  // Handle generating steps with AI
+  const generateSteps = useCallback(async () => {
+    setCurrentPhase('generating_steps');
+    setIsTyping(true);
+
+    addMessage({
+      type: 'system',
+      content: "🔧 Generating intelligent steps to reproduce...",
+    });
+
+    const { result, error } = await jiraService.generateSteps(
+      ticketData.summary || '',
+      userDynamicInputs,
+      ticketData.issueType,
+      ticketData.platform
+    );
+
+    setIsTyping(false);
+
+    if (error || !result) {
+      addMessage({
+        type: 'system',
+        content: "⚠️ Could not generate steps automatically. Please provide them manually.",
+      });
+      // Fall back to manual input
       addMessage({
         type: 'bot',
-        content: step.question,
-        options: step.options,
-        inputType: step.inputType,
-        ticketPreview: ticketPreviewData,
+        content: "Please describe the **steps to reproduce** the issue:",
+        inputType: 'text',
       });
-      
-      setCurrentStep(nextStep);
+      setCurrentPhase('actual_result');
+      return;
     }
-  }, [currentStep, conversationSteps, ticketData, addMessage, simulateBotTyping, checkForDuplicates]);
+
+    // Store generated steps
+    setTicketData(prev => ({
+      ...prev,
+      generatedSteps: result.steps,
+      preconditions: result.preconditions,
+      description: result.steps.join('\n'),
+    }));
+
+    await moveToPhase('steps_review');
+  }, [ticketData, userDynamicInputs, addMessage, moveToPhase]);
+
+  // Handle enhancing results with AI
+  const enhanceResults = useCallback(async () => {
+    setCurrentPhase('enhancing_results');
+    setIsTyping(true);
+
+    addMessage({
+      type: 'system',
+      content: "✨ Enhancing results with professional Jira language...",
+    });
+
+    const { result, error } = await jiraService.enhanceResults(
+      ticketData.summary || '',
+      ticketData.actualResult || '',
+      ticketData.expectedResult || '',
+      ticketData.issueType
+    );
+
+    setIsTyping(false);
+
+    if (!error && result) {
+      setTicketData(prev => ({
+        ...prev,
+        actualResult: result.enhancedActualResult,
+        expectedResult: result.enhancedExpectedResult,
+      }));
+
+      addMessage({
+        type: 'system',
+        content: "✅ Results enhanced successfully!",
+      });
+    }
+
+    await moveToPhase('priority');
+  }, [ticketData, addMessage, moveToPhase]);
 
   const handleUserInput = useCallback(async (value: string, attachments?: File[]) => {
-    if (currentStep < 0 || currentStep >= conversationSteps.length) return;
-    
-    const step = conversationSteps[currentStep];
-    
     // Add user message
     addMessage({
       type: 'user',
       content: value,
     });
-    
-    // Update ticket data
-    if (step.field !== 'confirmation' && step.field !== 'duplicate_check') {
-      setTicketData(prev => ({
-        ...prev,
-        [step.field]: step.field === 'attachments' ? attachments : value,
-      }));
-    }
-    
-    // Handle confirmation
-    if (step.field === 'confirmation') {
-      if (value.toLowerCase() === 'confirm' || value.toLowerCase() === 'yes') {
-        setIsTyping(true);
-        addMessage({
-          type: 'system',
-          content: "🔄 Creating your Jira ticket...",
-        });
-        
-        const result = await createJiraTicket();
-        setIsTyping(false);
-        
-        if (result.success && result.ticketKey) {
-          toast.success(`Ticket ${result.ticketKey} created successfully!`);
+
+    switch (currentPhase) {
+      case 'title_input':
+        setTicketData(prev => ({ ...prev, summary: value }));
+        await analyzeTitle(value);
+        break;
+
+      case 'actual_result':
+        setTicketData(prev => ({ ...prev, actualResult: value }));
+        await moveToPhase('expected_result');
+        break;
+
+      case 'expected_result':
+        setTicketData(prev => ({ ...prev, expectedResult: value }));
+        await enhanceResults();
+        break;
+
+      case 'attachments':
+        if (value.toLowerCase() === 'skip') {
+          await moveToPhase('confirmation');
+        } else if (attachments?.length) {
+          // Handle attachments
+          setTicketData(prev => ({
+            ...prev,
+            attachments: attachments.map((file, i) => ({
+              id: `att-${i}`,
+              name: file.name,
+              type: file.type.startsWith('image/') ? 'image' as const : 
+                    file.type.startsWith('video/') ? 'video' as const : 'document' as const,
+              url: URL.createObjectURL(file),
+              size: file.size,
+            })),
+          }));
+          await moveToPhase('confirmation');
+        }
+        break;
+
+      case 'confirmation':
+        if (value.toLowerCase() === 'confirm' || value.toLowerCase() === 'yes') {
+          setCurrentPhase('creating_ticket');
+          setIsTyping(true);
           addMessage({
             type: 'system',
-            content: `🎉 **Ticket created successfully!**\n\n**${result.ticketKey}** has been created and assigned. You'll receive email notifications for updates.\n\n[View in Jira →](${result.ticketUrl})`,
+            content: "🔄 Creating your Jira ticket...",
           });
+          
+          const result = await createJiraTicket();
+          setIsTyping(false);
+          
+          if (result.success && result.ticketKey) {
+            toast.success(`Ticket ${result.ticketKey} created successfully!`);
+            addMessage({
+              type: 'system',
+              content: `🎉 **Ticket created successfully!**\n\n**${result.ticketKey}** has been created and assigned.\n\n[View in Jira →](${result.ticketUrl})`,
+            });
+            setCurrentPhase('completed');
+          } else {
+            toast.error(result.error || 'Failed to create ticket');
+            addMessage({
+              type: 'system',
+              content: `❌ **Failed to create ticket**\n\n${result.error || 'An unexpected error occurred. Please try again.'}`,
+            });
+          }
         } else {
-          toast.error(result.error || 'Failed to create ticket');
+          await simulateBotTyping(500);
           addMessage({
-            type: 'system',
-            content: `❌ **Failed to create ticket**\n\n${result.error || 'An unexpected error occurred. Please try again.'}\n\nWould you like to retry?`,
+            type: 'bot',
+            content: "No problem! Would you like to modify any details or cancel?",
           });
         }
-        return;
-      } else {
-        await simulateBotTyping(500);
-        addMessage({
-          type: 'bot',
-          content: "No problem! Would you like to modify any details or cancel the ticket creation?",
-        });
-        return;
-      }
+        break;
+
+      default:
+        // Handle any manual text inputs for steps
+        if (currentPhase === 'generating_steps') {
+          setTicketData(prev => ({ ...prev, description: value }));
+          await moveToPhase('actual_result');
+        }
+        break;
     }
-    
-    // AI enhancement for summary only
-    if (step.aiEnhance && step.field === 'summary') {
-      await simulateBotTyping(600);
-      addMessage({
-        type: 'system',
-        content: `✨ AI enhanced your summary: improved clarity and formatting.`,
-      });
-    }
-    
-    await moveToNextStep();
-  }, [currentStep, conversationSteps, addMessage, simulateBotTyping, moveToNextStep, createJiraTicket]);
+  }, [currentPhase, addMessage, analyzeTitle, moveToPhase, enhanceResults, simulateBotTyping, createJiraTicket]);
 
   const handleOptionSelect = useCallback(async (option: ChatOption) => {
-    if (currentStep < 0 || currentStep >= conversationSteps.length) return;
-    
-    const step = conversationSteps[currentStep];
-    
     // Add user selection message
     addMessage({
       type: 'user',
       content: `${option.icon || ''} ${option.label}`.trim(),
     });
-    
-    // Update ticket data
-    if (step.field !== 'confirmation' && step.field !== 'duplicate_check') {
-      setTicketData(prev => ({
-        ...prev,
-        [step.field]: option.value,
-      }));
+
+    switch (currentPhase) {
+      case 'issue_type':
+        setTicketData(prev => ({ ...prev, issueType: option.value as TicketData['issueType'] }));
+        await moveToPhase('platform_selection');
+        break;
+
+      case 'platform_selection':
+        setTicketData(prev => ({ ...prev, platform: option.value as Platform }));
+        // If we have dynamic questions from title analysis, show them
+        if (dynamicInputs.length > 0) {
+          await moveToPhase('dynamic_questions');
+        } else {
+          // Otherwise generate steps with minimal context
+          await generateSteps();
+        }
+        break;
+
+      case 'priority':
+        setTicketData(prev => ({ ...prev, priority: option.value as TicketData['priority'] }));
+        await moveToPhase('module');
+        break;
+
+      case 'module':
+        setTicketData(prev => ({ ...prev, module: option.value }));
+        await moveToPhase('sprint');
+        break;
+
+      case 'sprint':
+        setTicketData(prev => ({ ...prev, sprint: option.value }));
+        await moveToPhase('assignee');
+        break;
+
+      case 'assignee':
+        setTicketData(prev => ({ ...prev, assignee: option.value }));
+        await moveToPhase('environment');
+        break;
+
+      case 'environment':
+        setTicketData(prev => ({ ...prev, environment: option.value as Environment }));
+        await moveToPhase('attachments');
+        break;
     }
+  }, [currentPhase, addMessage, moveToPhase, dynamicInputs, generateSteps]);
+
+  const handleDynamicInputSubmit = useCallback(async (inputs: Record<string, string>) => {
+    setUserDynamicInputs(inputs);
     
-    await moveToNextStep();
-  }, [currentStep, conversationSteps, addMessage, moveToNextStep]);
+    // Show what user entered
+    const inputSummary = Object.entries(inputs)
+      .map(([key, value]) => `• ${key}: ${value}`)
+      .join('\n');
+    
+    addMessage({
+      type: 'user',
+      content: `Provided information:\n${inputSummary}`,
+    });
+
+    await generateSteps();
+  }, [addMessage, generateSteps]);
 
   const startNewTicket = useCallback(async () => {
     setMessages([]);
-    setCurrentStep(-1);
+    setCurrentPhase('welcome');
     setTicketData({
       projectKey: jiraMetadata?.projectKey || 'CLOUD',
       attachments: [],
     });
+    setDynamicInputs([]);
+    setUserDynamicInputs({});
+    setTitleAnalysis(null);
     
     await simulateBotTyping(500);
     
@@ -426,51 +702,48 @@ ${ticketData.description || 'No steps provided'}
     // Welcome message
     addMessage({
       type: 'bot',
-      content: `Hello ${profile?.full_name || 'there'}! 👋\n\nI'm **TicketBot**, your AI-powered IT support assistant. I'll help you create Jira tickets quickly and efficiently.${projectInfo}\n\nI can:\n• Classify and prioritize your issues automatically\n• Detect duplicate tickets\n• Suggest the right assignee\n• Enhance your descriptions with AI\n\nLet's get started!`,
+      content: `Hello ${profile?.full_name || 'there'}! 👋\n\nI'm **TicketBot**, your AI-powered Jira ticket assistant.${projectInfo}\n\n**What I can do:**\n• 🧠 Understand your issue from a simple title\n• 🔧 Auto-generate steps to reproduce\n• ✨ Enhance descriptions with professional language\n• 🔍 Detect duplicate tickets\n• 🎯 Suggest the right assignee\n\nLet's create your ticket!`,
     });
     
-    await simulateBotTyping(800);
-    setCurrentStep(0);
-    
-    const firstStep = conversationSteps[0];
-    addMessage({
-      type: 'bot',
-      content: firstStep.question,
-      inputType: firstStep.inputType,
-    });
-  }, [profile, jiraMetadata, conversationSteps, addMessage, simulateBotTyping]);
+    await moveToPhase('title_input');
+  }, [profile, jiraMetadata, addMessage, simulateBotTyping, moveToPhase]);
 
   const resetChat = useCallback(() => {
     setMessages([]);
-    setCurrentStep(-1);
+    setCurrentPhase('welcome');
     setTicketData({
       projectKey: jiraMetadata?.projectKey || 'CLOUD',
       attachments: [],
     });
+    setDynamicInputs([]);
+    setUserDynamicInputs({});
+    setTitleAnalysis(null);
   }, [jiraMetadata]);
 
   const handleEditTicket = useCallback(async () => {
-    // Go back to the first step while keeping the ticket data for re-editing
     await simulateBotTyping(400);
     addMessage({
       type: 'bot',
-      content: "📝 Let's re-edit your ticket. I'll walk you through each field again. You can update any details you'd like to change.\n\nWhat's the **issue or request** you'd like to report? (Current: " + (ticketData.summary || 'Not set') + ")",
+      content: "📝 Let's re-edit your ticket. Starting from the title.\n\nCurrent title: **" + (ticketData.summary || 'Not set') + "**\n\nProvide a new title or type 'keep' to keep the current one.",
       inputType: 'text',
     });
-    setCurrentStep(0);
+    setCurrentPhase('title_input');
   }, [ticketData, addMessage, simulateBotTyping]);
 
   return (
     <ChatContext.Provider
       value={{
         messages,
-        currentStep,
+        currentPhase,
         ticketData,
         isTyping,
         jiraMetadata,
+        dynamicInputs,
+        userDynamicInputs,
         addMessage,
         handleUserInput,
         handleOptionSelect,
+        handleDynamicInputSubmit,
         resetChat,
         startNewTicket,
         handleEditTicket,
