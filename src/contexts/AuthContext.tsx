@@ -62,14 +62,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      async (event, currentSession) => {
+        console.log('Auth state changed:', event);
+        
+        // Handle token refresh or session updates
+        if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+        } else if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+        } else {
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+        }
         
         // Defer profile fetch with setTimeout to prevent deadlock
-        if (session?.user) {
+        if (currentSession?.user) {
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            fetchProfile(currentSession.user.id);
           }, 0);
         } else {
           setProfile(null);
@@ -79,17 +91,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id);
+    // THEN check for existing session and refresh if needed
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: existingSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          setIsLoading(false);
+          return;
+        }
+
+        // If session exists but might be expired, try to refresh it
+        if (existingSession) {
+          const expiresAt = existingSession.expires_at;
+          const now = Math.floor(Date.now() / 1000);
+          
+          // If token expires within 60 seconds, refresh it
+          if (expiresAt && expiresAt - now < 60) {
+            console.log('Session expiring soon, refreshing...');
+            const { data: { session: refreshedSession }, error: refreshError } = 
+              await supabase.auth.refreshSession();
+            
+            if (refreshError) {
+              console.error('Error refreshing session:', refreshError);
+              // Session is invalid, sign out
+              await supabase.auth.signOut();
+              setIsLoading(false);
+              return;
+            }
+            
+            setSession(refreshedSession);
+            setUser(refreshedSession?.user ?? null);
+            
+            if (refreshedSession?.user) {
+              fetchProfile(refreshedSession.user.id);
+            }
+          } else {
+            setSession(existingSession);
+            setUser(existingSession?.user ?? null);
+            
+            if (existingSession?.user) {
+              fetchProfile(existingSession.user.id);
+            }
+          }
+        }
+        
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Auth initialization error:', err);
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     return () => subscription.unsubscribe();
   }, [fetchProfile]);
