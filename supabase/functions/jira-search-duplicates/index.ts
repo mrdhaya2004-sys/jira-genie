@@ -15,6 +15,34 @@ function sanitizeDomain(domain: string): string {
     .trim();
 }
 
+// Escape JQL special characters to prevent injection attacks
+function escapeJQLString(str: string): string {
+  return str
+    .replace(/\\/g, '\\\\')   // Escape backslashes first
+    .replace(/"/g, '\\"')      // Escape double quotes
+    .replace(/'/g, "\\'")      // Escape single quotes
+    .replace(/\[/g, '\\[')     // Escape brackets
+    .replace(/\]/g, '\\]')
+    .replace(/\(/g, '\\(')     // Escape parentheses
+    .replace(/\)/g, '\\)')
+    .replace(/\{/g, '\\{')     // Escape braces
+    .replace(/\}/g, '\\}')
+    .replace(/~/g, '\\~')      // Escape tilde (JQL text search operator)
+    .replace(/\*/g, '\\*')     // Escape wildcard
+    .replace(/\?/g, '\\?')     // Escape single char wildcard
+    .replace(/\^/g, '\\^')     // Escape caret
+    .replace(/!/g, '\\!');     // Escape exclamation
+}
+
+// Validate and sanitize search input
+function sanitizeSearchInput(input: string, maxLength: number = 255): string {
+  if (!input || typeof input !== 'string') {
+    return '';
+  }
+  // Trim, limit length, and remove any null bytes
+  return input.trim().slice(0, maxLength).replace(/\0/g, '');
+}
+
 interface SearchRequest {
   summary: string;
   description?: string;
@@ -70,21 +98,42 @@ serve(async (req) => {
     }
 
     const { summary, description }: SearchRequest = await req.json();
+    
+    // Validate and sanitize input to prevent JQL injection
+    const sanitizedSummary = sanitizeSearchInput(summary, 255);
+    
+    if (!sanitizedSummary) {
+      return new Response(
+        JSON.stringify({ duplicates: [], totalCount: 0 }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     console.log('Searching for duplicates for user:', user.id);
 
     const auth = btoa(`${jiraEmail}:${jiraApiToken}`);
     
-    // Extract keywords from summary for search
-    const keywords = summary
+    // Extract keywords from summary and escape each one for JQL safety
+    const keywords = sanitizedSummary
       .split(/\s+/)
       .filter(word => word.length > 3)
       .slice(0, 5)
+      .map(word => escapeJQLString(word))
+      .filter(word => word.length > 0)
       .join(' OR ');
 
-    // Build JQL query to search for similar issues
-    const jql = `project = "${jiraProjectKey}" AND (summary ~ "${keywords}" OR description ~ "${keywords}") AND status NOT IN (Done, Closed) ORDER BY created DESC`;
+    // If no valid keywords after sanitization, return empty results
+    if (!keywords) {
+      return new Response(
+        JSON.stringify({ duplicates: [], totalCount: 0 }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Build JQL query with escaped values
+    const jql = `project = "${escapeJQLString(jiraProjectKey)}" AND (summary ~ "${keywords}" OR description ~ "${keywords}") AND status NOT IN (Done, Closed) ORDER BY created DESC`;
     
-    console.log('JQL Query:', jql);
+    console.log('JQL Query (sanitized):', jql);
 
     const response = await fetch(`https://${jiraDomain}/rest/api/3/search`, {
       method: 'POST',
