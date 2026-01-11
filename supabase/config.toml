@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.workspace-ai-chat]
 verify_jwt = false
+
+[functions.ticket-ai-generate-steps]
+verify_jwt = false

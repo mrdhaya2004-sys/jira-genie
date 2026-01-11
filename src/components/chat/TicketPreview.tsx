@@ -80,8 +80,20 @@ const TicketPreview: React.FC<TicketPreviewProps> = ({ ticket, onConfirm, onCanc
       </CardHeader>
       
       <CardContent className="space-y-4 text-sm">
-        {/* Procedure/Steps */}
-        {ticket.description && (
+        {/* Generated Steps */}
+        {ticket.generatedSteps && ticket.generatedSteps.length > 0 ? (
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-muted-foreground font-medium">
+              <ClipboardCheck className="h-4 w-4" />
+              <span>Steps to Reproduce</span>
+            </div>
+            <ol className="text-foreground pl-6 space-y-1 list-decimal list-inside">
+              {ticket.generatedSteps.map((step, index) => (
+                <li key={index} className="text-sm">{step}</li>
+              ))}
+            </ol>
+          </div>
+        ) : ticket.description && (
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-muted-foreground font-medium">
               <FileText className="h-4 w-4" />

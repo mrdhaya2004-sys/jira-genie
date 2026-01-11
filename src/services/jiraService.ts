@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { TicketData } from "@/types/ticket";
+import { TicketData, TitleAnalysisResult, StepsGenerationResult, ResultEnhancementResult, Platform } from "@/types/ticket";
 
 export interface JiraTicketResponse {
   success: boolean;
@@ -129,6 +129,109 @@ export const jiraService = {
     } catch (err) {
       console.error('Error enhancing description:', err);
       return { enhancedDescription: null, error: 'Failed to enhance description' };
+    }
+  },
+
+  async analyzeTitle(
+    title: string,
+    issueType?: string,
+    platform?: Platform,
+    workspaceId?: string
+  ): Promise<{ result: TitleAnalysisResult | null; error?: string }> {
+    try {
+      const { data, error } = await supabase.functions.invoke('ticket-ai-generate-steps', {
+        body: {
+          mode: 'analyze',
+          title,
+          issueType,
+          platform,
+          workspaceId,
+        },
+      });
+
+      if (error) {
+        console.error('Title analysis error:', error);
+        return { result: null, error: error.message };
+      }
+
+      if (data?.error) {
+        return { result: null, error: data.error };
+      }
+
+      return { result: data?.result || null };
+    } catch (err) {
+      console.error('Error analyzing title:', err);
+      return { result: null, error: 'Failed to analyze title' };
+    }
+  },
+
+  async generateSteps(
+    title: string,
+    userInputs: Record<string, string>,
+    issueType?: string,
+    platform?: Platform,
+    workspaceId?: string
+  ): Promise<{ result: StepsGenerationResult | null; error?: string }> {
+    try {
+      const { data, error } = await supabase.functions.invoke('ticket-ai-generate-steps', {
+        body: {
+          mode: 'generate_steps',
+          title,
+          issueType,
+          platform,
+          workspaceId,
+          userInputs,
+        },
+      });
+
+      if (error) {
+        console.error('Steps generation error:', error);
+        return { result: null, error: error.message };
+      }
+
+      if (data?.error) {
+        return { result: null, error: data.error };
+      }
+
+      return { result: data?.result || null };
+    } catch (err) {
+      console.error('Error generating steps:', err);
+      return { result: null, error: 'Failed to generate steps' };
+    }
+  },
+
+  async enhanceResults(
+    title: string,
+    actualResult: string,
+    expectedResult: string,
+    issueType?: string
+  ): Promise<{ result: ResultEnhancementResult | null; error?: string }> {
+    try {
+      const { data, error } = await supabase.functions.invoke('ticket-ai-generate-steps', {
+        body: {
+          mode: 'enhance_result',
+          title,
+          issueType,
+          userInputs: {
+            actualResult,
+            expectedResult,
+          },
+        },
+      });
+
+      if (error) {
+        console.error('Result enhancement error:', error);
+        return { result: null, error: error.message };
+      }
+
+      if (data?.error) {
+        return { result: null, error: data.error };
+      }
+
+      return { result: data?.result || null };
+    } catch (err) {
+      console.error('Error enhancing results:', err);
+      return { result: null, error: 'Failed to enhance results' };
     }
   },
 };
