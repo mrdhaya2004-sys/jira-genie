@@ -25,7 +25,15 @@ const DynamicInputForm: React.FC<DynamicInputFormProps> = ({ inputs, onSubmit })
 
   const allRequiredFilled = inputs
     .filter(input => input.required)
-    .every(input => values[input.id]?.trim());
+    .every(input => {
+      if (input.inputType === 'credentials') {
+        // For credentials, check both username and password fields
+        const username = values[`${input.id}_username`]?.trim();
+        const password = values[`${input.id}_password`]?.trim();
+        return username && password;
+      }
+      return values[input.id]?.trim();
+    });
 
   return (
     <Card className="w-full max-w-lg mt-2 shadow-soft-lg border-border/50 animate-slide-in-up">
