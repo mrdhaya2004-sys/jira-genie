@@ -285,7 +285,8 @@ ${stepsText}
             generatedSteps: ticketData.generatedSteps,
           });
           await simulateBotTyping(500);
-          moveToPhase('actual_result');
+          // After steps review, move to priority (actual/expected already collected)
+          moveToPhase('priority');
         }
         break;
 
@@ -460,19 +461,26 @@ ${stepsText}
     await moveToPhase('platform_selection');
   }, [ticketData, addMessage, simulateBotTyping, moveToPhase]);
 
-  // Handle generating steps with AI
-  const generateSteps = useCallback(async () => {
+  // Handle generating steps with AI (with full context including actual/expected results)
+  const generateStepsWithContext = useCallback(async (expectedResult: string) => {
     setCurrentPhase('generating_steps');
     setIsTyping(true);
 
     addMessage({
       type: 'system',
-      content: "🔧 Generating intelligent steps to reproduce...",
+      content: "🧠 AI is analyzing the flow and generating intelligent steps to reproduce...",
     });
+
+    // Include actual and expected results in the context for better step generation
+    const contextInputs = {
+      ...userDynamicInputs,
+      actualResult: ticketData.actualResult || '',
+      expectedResult: expectedResult,
+    };
 
     const { result, error } = await jiraService.generateSteps(
       ticketData.summary || '',
-      userDynamicInputs,
+      contextInputs,
       ticketData.issueType,
       ticketData.platform
     );
@@ -482,28 +490,59 @@ ${stepsText}
     if (error || !result) {
       addMessage({
         type: 'system',
-        content: "⚠️ Could not generate steps automatically. Please provide them manually.",
+        content: "⚠️ Could not generate steps automatically. Let me try with basic flow.",
       });
-      // Fall back to manual input
-      addMessage({
-        type: 'bot',
-        content: "Please describe the **steps to reproduce** the issue:",
-        inputType: 'text',
-      });
-      setCurrentPhase('actual_result');
+      
+      // Create basic steps based on available info
+      const basicSteps = [
+        `Navigate to the ${titleAnalysis?.module || 'application'} screen`,
+        'Perform the action described in the title',
+        `Observe: ${ticketData.actualResult || 'the issue occurs'}`,
+      ];
+      
+      setTicketData(prev => ({
+        ...prev,
+        generatedSteps: basicSteps,
+        expectedResult: expectedResult,
+        description: basicSteps.join('\n'),
+      }));
+      
+      await moveToPhase('steps_review');
       return;
     }
 
-    // Store generated steps
+    // Store generated steps and enhance results
     setTicketData(prev => ({
       ...prev,
       generatedSteps: result.steps,
       preconditions: result.preconditions,
+      expectedResult: expectedResult,
       description: result.steps.join('\n'),
     }));
 
+    // Enhance the actual/expected results with AI
+    addMessage({
+      type: 'system',
+      content: "✨ Enhancing results with professional Jira language...",
+    });
+
+    const enhanceResult = await jiraService.enhanceResults(
+      ticketData.summary || '',
+      ticketData.actualResult || '',
+      expectedResult,
+      ticketData.issueType
+    );
+
+    if (!enhanceResult.error && enhanceResult.result) {
+      setTicketData(prev => ({
+        ...prev,
+        actualResult: enhanceResult.result.enhancedActualResult,
+        expectedResult: enhanceResult.result.enhancedExpectedResult,
+      }));
+    }
+
     await moveToPhase('steps_review');
-  }, [ticketData, userDynamicInputs, addMessage, moveToPhase]);
+  }, [ticketData, userDynamicInputs, titleAnalysis, addMessage, moveToPhase]);
 
   // Handle enhancing results with AI
   const enhanceResults = useCallback(async () => {
@@ -565,7 +604,8 @@ ${stepsText}
 
       case 'expected_result':
         setTicketData(prev => ({ ...prev, expectedResult: value }));
-        await enhanceResults();
+        // Now generate steps with full context (title, issue type, platform, actual/expected results)
+        await generateStepsWithContext(value);
         break;
 
       case 'attachments':
@@ -649,13 +689,8 @@ ${stepsText}
 
       case 'platform_selection':
         setTicketData(prev => ({ ...prev, platform: option.value as Platform }));
-        // If we have dynamic questions from title analysis, show them
-        if (dynamicInputs.length > 0) {
-          await moveToPhase('dynamic_questions');
-        } else {
-          // Otherwise generate steps with minimal context
-          await generateSteps();
-        }
+        // After platform, ask for actual result first (before generating steps)
+        await moveToPhase('actual_result');
         break;
 
       case 'priority':
@@ -683,7 +718,7 @@ ${stepsText}
         await moveToPhase('attachments');
         break;
     }
-  }, [currentPhase, addMessage, moveToPhase, dynamicInputs, generateSteps]);
+  }, [currentPhase, addMessage, moveToPhase, dynamicInputs]);
 
   const handleDynamicInputSubmit = useCallback(async (inputs: Record<string, string>) => {
     setUserDynamicInputs(inputs);
@@ -698,8 +733,10 @@ ${stepsText}
       content: `Provided information:\n${inputSummary}`,
     });
 
-    await generateSteps();
-  }, [addMessage, generateSteps]);
+    // Dynamic inputs are now stored and will be used when generating steps
+    // Move to actual result phase to continue the flow
+    await moveToPhase('actual_result');
+  }, [addMessage, moveToPhase]);
 
   const startNewTicket = useCallback(async () => {
     setMessages([]);
