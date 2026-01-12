@@ -147,30 +147,37 @@ Platform: ${platform || 'Not specified'}
 Analyze this title and provide the JSON response with follow-up questions needed to generate reproduction steps.`;
 
     } else if (mode === 'generate_steps') {
-      // Generate structured steps based on title and user inputs
+      // Generate structured steps based on title, user inputs, and actual/expected results
       systemPrompt = `You are an expert QA engineer that generates precise, reproducible test steps for Jira tickets.
 
 WORKSPACE CONTEXT:
 ${workspaceContext.userStories ? `User Stories:\n${workspaceContext.userStories}\n` : ''}
 ${workspaceContext.appFiles?.length ? `Application Files: ${workspaceContext.appFiles.map(f => f.name).join(', ')}\n` : ''}
 
-Generate steps that:
-1. Follow the actual application flow
-2. Use the exact data provided by the user
-3. Are written in professional Gherkin-like format
+You have been given:
+1. The ticket title describing the issue
+2. The actual result (what went wrong)
+3. The expected result (what should happen)
+4. Platform information
+
+Using this context, generate steps that:
+1. Follow the actual application flow that would lead to the issue
+2. Are based on the actual/expected results to understand the flow
+3. Use professional Gherkin-like format
 4. Match real UI elements and actions
 5. Account for platform-specific differences if applicable
 
 RESPOND IN THIS EXACT JSON FORMAT:
 {
   "steps": [
-    "And Username is entered for account \"value\"",
-    "And Password is entered for account \"value\"",
-    "And Login button is clicked",
-    "Then User is logged in successfully"
+    "Launch the application",
+    "Navigate to [relevant screen based on title]",
+    "Enter [relevant data if applicable]",
+    "Tap/Click on [action button]",
+    "Observe the result"
   ],
   "module": "Module name",
-  "preconditions": ["Any preconditions needed"],
+  "preconditions": ["User is logged in", "Network connection is available"],
   "platformNotes": {
     "android": "Android-specific note if any",
     "ios": "iOS-specific note if any"
@@ -178,11 +185,12 @@ RESPOND IN THIS EXACT JSON FORMAT:
 }
 
 RULES:
-- Steps must be realistic and follow the actual app flow
-- Use the exact values provided in user inputs
-- Format: "And [action] [element] [value]" or "Then [expected outcome]"
-- Include tap/click, enter, swipe, scroll actions as appropriate
-- Add logout step at the end if login was performed
+- Analyze the actual result to understand what action led to the bug
+- Work backwards from the expected result to determine the correct flow
+- Steps must be realistic and follow logical app navigation
+- Use clear action words: tap, click, enter, swipe, scroll, navigate
+- Include any setup steps needed (login, navigation to screen)
+- Keep steps concise but complete
 - No imaginary steps - only real application interactions`;
 
       const inputsText = userInputs 
@@ -193,10 +201,16 @@ RULES:
 Issue Type: ${issueType || 'Bug'}
 Platform: ${platform || 'Both'}
 
-User Provided Inputs:
+Actual Result (what went wrong):
+${userInputs?.actualResult || 'Not provided'}
+
+Expected Result (what should happen):
+${userInputs?.expectedResult || 'Not provided'}
+
+Additional Context:
 ${inputsText}
 
-Generate structured reproduction steps in JSON format.`;
+Based on the title and the actual/expected results, generate the steps that would reproduce this issue.`;
 
     } else if (mode === 'enhance_result') {
       // Enhance actual/expected result descriptions
