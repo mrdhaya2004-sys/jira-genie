@@ -185,24 +185,34 @@ ${stepsText}
 
   const getIssueTypeOptions = useCallback((): ChatOption[] => {
     const defaultTypes: ChatOption[] = [
-      { id: 'bug', label: 'Bug', value: 'Bug', icon: '🐛', description: 'Something is broken' },
-      { id: 'task', label: 'Task', value: 'Task', icon: '✅', description: 'A piece of work to be done' },
-      { id: 'story', label: 'Story', value: 'Story', icon: '📖', description: 'A new feature' },
       { id: 'epic', label: 'Epic', value: 'Epic', icon: '🚀', description: 'Large initiative' },
-      { id: 'incident', label: 'Incident', value: 'Incident', icon: '🚨', description: 'Production issue' },
+      { id: 'story', label: 'Story', value: 'Story', icon: '📖', description: 'A new feature' },
+      { id: 'task', label: 'Task', value: 'Task', icon: '✅', description: 'A piece of work to be done' },
+      { id: 'subtask', label: 'Sub-task', value: 'Sub-task', icon: '📌', description: 'Part of a larger task' },
+      { id: 'bug', label: 'Bug', value: 'Bug', icon: '🐛', description: 'Something is broken' },
     ];
 
     if (jiraMetadata?.issueTypes?.length) {
-      const iconMap: Record<string, string> = { Bug: '🐛', Task: '✅', Story: '📖', Epic: '🚀', Incident: '🚨' };
+      const iconMap: Record<string, string> = { 
+        Bug: '🐛', 
+        Task: '✅', 
+        Story: '📖', 
+        Epic: '🚀', 
+        Incident: '🚨', 
+        'Sub-task': '📌',
+        Subtask: '📌',
+      };
       const descMap: Record<string, string> = {
         Bug: 'Something is broken',
         Task: 'A piece of work to be done',
         Story: 'A new feature',
         Epic: 'Large initiative',
         Incident: 'Production issue',
+        'Sub-task': 'Part of a larger task',
+        Subtask: 'Part of a larger task',
       };
-      return jiraMetadata.issueTypes.slice(0, 5).map((type) => ({
-        id: type.toLowerCase(),
+      return jiraMetadata.issueTypes.slice(0, 6).map((type) => ({
+        id: type.toLowerCase().replace('-', ''),
         label: type,
         value: type,
         icon: iconMap[type] || '📋',
@@ -446,7 +456,8 @@ ${stepsText}
     }
 
     await simulateBotTyping(500);
-    await moveToPhase('issue_type');
+    // After analyzing title, move to platform selection
+    await moveToPhase('platform_selection');
   }, [ticketData, addMessage, simulateBotTyping, moveToPhase]);
 
   // Handle generating steps with AI
@@ -538,8 +549,13 @@ ${stepsText}
 
     switch (currentPhase) {
       case 'title_input':
-        setTicketData(prev => ({ ...prev, summary: value }));
-        await analyzeTitle(value);
+        // Handle 'keep' for edit flow
+        if (value.toLowerCase() === 'keep' && ticketData.summary) {
+          await analyzeTitle(ticketData.summary);
+        } else {
+          setTicketData(prev => ({ ...prev, summary: value }));
+          await analyzeTitle(value);
+        }
         break;
 
       case 'actual_result':
@@ -627,7 +643,8 @@ ${stepsText}
     switch (currentPhase) {
       case 'issue_type':
         setTicketData(prev => ({ ...prev, issueType: option.value as TicketData['issueType'] }));
-        await moveToPhase('platform_selection');
+        // After issue type, ask for title
+        await moveToPhase('title_input');
         break;
 
       case 'platform_selection':
@@ -705,7 +722,8 @@ ${stepsText}
       content: `Hello ${profile?.full_name || 'there'}! 👋\n\nI'm **TicketBot**, your AI-powered Jira ticket assistant.${projectInfo}\n\n**What I can do:**\n• 🧠 Understand your issue from a simple title\n• 🔧 Auto-generate steps to reproduce\n• ✨ Enhance descriptions with professional language\n• 🔍 Detect duplicate tickets\n• 🎯 Suggest the right assignee\n\nLet's create your ticket!`,
     });
     
-    await moveToPhase('title_input');
+    // Ask for issue type first, then title
+    await moveToPhase('issue_type');
   }, [profile, jiraMetadata, addMessage, simulateBotTyping, moveToPhase]);
 
   const resetChat = useCallback(() => {
