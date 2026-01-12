@@ -278,16 +278,18 @@ ${stepsText}
         break;
 
       case 'steps_review':
-        if (ticketData.generatedSteps?.length) {
-          addMessage({
-            type: 'bot',
-            content: "✅ **Steps to Reproduce** generated successfully!\n\nReview the steps below:",
-            generatedSteps: ticketData.generatedSteps,
-          });
-          await simulateBotTyping(500);
-          // After steps review, move to priority (actual/expected already collected)
-          moveToPhase('priority');
-        }
+        // Steps review is handled by generateStepsWithContext - just show confirmation
+        // The steps have already been set and shown, now wait for user to proceed
+        await simulateBotTyping(300);
+        addMessage({
+          type: 'bot',
+          content: "Would you like to proceed with these steps, or regenerate them?",
+          inputType: 'select',
+          options: [
+            { id: 'proceed', label: 'Proceed', value: 'proceed', icon: '✅', description: 'Continue with these steps' },
+            { id: 'regenerate', label: 'Regenerate', value: 'regenerate', icon: '🔄', description: 'Generate new steps' },
+          ],
+        });
         break;
 
       case 'actual_result':
@@ -520,7 +522,15 @@ ${stepsText}
       description: result.steps.join('\n'),
     }));
 
+    // Show generated steps in the chat
+    addMessage({
+      type: 'bot',
+      content: "✅ **Steps to Reproduce** generated successfully!\n\nReview the steps below:",
+      generatedSteps: result.steps,
+    });
+
     // Enhance the actual/expected results with AI
+    await simulateBotTyping(300);
     addMessage({
       type: 'system',
       content: "✨ Enhancing results with professional Jira language...",
@@ -539,10 +549,15 @@ ${stepsText}
         actualResult: enhanceResult.result.enhancedActualResult,
         expectedResult: enhanceResult.result.enhancedExpectedResult,
       }));
+      
+      addMessage({
+        type: 'system',
+        content: "✅ Results enhanced successfully!",
+      });
     }
 
     await moveToPhase('steps_review');
-  }, [ticketData, userDynamicInputs, titleAnalysis, addMessage, moveToPhase]);
+  }, [ticketData, userDynamicInputs, titleAnalysis, addMessage, simulateBotTyping, moveToPhase]);
 
   // Handle enhancing results with AI
   const enhanceResults = useCallback(async () => {
@@ -717,8 +732,18 @@ ${stepsText}
         setTicketData(prev => ({ ...prev, environment: option.value as Environment }));
         await moveToPhase('attachments');
         break;
+
+      case 'steps_review':
+        if (option.value === 'proceed') {
+          // Continue with these steps
+          await moveToPhase('priority');
+        } else if (option.value === 'regenerate') {
+          // Regenerate steps
+          await generateStepsWithContext(ticketData.expectedResult || '');
+        }
+        break;
     }
-  }, [currentPhase, addMessage, moveToPhase, dynamicInputs]);
+  }, [currentPhase, addMessage, moveToPhase, dynamicInputs, generateStepsWithContext, ticketData.expectedResult]);
 
   const handleDynamicInputSubmit = useCallback(async (inputs: Record<string, string>) => {
     setUserDynamicInputs(inputs);
