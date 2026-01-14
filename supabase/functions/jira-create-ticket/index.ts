@@ -77,6 +77,8 @@ serve(async (req) => {
 
     const ticketData: TicketRequest = await req.json();
     console.log('Creating Jira ticket for user:', user.id);
+    console.log('Ticket data received:', JSON.stringify(ticketData, null, 2));
+    console.log('Jira config - domain:', jiraDomain, 'project:', jiraProjectKey);
 
     // Map priority to Jira priority IDs (these are standard Jira priority IDs)
     const priorityMap: Record<string, string> = {
@@ -106,8 +108,21 @@ serve(async (req) => {
       const projectData = await projectResponse.json();
       const issueTypes = projectData.issueTypes || [];
       
+      console.log('Available issue types from Jira:', JSON.stringify(issueTypes.map((it: {name: string}) => it.name)));
+      
+      // Filter out subtask types - they require parent issue
+      const standardIssueTypes = issueTypes.filter((it: { name: string; subtask?: boolean }) => {
+        const isSubtask = it.subtask === true || 
+                          it.name.toLowerCase().includes('subtask') || 
+                          it.name.toLowerCase().includes('sub-task');
+        return !isSubtask;
+      });
+      
+      console.log('Standard issue types (excluding subtask):', JSON.stringify(standardIssueTypes.map((it: {name: string}) => it.name)));
+      
       // Normalize the requested type
-      const requestedType = ticketData.issueType.toLowerCase().trim();
+      const requestedType = (ticketData.issueType || 'task').toLowerCase().trim();
+      console.log('Requested issue type:', requestedType);
       
       // Define type mappings for common variations
       const typeAliases: Record<string, string[]> = {
@@ -118,8 +133,8 @@ serve(async (req) => {
         'incident': ['incident', 'outage', 'emergency'],
       };
       
-      // Find matching issue type
-      let matchingType = issueTypes.find((it: { name: string; id: string }) => {
+      // Find matching issue type from standard types only
+      let matchingType = standardIssueTypes.find((it: { name: string; id: string }) => {
         const typeName = it.name.toLowerCase();
         // Direct match
         if (typeName === requestedType) return true;
@@ -132,27 +147,41 @@ serve(async (req) => {
         return typeName.includes(requestedType) || requestedType.includes(typeName);
       });
 
-      // If still no match, try to find Bug specifically for bug-like requests
+      // If Bug requested but not found, try Story or Task as alternatives
       if (!matchingType && ['bug', 'defect', 'error', 'issue', 'incident'].includes(requestedType)) {
-        matchingType = issueTypes.find((it: { name: string }) => 
+        console.log('Bug type not found, trying alternatives...');
+        matchingType = standardIssueTypes.find((it: { name: string }) => 
           it.name.toLowerCase() === 'bug' || it.name.toLowerCase() === 'defect'
         );
+        
+        // If still no Bug, fall back to Story for bug-like issues
+        if (!matchingType) {
+          matchingType = standardIssueTypes.find((it: { name: string }) => 
+            it.name.toLowerCase() === 'story'
+          );
+          console.log('Using Story as fallback for bug type');
+        }
       }
 
       if (matchingType) {
         issueTypeId = matchingType.id;
         issueTypeName = matchingType.name;
         console.log(`Found matching issue type: ${matchingType.name} (ID: ${issueTypeId})`);
-      } else if (issueTypes.length > 0) {
-        // Fallback to Task if available, otherwise first type
-        const taskType = issueTypes.find((it: { name: string }) => 
+      } else if (standardIssueTypes.length > 0) {
+        // Fallback to Task if available, otherwise first standard type
+        const taskType = standardIssueTypes.find((it: { name: string }) => 
           it.name.toLowerCase() === 'task'
         );
-        const fallbackType = taskType || issueTypes[0];
+        const storyType = standardIssueTypes.find((it: { name: string }) => 
+          it.name.toLowerCase() === 'story'
+        );
+        const fallbackType = taskType || storyType || standardIssueTypes[0];
         issueTypeId = fallbackType.id;
         issueTypeName = fallbackType.name;
         console.log(`Using fallback issue type: ${fallbackType.name} (ID: ${issueTypeId})`);
       }
+    } else {
+      console.error('Failed to fetch project info:', await projectResponse.text());
     }
 
     // Build the issue payload
@@ -189,7 +218,8 @@ serve(async (req) => {
       (issuePayload.fields as Record<string, unknown>).components = [{ name: ticketData.module }];
     }
 
-    console.log('Sending to Jira API');
+    console.log('Issue payload:', JSON.stringify(issuePayload, null, 2));
+    console.log('Sending to Jira API: https://' + jiraDomain + '/rest/api/3/issue');
 
     const response = await fetch(`https://${jiraDomain}/rest/api/3/issue`, {
       method: 'POST',

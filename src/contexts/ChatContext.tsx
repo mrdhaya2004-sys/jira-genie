@@ -103,6 +103,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const createJiraTicket = useCallback(async (): Promise<{ success: boolean; ticketKey?: string; ticketUrl?: string; error?: string }> => {
+    console.log('[ChatContext] Creating Jira ticket with data:', ticketData);
+    
     // Format the description with generated steps
     const stepsText = ticketData.generatedSteps?.length 
       ? ticketData.generatedSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')
@@ -129,8 +131,16 @@ ${stepsText}
       description: structuredDescription,
     } as TicketData;
 
-    const result = await jiraService.createTicket(finalTicketData);
-    return result;
+    console.log('[ChatContext] Final ticket data being sent:', finalTicketData);
+
+    try {
+      const result = await jiraService.createTicket(finalTicketData);
+      console.log('[ChatContext] Jira service result:', result);
+      return result;
+    } catch (error) {
+      console.error('[ChatContext] Error calling jiraService.createTicket:', error);
+      return { success: false, error: 'Failed to create ticket: ' + String(error) };
+    }
   }, [ticketData]);
 
   // Get options based on metadata
