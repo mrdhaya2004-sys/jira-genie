@@ -1,10 +1,11 @@
 import React from 'react';
 import DOMPurify from 'dompurify';
 import { ChatMessage as ChatMessageType } from '@/types/ticket';
-import { Bot, User, Info, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Bot, User, Info, ExternalLink, AlertTriangle, ClipboardCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import ChatOptions from './ChatOptions';
 import TicketPreview from './TicketPreview';
 
@@ -130,6 +131,25 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
               </div>
             ))}
           </div>
+        )}
+
+        {/* Generated Steps Display */}
+        {message.generatedSteps && message.generatedSteps.length > 0 && (
+          <Card className="w-full max-w-lg mt-2 shadow-soft border-border/50 animate-slide-in-up">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2 text-muted-foreground font-medium mb-3">
+                <ClipboardCheck className="h-4 w-4" />
+                <span>Steps to Reproduce</span>
+              </div>
+              <ol className="text-foreground space-y-2 list-decimal list-inside">
+                {message.generatedSteps.map((step, index) => (
+                  <li key={index} className="text-sm leading-relaxed pl-1">
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            </CardContent>
+          </Card>
         )}
 
         {/* Options */}

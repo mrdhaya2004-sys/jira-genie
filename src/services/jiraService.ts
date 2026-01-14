@@ -35,28 +35,38 @@ export interface JiraMetadata {
 
 export const jiraService = {
   async createTicket(ticketData: TicketData): Promise<JiraTicketResponse> {
+    console.log('[jiraService] createTicket called with:', ticketData);
+    
+    const requestBody = {
+      summary: ticketData.summary,
+      description: ticketData.description,
+      issueType: ticketData.issueType,
+      priority: ticketData.priority,
+      module: ticketData.module,
+      sprint: ticketData.sprint,
+      assignee: ticketData.assignee,
+    };
+    
+    console.log('[jiraService] Request body:', requestBody);
+    
     try {
       const { data, error } = await supabase.functions.invoke('jira-create-ticket', {
-        body: {
-          summary: ticketData.summary,
-          description: ticketData.description,
-          issueType: ticketData.issueType,
-          priority: ticketData.priority,
-          module: ticketData.module,
-          sprint: ticketData.sprint,
-          assignee: ticketData.assignee,
-        },
+        body: requestBody,
       });
 
+      console.log('[jiraService] Response - data:', data, 'error:', error);
+
       if (error) {
-        console.error('Supabase function error:', error);
+        console.error('[jiraService] Supabase function error:', error);
         return { success: false, error: error.message };
       }
 
       if (data?.error) {
+        console.error('[jiraService] API returned error:', data.error);
         return { success: false, error: data.error };
       }
 
+      console.log('[jiraService] Ticket created successfully:', data);
       return {
         success: true,
         ticketKey: data.ticketKey,
@@ -64,8 +74,8 @@ export const jiraService = {
         ticketUrl: data.ticketUrl,
       };
     } catch (err) {
-      console.error('Error creating ticket:', err);
-      return { success: false, error: 'Failed to create ticket' };
+      console.error('[jiraService] Error creating ticket:', err);
+      return { success: false, error: 'Failed to create ticket: ' + String(err) };
     }
   },
 
