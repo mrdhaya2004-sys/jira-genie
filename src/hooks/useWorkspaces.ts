@@ -182,10 +182,12 @@ export const useWorkspaceFiles = (workspaceId: string | null) => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
+      // Get signed URL for private bucket (1 hour expiry)
+      const { data: urlData, error: urlError } = await supabase.storage
         .from('workspace-files')
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 3600);
+
+      if (urlError) throw urlError;
 
       // Extract content for user stories (text files)
       let contentExtracted: string | null = null;
@@ -193,14 +195,15 @@ export const useWorkspaceFiles = (workspaceId: string | null) => {
         contentExtracted = await file.text();
       }
 
-      // Create database record
+      // Store the file path for regenerating signed URLs later
+      // Create database record with the file path (not the signed URL)
       const { data, error } = await supabase
         .from('workspace_files')
         .insert({
           workspace_id: workspaceId,
           file_name: file.name,
           file_type: fileType,
-          file_url: urlData.publicUrl,
+          file_url: filePath, // Store path, not signed URL
           file_size: file.size,
           content_extracted: contentExtracted,
           uploaded_by: user.id,
@@ -210,12 +213,14 @@ export const useWorkspaceFiles = (workspaceId: string | null) => {
 
       if (error) throw error;
 
+      // Return data with the signed URL for immediate use
+      const fileWithSignedUrl = { ...data, signedUrl: urlData.signedUrl } as WorkspaceFile & { signedUrl: string };
       setFiles(prev => [data as WorkspaceFile, ...prev]);
       toast({
         title: 'Success',
         description: `${file.name} uploaded successfully`,
       });
-      return data;
+      return fileWithSignedUrl;
     } catch (error) {
       console.error('Error uploading file:', error);
       toast({
