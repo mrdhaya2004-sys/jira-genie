@@ -23,15 +23,42 @@ export const useWorkspaces = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // Check if it's a JWT expired error
+        if (error.code === 'PGRST303' || error.message?.includes('JWT expired')) {
+          console.log('JWT expired in workspaces, attempting to refresh session...');
+          const { error: refreshError } = await supabase.auth.refreshSession();
+          
+          if (refreshError) {
+            console.error('Failed to refresh session:', refreshError);
+            await supabase.auth.signOut();
+            return;
+          }
+          
+          // Retry the fetch after refresh
+          const { data: retryData, error: retryError } = await supabase
+            .from('workspaces')
+            .select('*')
+            .order('created_at', { ascending: false });
+            
+          if (retryError) throw retryError;
+          setWorkspaces(retryData || []);
+          return;
+        }
+        throw error;
+      }
+      
       setWorkspaces(data || []);
     } catch (error) {
       console.error('Error fetching workspaces:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load workspaces',
-        variant: 'destructive',
-      });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (!errorMessage.includes('JWT') && !errorMessage.includes('auth')) {
+        toast({
+          title: 'Error',
+          description: 'Failed to load workspaces',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }

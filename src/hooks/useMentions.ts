@@ -41,50 +41,92 @@ export const useMentions = () => {
         .or(`mentioned_user_id.eq.${user.id},mention_type.eq.everyone`)
         .order('created_at', { ascending: false });
 
-      if (mentionsError) throw mentionsError;
-
-      // Get unique mentioned_by_user_ids to fetch their profiles
-      const mentionedByIds = [...new Set(mentionsData?.map(m => m.mentioned_by_user_id) || [])];
-      
-      let profilesMap: Record<string, { full_name: string; avatar_url: string | null }> = {};
-      
-      if (mentionedByIds.length > 0) {
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('user_id, full_name, avatar_url')
-          .in('user_id', mentionedByIds);
-
-        if (!profilesError && profilesData) {
-          profilesMap = profilesData.reduce((acc, profile) => {
-            acc[profile.user_id] = {
-              full_name: profile.full_name,
-              avatar_url: profile.avatar_url,
-            };
-            return acc;
-          }, {} as Record<string, { full_name: string; avatar_url: string | null }>);
+      if (mentionsError) {
+        // Check if it's a JWT expired error
+        if (mentionsError.code === 'PGRST303' || mentionsError.message?.includes('JWT expired')) {
+          console.log('JWT expired, attempting to refresh session...');
+          const { error: refreshError } = await supabase.auth.refreshSession();
+          
+          if (refreshError) {
+            console.error('Failed to refresh session:', refreshError);
+            // Force sign out on refresh failure
+            await supabase.auth.signOut();
+            return;
+          }
+          
+          // Retry the fetch after refresh
+          const { data: retryData, error: retryError } = await supabase
+            .from('mentions')
+            .select('*')
+            .or(`mentioned_user_id.eq.${user.id},mention_type.eq.everyone`)
+            .order('created_at', { ascending: false });
+            
+          if (retryError) {
+            throw retryError;
+          }
+          
+          // Process retryData instead
+          await processMentionsData(retryData);
+          return;
         }
+        throw mentionsError;
       }
 
-      // Combine mentions with profile data
-      const enrichedMentions: Mention[] = (mentionsData || []).map(mention => ({
-        ...mention,
-        mention_type: mention.mention_type as 'user' | 'everyone',
-        source_type: mention.source_type as 'ticket' | 'comment' | 'chat',
-        mentioned_by: profilesMap[mention.mentioned_by_user_id],
-      }));
-
-      setMentions(enrichedMentions);
+      await processMentionsData(mentionsData);
     } catch (error) {
       console.error('Error fetching mentions:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load mentions',
-        variant: 'destructive',
-      });
+      // Only show toast for non-auth errors
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (!errorMessage.includes('JWT') && !errorMessage.includes('auth')) {
+        toast({
+          title: 'Error',
+          description: 'Failed to load mentions',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
   }, [user, toast]);
+
+  const processMentionsData = useCallback(async (mentionsData: any[] | null) => {
+    if (!mentionsData) {
+      setMentions([]);
+      return;
+    }
+
+    // Get unique mentioned_by_user_ids to fetch their profiles
+    const mentionedByIds = [...new Set(mentionsData.map(m => m.mentioned_by_user_id))];
+    
+    let profilesMap: Record<string, { full_name: string; avatar_url: string | null }> = {};
+    
+    if (mentionedByIds.length > 0) {
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, avatar_url')
+        .in('user_id', mentionedByIds);
+
+      if (!profilesError && profilesData) {
+        profilesMap = profilesData.reduce((acc, profile) => {
+          acc[profile.user_id] = {
+            full_name: profile.full_name,
+            avatar_url: profile.avatar_url,
+          };
+          return acc;
+        }, {} as Record<string, { full_name: string; avatar_url: string | null }>);
+      }
+    }
+
+    // Combine mentions with profile data
+    const enrichedMentions: Mention[] = mentionsData.map(mention => ({
+      ...mention,
+      mention_type: mention.mention_type as 'user' | 'everyone',
+      source_type: mention.source_type as 'ticket' | 'comment' | 'chat',
+      mentioned_by: profilesMap[mention.mentioned_by_user_id],
+    }));
+
+    setMentions(enrichedMentions);
+  }, []);
 
   const markAsRead = useCallback(async (mentionId: string) => {
     try {
