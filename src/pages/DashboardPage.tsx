@@ -4,8 +4,9 @@ import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import MentionsPanel from '@/components/dashboard/MentionsPanel';
 import AgenticAIModule from '@/components/workspace/AgenticAIModule';
 import JiraTicketRaiserModule from '@/components/jira/JiraTicketRaiserModule';
+import LogicScenarioCreatorModule from '@/components/scenario/LogicScenarioCreatorModule';
 
-export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser';
+export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator';
 
 const DashboardPage: React.FC = () => {
   const [activeModule, setActiveModule] = useState<ActiveModule>('mentions');
@@ -43,6 +44,7 @@ const DashboardPage: React.FC = () => {
           )}
           {activeModule === 'agentic-ai' && <AgenticAIModule />}
           {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule />}
+          {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule />}
         </main>
       </div>
     </div>
