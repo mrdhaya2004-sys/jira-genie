@@ -98,55 +98,90 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (error) {
           console.error('Error getting session:', error);
+          // Clear any stale session data
+          await supabase.auth.signOut();
           setIsLoading(false);
           return;
         }
 
-        // If session exists but might be expired, try to refresh it
-        if (existingSession) {
-          const expiresAt = existingSession.expires_at;
-          const now = Math.floor(Date.now() / 1000);
+        // If no session exists, we're done
+        if (!existingSession) {
+          setIsLoading(false);
+          return;
+        }
+
+        // Check if token is expired or expiring soon
+        const expiresAt = existingSession.expires_at;
+        const now = Math.floor(Date.now() / 1000);
+        
+        // If token is already expired, force sign out and re-authenticate
+        if (expiresAt && expiresAt < now) {
+          console.log('Session expired, signing out...');
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
+        }
+        
+        // If token expires within 5 minutes, try to refresh it proactively
+        if (expiresAt && expiresAt - now < 300) {
+          console.log('Session expiring soon, refreshing...');
+          const { data: { session: refreshedSession }, error: refreshError } = 
+            await supabase.auth.refreshSession();
           
-          // If token expires within 60 seconds, refresh it
-          if (expiresAt && expiresAt - now < 60) {
-            console.log('Session expiring soon, refreshing...');
-            const { data: { session: refreshedSession }, error: refreshError } = 
-              await supabase.auth.refreshSession();
-            
-            if (refreshError) {
-              console.error('Error refreshing session:', refreshError);
-              // Session is invalid, sign out
-              await supabase.auth.signOut();
-              setIsLoading(false);
-              return;
-            }
-            
+          if (refreshError) {
+            console.error('Error refreshing session:', refreshError);
+            // Session is invalid, sign out
+            await supabase.auth.signOut();
+            setIsLoading(false);
+            return;
+          }
+          
+          if (refreshedSession) {
             setSession(refreshedSession);
-            setUser(refreshedSession?.user ?? null);
+            setUser(refreshedSession.user ?? null);
             
-            if (refreshedSession?.user) {
+            if (refreshedSession.user) {
               fetchProfile(refreshedSession.user.id);
             }
-          } else {
-            setSession(existingSession);
-            setUser(existingSession?.user ?? null);
-            
-            if (existingSession?.user) {
-              fetchProfile(existingSession.user.id);
-            }
+          }
+        } else {
+          setSession(existingSession);
+          setUser(existingSession.user ?? null);
+          
+          if (existingSession.user) {
+            fetchProfile(existingSession.user.id);
           }
         }
         
         setIsLoading(false);
       } catch (err) {
         console.error('Auth initialization error:', err);
+        // On any error, clear session to prevent stuck state
+        await supabase.auth.signOut();
         setIsLoading(false);
       }
     };
 
     initializeAuth();
 
-    return () => subscription.unsubscribe();
+    // Set up periodic token refresh check (every 4 minutes)
+    const refreshInterval = setInterval(async () => {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (currentSession) {
+        const expiresAt = currentSession.expires_at;
+        const now = Math.floor(Date.now() / 1000);
+        
+        if (expiresAt && expiresAt - now < 300) {
+          console.log('Periodic refresh: Session expiring soon, refreshing...');
+          await supabase.auth.refreshSession();
+        }
+      }
+    }, 4 * 60 * 1000); // Every 4 minutes
+
+    return () => {
+      subscription.unsubscribe();
+      clearInterval(refreshInterval);
+    };
   }, [fetchProfile]);
 
   const signIn = useCallback(async (email: string, password: string) => {
