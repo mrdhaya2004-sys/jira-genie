@@ -11,7 +11,8 @@ import {
   LogOut,
   HelpCircle,
   Ticket,
-  LayoutDashboard
+  LayoutDashboard,
+  Code2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
@@ -55,6 +56,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   const automationItems = [
     { icon: LayoutDashboard, label: 'Agentic AI – Core Workspace', module: 'agentic-ai' as ActiveModule },
     { icon: Ticket, label: 'Jira Ticket Raiser', module: 'jira-ticket-raiser' as ActiveModule },
+    { icon: Code2, label: 'Logic Scenario Creator', module: 'logic-scenario-creator' as ActiveModule },
   ];
 
   return (

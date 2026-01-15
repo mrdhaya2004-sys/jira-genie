@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.ticket-ai-generate-steps]
 verify_jwt = false
+
+[functions.scenario-generator]
+verify_jwt = false
