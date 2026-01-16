@@ -199,6 +199,12 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
     setPhase('generating');
 
     try {
+      // Get user's auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Please log in to generate scenarios');
+      }
+
       // Prepare context from workspace files
       const userStories = workspaceFiles
         .filter(f => f.file_type === 'user_story' && f.content_extracted)
@@ -209,14 +215,14 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
       const hasApk = appFiles.some(f => f.file_type === 'apk');
       const hasIpa = appFiles.some(f => f.file_type === 'ipa');
 
-      // Call edge function
+      // Call edge function with user's JWT token
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scenario-generator`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
             workspaceId: selectedWorkspace.id,
@@ -234,6 +240,9 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
       );
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Session expired. Please refresh the page and log in again.');
+        }
         if (response.status === 429) {
           throw new Error('Rate limit exceeded. Please try again later.');
         }
