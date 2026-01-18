@@ -6,8 +6,9 @@ import AgenticAIModule from '@/components/workspace/AgenticAIModule';
 import JiraTicketRaiserModule from '@/components/jira/JiraTicketRaiserModule';
 import LogicScenarioCreatorModule from '@/components/scenario/LogicScenarioCreatorModule';
 import TestCaseGeneratorModule from '@/components/testcase/TestCaseGeneratorModule';
+import XPathGeneratorModule from '@/components/xpath/XPathGeneratorModule';
 
-export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator';
+export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator';
 
 const DashboardPage: React.FC = () => {
   const [activeModule, setActiveModule] = useState<ActiveModule>('mentions');
@@ -47,6 +48,7 @@ const DashboardPage: React.FC = () => {
           {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule />}
           {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule />}
           {activeModule === 'test-case-generator' && <TestCaseGeneratorModule />}
+          {activeModule === 'xpath-generator' && <XPathGeneratorModule />}
         </main>
       </div>
     </div>
