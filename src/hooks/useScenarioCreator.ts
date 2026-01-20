@@ -5,8 +5,9 @@ import type {
   AutomationFramework, 
   ScenarioFlowPhase, 
   ScenarioChatMessage,
-  GeneratedScenario,
-  AUTOMATION_FRAMEWORKS 
+  CodeFramework,
+  GeneratedCode,
+  CODE_FRAMEWORKS 
 } from '@/types/scenario';
 import type { Workspace, WorkspaceFile } from '@/types/workspace';
 
@@ -23,6 +24,9 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
   const [workspaceFiles, setWorkspaceFiles] = useState<WorkspaceFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [lastGeneratedScenario, setLastGeneratedScenario] = useState<string>('');
+  const [selectedCodeFramework, setSelectedCodeFramework] = useState<CodeFramework | null>(null);
+  const [generatedCode, setGeneratedCode] = useState<GeneratedCode | null>(null);
   const { toast } = useToast();
 
   // Initial greeting
@@ -305,7 +309,20 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
         }
       }
 
+      // Store the generated scenario for code conversion
+      setLastGeneratedScenario(assistantContent);
       setPhase('scenario_generated');
+
+      // After a short delay, offer to convert to code
+      setTimeout(() => {
+        addMessage({
+          role: 'assistant',
+          content: "✅ **Scenario generation completed!**\n\nWould you like to convert this scenario into automation code?\n\n**Please select the automation programming language or framework:**",
+          type: 'code_framework_select',
+        });
+        setPhase('code_framework_selection');
+      }, 1000);
+
     } catch (error) {
       console.error('Scenario generation error:', error);
       toast({
@@ -326,6 +343,317 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
     }
   }, [selectedFramework, selectedWorkspace, selectedModule, workspaceFiles, toast, addMessage]);
 
+  const handleCodeFrameworkSelect = useCallback(async (codeFramework: CodeFramework) => {
+    if (!selectedWorkspace || !lastGeneratedScenario) {
+      toast({
+        title: 'Missing Data',
+        description: 'No scenario available for code generation.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSelectedCodeFramework(codeFramework);
+
+    // Find framework name
+    const frameworkNames: Record<CodeFramework, string> = {
+      selenium_java: 'Selenium with Java',
+      selenium_python: 'Selenium with Python',
+      playwright_js: 'Playwright (JavaScript)',
+      playwright_ts: 'Playwright (TypeScript)',
+      cypress: 'Cypress',
+      pytest: 'PyTest',
+      appium_java: 'Appium with Java',
+      appium_python: 'Appium with Python',
+    };
+
+    addMessage({
+      role: 'user',
+      content: `Convert to **${frameworkNames[codeFramework]}**`,
+      type: 'text',
+    });
+
+    setIsLoading(true);
+    setIsStreaming(true);
+    setPhase('code_generating');
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Please log in to generate code');
+      }
+
+      const userStories = workspaceFiles
+        .filter(f => f.file_type === 'user_story' && f.content_extracted)
+        .map(f => f.content_extracted)
+        .join('\n\n');
+
+      const appFiles = workspaceFiles.filter(f => f.file_type === 'apk' || f.file_type === 'ipa');
+      const hasApk = appFiles.some(f => f.file_type === 'apk');
+      const hasIpa = appFiles.some(f => f.file_type === 'ipa');
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scenario-to-code`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            workspaceId: selectedWorkspace.id,
+            scenario: lastGeneratedScenario,
+            codeFramework,
+            module: selectedModule,
+            context: {
+              userStories,
+              hasApk,
+              hasIpa,
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please try again later.');
+        }
+        if (response.status === 402) {
+          throw new Error('AI credits exhausted. Please add more credits.');
+        }
+        throw new Error('Failed to generate code');
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let codeContent = '';
+      const codeMessageId = crypto.randomUUID();
+
+      // Framework language mappings
+      const languageMap: Record<CodeFramework, string> = {
+        selenium_java: 'java',
+        selenium_python: 'python',
+        playwright_js: 'javascript',
+        playwright_ts: 'typescript',
+        cypress: 'javascript',
+        pytest: 'python',
+        appium_java: 'java',
+        appium_python: 'python',
+      };
+
+      const extensionMap: Record<CodeFramework, string> = {
+        selenium_java: 'java',
+        selenium_python: 'py',
+        playwright_js: 'spec.js',
+        playwright_ts: 'spec.ts',
+        cypress: 'cy.js',
+        pytest: 'test.py',
+        appium_java: 'java',
+        appium_python: 'py',
+      };
+
+      const fileName = `${selectedModule?.toLowerCase().replace(/\s+/g, '_')}_test.${extensionMap[codeFramework]}`;
+
+      // Add placeholder message
+      setMessages(prev => [...prev, {
+        id: codeMessageId,
+        role: 'assistant',
+        content: 'Generating automation code...',
+        type: 'code_display',
+        generatedCode: {
+          code: '',
+          framework: codeFramework,
+          language: languageMap[codeFramework],
+          fileName,
+        },
+        timestamp: new Date().toISOString(),
+      }]);
+
+      if (reader) {
+        let buffer = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          
+          let newlineIndex: number;
+          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+            const line = buffer.slice(0, newlineIndex).trim();
+            buffer = buffer.slice(newlineIndex + 1);
+
+            if (!line || line.startsWith(':')) continue;
+            if (!line.startsWith('data: ')) continue;
+
+            const jsonStr = line.slice(6).trim();
+            if (jsonStr === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const delta = parsed.choices?.[0]?.delta?.content;
+              if (delta) {
+                codeContent += delta;
+                const newGeneratedCode: GeneratedCode = {
+                  code: codeContent,
+                  framework: codeFramework,
+                  language: languageMap[codeFramework],
+                  fileName,
+                };
+                setGeneratedCode(newGeneratedCode);
+                setMessages(prev => 
+                  prev.map(m => m.id === codeMessageId 
+                    ? { ...m, content: 'Code generated:', generatedCode: newGeneratedCode }
+                    : m
+                  )
+                );
+              }
+            } catch {
+              // Incomplete JSON
+            }
+          }
+        }
+      }
+
+      setPhase('code_generated');
+
+      // Add follow-up message
+      setTimeout(() => {
+        addMessage({
+          role: 'assistant',
+          content: "🎉 **Code generation complete!**\n\nYou can:\n- **Edit** the code directly in the editor\n- **Copy** or **Download** the code\n- Ask me to **regenerate** with a different framework\n- Ask me to **refactor** or **explain** the code\n\nOr continue generating more scenarios!",
+          type: 'text',
+        });
+      }, 500);
+
+    } catch (error) {
+      console.error('Code generation error:', error);
+      toast({
+        title: 'Code Generation Failed',
+        description: error instanceof Error ? error.message : 'Failed to generate code',
+        variant: 'destructive',
+      });
+      
+      addMessage({
+        role: 'assistant',
+        content: '❌ Sorry, I encountered an error while generating the code. Please try again.',
+        type: 'text',
+      });
+      setPhase('code_framework_selection');
+    } finally {
+      setIsLoading(false);
+      setIsStreaming(false);
+    }
+  }, [selectedWorkspace, selectedModule, lastGeneratedScenario, workspaceFiles, toast, addMessage]);
+
+  const handleCodeAction = useCallback(async (action: string) => {
+    if (!generatedCode) return;
+
+    addMessage({
+      role: 'user',
+      content: action,
+      type: 'text',
+    });
+
+    setIsLoading(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Please log in');
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scenario-to-code`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            workspaceId: selectedWorkspace?.id,
+            scenario: lastGeneratedScenario,
+            codeFramework: selectedCodeFramework,
+            module: selectedModule,
+            existingCode: generatedCode.code,
+            action,
+            context: {
+              userStories: '',
+              hasApk: false,
+              hasIpa: false,
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to process request');
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let responseContent = '';
+      const responseId = crypto.randomUUID();
+
+      setMessages(prev => [...prev, {
+        id: responseId,
+        role: 'assistant',
+        content: '',
+        type: 'text',
+        timestamp: new Date().toISOString(),
+      }]);
+
+      if (reader) {
+        let buffer = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          
+          let newlineIndex: number;
+          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+            const line = buffer.slice(0, newlineIndex).trim();
+            buffer = buffer.slice(newlineIndex + 1);
+
+            if (!line || line.startsWith(':')) continue;
+            if (!line.startsWith('data: ')) continue;
+
+            const jsonStr = line.slice(6).trim();
+            if (jsonStr === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const delta = parsed.choices?.[0]?.delta?.content;
+              if (delta) {
+                responseContent += delta;
+                setMessages(prev => 
+                  prev.map(m => m.id === responseId 
+                    ? { ...m, content: responseContent }
+                    : m
+                  )
+                );
+              }
+            } catch {
+              // Incomplete JSON
+            }
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error('Action error:', error);
+      addMessage({
+        role: 'assistant',
+        content: '❌ Sorry, I encountered an error. Please try again.',
+        type: 'text',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [generatedCode, selectedWorkspace, selectedModule, lastGeneratedScenario, selectedCodeFramework, addMessage]);
+
   const resetFlow = useCallback(() => {
     setMessages([]);
     setPhase('framework_selection');
@@ -333,6 +661,9 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
     setSelectedWorkspace(null);
     setSelectedModule(null);
     setWorkspaceFiles([]);
+    setLastGeneratedScenario('');
+    setSelectedCodeFramework(null);
+    setGeneratedCode(null);
     
     // Re-add initial message
     setTimeout(() => {
@@ -350,12 +681,16 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
     selectedFramework,
     selectedWorkspace,
     selectedModule,
+    selectedCodeFramework,
+    generatedCode,
     isLoading,
     isStreaming,
     handleFrameworkSelect,
     handleWorkspaceSelect,
     handleModuleSelect,
     handleUserQuery,
+    handleCodeFrameworkSelect,
+    handleCodeAction,
     resetFlow,
   };
 };

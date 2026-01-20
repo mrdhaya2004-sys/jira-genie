@@ -5,15 +5,18 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Copy, Check, Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AUTOMATION_FRAMEWORKS } from '@/types/scenario';
-import type { ScenarioChatMessage as ChatMessageType, AutomationFramework } from '@/types/scenario';
-import type { Workspace } from '@/types/workspace';
+import type { ScenarioChatMessage as ChatMessageType, AutomationFramework, CodeFramework } from '@/types/scenario';
 import FrameworkCard from './FrameworkCard';
+import CodeFrameworkSelector from './CodeFrameworkSelector';
+import CodeEditor from './CodeEditor';
 
 interface ScenarioChatMessageProps {
   message: ChatMessageType;
   onFrameworkSelect?: (id: AutomationFramework, name: string) => void;
   onWorkspaceSelect?: (id: string, name: string) => void;
   onModuleSelect?: (module: string) => void;
+  onCodeFrameworkSelect?: (framework: CodeFramework) => void;
+  onCodeAction?: (action: string) => void;
 }
 
 const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
@@ -21,6 +24,8 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
   onFrameworkSelect,
   onWorkspaceSelect,
   onModuleSelect,
+  onCodeFrameworkSelect,
+  onCodeAction,
 }) => {
   const [copied, setCopied] = React.useState(false);
   const isBot = message.role === 'assistant';
@@ -60,44 +65,56 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
         "flex flex-col gap-2 max-w-[85%]",
         !isBot && "items-end"
       )}>
-        <Card className={cn(
-          "shadow-sm",
-          isBot ? "bg-card" : "bg-primary text-primary-foreground"
-        )}>
-          <CardContent className="p-3">
-            <div 
-              className={cn(
-                "text-sm prose prose-sm max-w-none",
-                !isBot && "text-primary-foreground prose-invert"
-              )}
-              dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
-            />
+        {/* Don't show card for code_display type - show editor instead */}
+        {message.type !== 'code_display' && (
+          <Card className={cn(
+            "shadow-sm",
+            isBot ? "bg-card" : "bg-primary text-primary-foreground"
+          )}>
+            <CardContent className="p-3">
+              <div 
+                className={cn(
+                  "text-sm prose prose-sm max-w-none",
+                  !isBot && "text-primary-foreground prose-invert"
+                )}
+                dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
+              />
 
-            {/* Scenario content with copy button */}
-            {message.type === 'scenario' && message.content && (
-              <div className="mt-3 flex justify-end">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCopy}
-                  className="h-7 px-2 text-xs"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="h-3 w-3 mr-1" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3 w-3 mr-1" />
-                      Copy Scenario
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              {/* Scenario content with copy button */}
+              {message.type === 'scenario' && message.content && (
+                <div className="mt-3 flex justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCopy}
+                    className="h-7 px-2 text-xs"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-3 w-3 mr-1" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3 w-3 mr-1" />
+                        Copy Scenario
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Code Display with Monaco Editor */}
+        {message.type === 'code_display' && message.generatedCode && (
+          <CodeEditor
+            generatedCode={message.generatedCode}
+            onAskAI={onCodeAction}
+            className="w-full min-w-[600px]"
+          />
+        )}
 
         {/* Framework Selection Cards */}
         {message.type === 'framework_select' && onFrameworkSelect && (
@@ -110,6 +127,14 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
               />
             ))}
           </div>
+        )}
+
+        {/* Code Framework Selection */}
+        {message.type === 'code_framework_select' && onCodeFrameworkSelect && (
+          <CodeFrameworkSelector
+            onSelect={onCodeFrameworkSelect}
+            className="w-full mt-2"
+          />
         )}
 
         {/* Workspace Selection */}

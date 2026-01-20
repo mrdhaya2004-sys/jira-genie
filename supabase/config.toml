@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.xpath-generator]
 verify_jwt = false
+
+[functions.scenario-to-code]
+verify_jwt = false
