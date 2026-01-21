@@ -7,6 +7,7 @@ import JiraTicketRaiserModule from '@/components/jira/JiraTicketRaiserModule';
 import LogicScenarioCreatorModule from '@/components/scenario/LogicScenarioCreatorModule';
 import TestCaseGeneratorModule from '@/components/testcase/TestCaseGeneratorModule';
 import XPathGeneratorModule from '@/components/xpath/XPathGeneratorModule';
+import MyTicketsModule from '@/components/tickets/MyTicketsModule';
 
 export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator';
 
@@ -34,11 +35,7 @@ const DashboardPage: React.FC = () => {
               Chat module coming soon
             </div>
           )}
-          {activeModule === 'tickets' && (
-            <div className="h-full flex items-center justify-center text-muted-foreground">
-              My Tickets module coming soon
-            </div>
-          )}
+          {activeModule === 'tickets' && <MyTicketsModule />}
           {activeModule === 'history' && (
             <div className="h-full flex items-center justify-center text-muted-foreground">
               History module coming soon

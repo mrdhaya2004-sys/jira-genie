@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { ChatMessage, TicketData, ChatOption, DuplicateTicket, DynamicInput, Platform, Environment, TitleAnalysisResult } from '@/types/ticket';
 import { useAuth } from './AuthContext';
 import { jiraService, JiraMetadata, DuplicateIssue } from '@/services/jiraService';
+import { addAICreatedTicket } from '@/lib/aiTicketStorage';
 import { toast } from 'sonner';
 
 // Intelligent flow phases
@@ -666,6 +667,9 @@ ${stepsText}
           setIsTyping(false);
           
           if (result.success && result.ticketKey) {
+            // Track this ticket as AI-created for "My Tickets" module
+            addAICreatedTicket(result.ticketKey);
+            
             toast.success(`Ticket ${result.ticketKey} created successfully!`);
             addMessage({
               type: 'system',
