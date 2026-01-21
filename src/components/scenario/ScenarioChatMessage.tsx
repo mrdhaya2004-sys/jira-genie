@@ -2,13 +2,14 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Copy, Check, Bot, User } from 'lucide-react';
+import { Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AUTOMATION_FRAMEWORKS } from '@/types/scenario';
 import type { ScenarioChatMessage as ChatMessageType, AutomationFramework, CodeFramework } from '@/types/scenario';
 import FrameworkCard from './FrameworkCard';
 import CodeFrameworkSelector from './CodeFrameworkSelector';
 import CodeEditor from './CodeEditor';
+import ScenarioEditor from './ScenarioEditor';
 
 interface ScenarioChatMessageProps {
   message: ChatMessageType;
@@ -17,6 +18,8 @@ interface ScenarioChatMessageProps {
   onModuleSelect?: (module: string) => void;
   onCodeFrameworkSelect?: (framework: CodeFramework) => void;
   onCodeAction?: (action: string) => void;
+  selectedFramework?: AutomationFramework;
+  selectedModule?: string;
 }
 
 const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
@@ -26,19 +29,10 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
   onModuleSelect,
   onCodeFrameworkSelect,
   onCodeAction,
+  selectedFramework,
+  selectedModule,
 }) => {
-  const [copied, setCopied] = React.useState(false);
   const isBot = message.role === 'assistant';
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(message.content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      console.error('Failed to copy:', error);
-    }
-  };
 
   const formatContent = (content: string) => {
     // Parse markdown-like syntax
@@ -65,8 +59,8 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
         "flex flex-col gap-2 max-w-[85%]",
         !isBot && "items-end"
       )}>
-        {/* Don't show card for code_display type - show editor instead */}
-        {message.type !== 'code_display' && (
+        {/* Don't show card for code_display or scenario types - show editor instead */}
+        {message.type !== 'code_display' && message.type !== 'scenario' && (
           <Card className={cn(
             "shadow-sm",
             isBot ? "bg-card" : "bg-primary text-primary-foreground"
@@ -79,32 +73,18 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
                 )}
                 dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
               />
-
-              {/* Scenario content with copy button */}
-              {message.type === 'scenario' && message.content && (
-                <div className="mt-3 flex justify-end">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleCopy}
-                    className="h-7 px-2 text-xs"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="h-3 w-3 mr-1" />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3 w-3 mr-1" />
-                        Copy Scenario
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
+        )}
+
+        {/* Scenario Display with Monaco Editor */}
+        {message.type === 'scenario' && message.content && (
+          <ScenarioEditor
+            scenario={message.content}
+            framework={selectedFramework}
+            module={selectedModule}
+            className="w-full min-w-[600px]"
+          />
         )}
 
         {/* Code Display with Monaco Editor */}
