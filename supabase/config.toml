@@ -9,6 +9,9 @@ verify_jwt = false
 [functions.jira-get-metadata]
 verify_jwt = false
 
+[functions.jira-get-my-tickets]
+verify_jwt = false
+
 [functions.ticket-ai-enhance]
 verify_jwt = false
 
