@@ -494,8 +494,13 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
               const delta = parsed.choices?.[0]?.delta?.content;
               if (delta) {
                 codeContent += delta;
+                // Clean markdown code fences from the content
+                const cleanCode = codeContent
+                  .replace(/^```[\w]*\n?/gm, '')
+                  .replace(/\n?```$/gm, '')
+                  .trim();
                 const newGeneratedCode: GeneratedCode = {
-                  code: codeContent,
+                  code: cleanCode,
                   framework: codeFramework,
                   language: languageMap[codeFramework],
                   fileName,
