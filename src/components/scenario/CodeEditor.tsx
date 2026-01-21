@@ -24,6 +24,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [code, setCode] = useState(generatedCode.code);
 
+  // Sync local code state when generatedCode changes (during streaming)
+  React.useEffect(() => {
+    setCode(generatedCode.code);
+  }, [generatedCode.code]);
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(code);
