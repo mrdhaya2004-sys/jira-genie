@@ -114,13 +114,21 @@ serve(async (req) => {
 
     console.log('Fetching tickets with JQL:', jql);
 
-    const searchUrl = `https://${jiraDomain}/rest/api/3/search?jql=${encodeURIComponent(jql)}&maxResults=${maxResults}&startAt=${startAt}&fields=key,summary,issuetype,status,priority,assignee,reporter,created,updated,creator`;
+    // Use the new /rest/api/3/search/jql endpoint (POST method)
+    const searchUrl = `https://${jiraDomain}/rest/api/3/search/jql`;
 
     const response = await fetch(searchUrl, {
+      method: 'POST',
       headers: {
         'Authorization': `Basic ${auth}`,
         'Accept': 'application/json',
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        jql: jql,
+        maxResults: maxResults,
+        fields: ['key', 'summary', 'issuetype', 'status', 'priority', 'assignee', 'reporter', 'created', 'updated', 'creator'],
+      }),
     });
 
     if (!response.ok) {
@@ -134,6 +142,9 @@ serve(async (req) => {
 
     const data = await response.json();
     
+    // The new API uses 'total' for count of matching issues
+    const totalCount = data.total || data.issues?.length || 0;
+    console.log('Jira API response - total:', totalCount, 'issues count:', data.issues?.length);
     // Transform Jira response to our format
     const tickets = data.issues?.map((issue: Record<string, unknown>) => {
       const fields = issue.fields as Record<string, unknown>;
@@ -213,9 +224,9 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         tickets,
-        total: data.total || 0,
-        maxResults: data.maxResults || maxResults,
-        startAt: data.startAt || startAt,
+        total: totalCount,
+        maxResults: maxResults,
+        startAt: 0,
         statuses,
         projectKey: jiraProjectKey,
       }),
