@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { automationHistoryService } from '@/lib/automationHistory';
 import * as XLSX from 'xlsx';
 import type { Workspace } from '@/types/workspace';
 import type {
@@ -343,6 +344,16 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
       }
 
       setPhase('completed');
+
+      // Save to history
+      automationHistoryService.addEntry({
+        toolType: 'testcase',
+        title: query.slice(0, 50) + (query.length > 50 ? '...' : ''),
+        summary: `Generated test cases${selectedWorkspace ? ` for ${selectedWorkspace.name}` : ' in manual mode'}`,
+        metadata: {
+          workspace: selectedWorkspace?.name,
+        },
+      });
 
       // Add download prompt if we have structured test cases
       if (excelStructure) {

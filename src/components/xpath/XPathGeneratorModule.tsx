@@ -7,6 +7,7 @@ import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useXPathGenerator } from '@/hooks/useXPathGenerator';
 import XPathChatMessage from './XPathChatMessage';
 import XPathChatInput from './XPathChatInput';
+import HistoryPanel from '@/components/automation/HistoryPanel';
 import type { Platform } from '@/types/xpath';
 
 const XPathGeneratorModule: React.FC = () => {
@@ -77,11 +78,12 @@ const XPathGeneratorModule: React.FC = () => {
             </Badge>
           )}
           
+          <HistoryPanel toolType="xpath" />
+          
           <Button
             variant="outline"
             size="sm"
             onClick={resetFlow}
-            className="ml-2"
           >
             <RotateCcw className="h-4 w-4 mr-1" />
             Start Over

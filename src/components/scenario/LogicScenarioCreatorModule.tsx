@@ -7,6 +7,7 @@ import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useScenarioCreator } from '@/hooks/useScenarioCreator';
 import ScenarioChatMessage from './ScenarioChatMessage';
 import ScenarioChatInput from './ScenarioChatInput';
+import HistoryPanel from '@/components/automation/HistoryPanel';
 import type { AutomationFramework, CodeFramework } from '@/types/scenario';
 
 const LogicScenarioCreatorModule: React.FC = () => {
@@ -119,11 +120,12 @@ const LogicScenarioCreatorModule: React.FC = () => {
             </Badge>
           )}
           
+          <HistoryPanel toolType="scenario" />
+          
           <Button
             variant="outline"
             size="sm"
             onClick={resetFlow}
-            className="ml-2"
           >
             <RotateCcw className="h-4 w-4 mr-1" />
             Start Over

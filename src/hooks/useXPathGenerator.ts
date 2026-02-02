@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { automationHistoryService } from '@/lib/automationHistory';
 import type { 
   XPathFlowPhase, 
   XPathChatMessage,
@@ -299,6 +300,18 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
           }
         }
       }
+
+      // Save to history
+      automationHistoryService.addEntry({
+        toolType: 'xpath',
+        title: query.slice(0, 50) + (query.length > 50 ? '...' : ''),
+        summary: `Generated ${selectedPlatform === 'android' ? 'Android' : 'iOS'} XPaths for ${selectedModule}`,
+        metadata: {
+          workspace: selectedWorkspace?.name,
+          module: selectedModule || undefined,
+          platform: selectedPlatform || undefined,
+        },
+      });
 
       setPhase('xpath_generated');
     } catch (error) {

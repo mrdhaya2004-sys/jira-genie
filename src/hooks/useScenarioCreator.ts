@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { automationHistoryService } from '@/lib/automationHistory';
 import type { 
   AutomationFramework, 
   ScenarioFlowPhase, 
@@ -312,6 +313,18 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
       // Store the generated scenario for code conversion
       setLastGeneratedScenario(assistantContent);
       setPhase('scenario_generated');
+
+      // Save to history
+      automationHistoryService.addEntry({
+        toolType: 'scenario',
+        title: query.slice(0, 50) + (query.length > 50 ? '...' : ''),
+        summary: `Generated ${selectedFramework?.toUpperCase()} scenarios for ${selectedModule}`,
+        metadata: {
+          framework: selectedFramework || undefined,
+          workspace: selectedWorkspace?.name,
+          module: selectedModule || undefined,
+        },
+      });
 
       // After a short delay, offer to convert to code
       setTimeout(() => {
