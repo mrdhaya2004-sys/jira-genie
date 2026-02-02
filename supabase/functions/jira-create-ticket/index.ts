@@ -216,6 +216,12 @@ serve(async (req) => {
       (issuePayload.fields as Record<string, unknown>).components = [{ name: ticketData.module }];
     }
 
+    // Add assignee if provided and not 'auto'
+    if (ticketData.assignee && ticketData.assignee !== 'auto') {
+      (issuePayload.fields as Record<string, unknown>).assignee = { accountId: ticketData.assignee };
+      console.log('Setting assignee:', ticketData.assignee);
+    }
+
     console.log('Issue payload:', JSON.stringify(issuePayload, null, 2));
     console.log('Sending to Jira API: https://' + jiraDomain + '/rest/api/3/issue');
 
