@@ -7,6 +7,7 @@ import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useTestCaseGenerator } from '@/hooks/useTestCaseGenerator';
 import TestCaseChatMessage from './TestCaseChatMessage';
 import TestCaseChatInput from './TestCaseChatInput';
+import HistoryPanel from '@/components/automation/HistoryPanel';
 
 const TestCaseGeneratorModule: React.FC = () => {
   const { workspaces, isLoading: workspacesLoading } = useWorkspaces();
@@ -78,11 +79,12 @@ const TestCaseGeneratorModule: React.FC = () => {
             </Badge>
           )}
           
+          <HistoryPanel toolType="testcase" />
+          
           <Button
             variant="outline"
             size="sm"
             onClick={resetFlow}
-            className="ml-2"
           >
             <RotateCcw className="h-4 w-4 mr-1" />
             Start Over
