@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -41,16 +41,30 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
-  const loadHistory = () => {
-    const entries = toolType 
-      ? automationHistoryService.getHistoryByTool(toolType)
-      : automationHistoryService.getHistory();
-    setHistory(entries);
-  };
+  const loadHistory = useCallback(() => {
+    try {
+      const entries = toolType 
+        ? automationHistoryService.getHistoryByTool(toolType)
+        : automationHistoryService.getHistory();
+      console.log('Loaded history entries:', entries.length, 'for tool:', toolType);
+      setHistory(entries);
+    } catch (error) {
+      console.error('Error loading history:', error);
+      setHistory([]);
+    }
+  }, [toolType]);
 
+  // Load history on mount, when panel opens, and when toolType changes
   useEffect(() => {
     loadHistory();
-  }, [toolType, isOpen]);
+  }, [loadHistory]);
+
+  // Reload history when panel opens
+  useEffect(() => {
+    if (isOpen) {
+      loadHistory();
+    }
+  }, [isOpen, loadHistory]);
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
