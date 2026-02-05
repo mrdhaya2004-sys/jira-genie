@@ -9,6 +9,7 @@ import TestCaseGeneratorModule from '@/components/testcase/TestCaseGeneratorModu
 import XPathGeneratorModule from '@/components/xpath/XPathGeneratorModule';
 import MyTicketsModule from '@/components/tickets/MyTicketsModule';
 import HistoryModule from '@/components/automation/HistoryModule';
+import CurrentChatModule from '@/components/currentchat/CurrentChatModule';
 
 export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator';
 
@@ -31,11 +32,7 @@ const DashboardPage: React.FC = () => {
         <DashboardHeader activeModule={activeModule} onModuleChange={setActiveModule} />
         <main className="flex-1 overflow-hidden bg-muted/30">
           {activeModule === 'mentions' && <MentionsPanel />}
-          {activeModule === 'chat' && (
-            <div className="h-full flex items-center justify-center text-muted-foreground">
-              Chat module coming soon
-            </div>
-          )}
+          {activeModule === 'chat' && <CurrentChatModule />}
           {activeModule === 'tickets' && <MyTicketsModule />}
           {activeModule === 'history' && <HistoryModule />}
           {activeModule === 'agentic-ai' && <AgenticAIModule />}
