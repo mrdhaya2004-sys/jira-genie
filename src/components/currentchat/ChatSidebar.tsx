@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Users, User, MoreVertical, Trash2 } from 'lucide-react';
+import { Search, Plus, Users, User, MoreVertical, Trash2, Settings } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,6 +14,8 @@ import {
 import { Conversation } from '@/types/chat';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import TeamsBadge from '@/components/teams/TeamsBadge';
+import TeamsIcon from '@/components/teams/TeamsIcon';
 
 interface ChatSidebarProps {
   conversations: Conversation[];
@@ -22,6 +24,7 @@ interface ChatSidebarProps {
   onNewChat: () => void;
   onNewGroup: () => void;
   onDeleteConversation: (conversationId: string) => void;
+  onOpenTeamsSettings: () => void;
   isLoading: boolean;
 }
 
@@ -32,6 +35,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onNewChat,
   onNewGroup,
   onDeleteConversation,
+  onOpenTeamsSettings,
   isLoading
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -65,6 +69,9 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Chats</h2>
           <div className="flex gap-1">
+            <Button variant="ghost" size="icon-sm" onClick={onOpenTeamsSettings} title="Teams Integration">
+              <TeamsIcon className="h-4 w-4" />
+            </Button>
             <Button variant="ghost" size="icon-sm" onClick={onNewChat} title="New Chat">
               <User className="h-4 w-4" />
             </Button>
@@ -173,11 +180,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {conv.type === 'group' && (
+                {conv.is_teams_synced ? (
+                  <TeamsBadge />
+                ) : conv.type === 'group' ? (
                   <Badge variant="secondary" className="text-xs">
                     Group
                   </Badge>
-                )}
+                ) : null}
               </div>
             ))}
           </div>

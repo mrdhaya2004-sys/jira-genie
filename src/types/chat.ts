@@ -8,6 +8,8 @@ export interface Conversation {
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
+  teams_chat_id?: string | null;
+  is_teams_synced?: boolean;
   participants?: ConversationParticipant[];
   last_message?: ChatMessageData;
   unread_count?: number;
