@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Conversation, ConversationParticipant } from '@/types/chat';
 import { useAuth } from '@/contexts/AuthContext';
+import TeamsBadge from '@/components/teams/TeamsBadge';
 
 interface ChatHeaderProps {
   conversation: Conversation;
@@ -80,7 +81,10 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
         </Avatar>
 
         <div>
-          <h3 className="font-semibold text-sm">{displayName}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-sm">{displayName}</h3>
+            {conversation.is_teams_synced && <TeamsBadge />}
+          </div>
           <div className="flex items-center gap-2">
             {conversation.type === 'group' && (
               <span className="text-xs text-muted-foreground">

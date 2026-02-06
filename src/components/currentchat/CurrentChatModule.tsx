@@ -6,6 +6,7 @@ import ChatMessageArea from './ChatMessageArea';
 import ChatInputArea from './ChatInputArea';
 import CreateChatDialog from './CreateChatDialog';
 import ParticipantsDialog from './ParticipantsDialog';
+import TeamsSettingsDialog from '@/components/teams/TeamsSettingsDialog';
 import { useChat } from '@/hooks/useChat';
 import { useAuth } from '@/contexts/AuthContext';
 import { CreateConversationData } from '@/types/chat';
@@ -45,6 +46,7 @@ const CurrentChatModule: React.FC = () => {
   const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [teamsSettingsOpen, setTeamsSettingsOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
 
   const handleNewChat = () => {
@@ -120,6 +122,7 @@ const CurrentChatModule: React.FC = () => {
         onNewChat={handleNewChat}
         onNewGroup={handleNewGroup}
         onDeleteConversation={handleDeleteConversationClick}
+        onOpenTeamsSettings={() => setTeamsSettingsOpen(true)}
         isLoading={isLoading}
       />
 
@@ -228,6 +231,11 @@ const CurrentChatModule: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Teams Settings Dialog */}
+      <TeamsSettingsDialog
+        open={teamsSettingsOpen}
+        onOpenChange={setTeamsSettingsOpen}
+      />
     </div>
   );
 };

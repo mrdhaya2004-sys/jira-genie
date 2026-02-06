@@ -99,7 +99,9 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          is_teams_synced: boolean
           name: string | null
+          teams_chat_id: string | null
           type: Database["public"]["Enums"]["conversation_type"]
           updated_at: string
         }
@@ -108,7 +110,9 @@ export type Database = {
           created_at?: string
           created_by: string
           id?: string
+          is_teams_synced?: boolean
           name?: string | null
+          teams_chat_id?: string | null
           type?: Database["public"]["Enums"]["conversation_type"]
           updated_at?: string
         }
@@ -117,7 +121,9 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          is_teams_synced?: boolean
           name?: string | null
+          teams_chat_id?: string | null
           type?: Database["public"]["Enums"]["conversation_type"]
           updated_at?: string
         }
@@ -207,6 +213,57 @@ export type Database = {
           full_name?: string
           id?: string
           mobile_number?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      teams_connections: {
+        Row: {
+          access_token: string | null
+          created_at: string
+          id: string
+          is_connected: boolean
+          last_synced_at: string | null
+          microsoft_display_name: string | null
+          microsoft_email: string | null
+          microsoft_user_id: string | null
+          refresh_token: string | null
+          sync_enabled: boolean
+          tenant_id: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string
+          id?: string
+          is_connected?: boolean
+          last_synced_at?: string | null
+          microsoft_display_name?: string | null
+          microsoft_email?: string | null
+          microsoft_user_id?: string | null
+          refresh_token?: string | null
+          sync_enabled?: boolean
+          tenant_id?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string
+          id?: string
+          is_connected?: boolean
+          last_synced_at?: string | null
+          microsoft_display_name?: string | null
+          microsoft_email?: string | null
+          microsoft_user_id?: string | null
+          refresh_token?: string | null
+          sync_enabled?: boolean
+          tenant_id?: string | null
+          token_expires_at?: string | null
           updated_at?: string
           user_id?: string
         }

@@ -32,3 +32,12 @@ verify_jwt = false
 
 [functions.scenario-to-code]
 verify_jwt = false
+
+[functions.teams-auth]
+verify_jwt = false
+
+[functions.teams-sync]
+verify_jwt = false
+
+[functions.teams-send-message]
+verify_jwt = false
