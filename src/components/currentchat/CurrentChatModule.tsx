@@ -8,6 +8,7 @@ import CreateChatDialog from './CreateChatDialog';
 import ParticipantsDialog from './ParticipantsDialog';
 import TeamsSettingsDialog from '@/components/teams/TeamsSettingsDialog';
 import { useChat } from '@/hooks/useChat';
+import { useTestChats } from '@/hooks/useTestChats';
 import { useAuth } from '@/contexts/AuthContext';
 import { CreateConversationData } from '@/types/chat';
 import {
@@ -37,8 +38,20 @@ const CurrentChatModule: React.FC = () => {
     addParticipant,
     removeParticipant,
     deleteConversation,
-    leaveConversation
+    leaveConversation,
+    setSelectedConversation
   } = useChat();
+
+  const {
+    testConversations,
+    deleteTestConversation,
+    deleteTestMessage,
+    getTestMessages,
+    isTestConversation,
+  } = useTestChats();
+
+  const [testSelectedConv, setTestSelectedConv] = useState<string | null>(null);
+  const allConversations = [...testConversations, ...conversations];
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createDialogType, setCreateDialogType] = useState<'direct' | 'group'>('direct');
@@ -67,9 +80,17 @@ const CurrentChatModule: React.FC = () => {
   };
 
   const handleSendMessage = async (content: string) => {
-    if (!selectedConversation) return;
+    const activeConv = testSelectedConv 
+      ? testConversations.find(c => c.id === testSelectedConv)
+      : selectedConversation;
+    if (!activeConv) return;
+    
+    if (isTestConversation(activeConv.id)) {
+      // Test chats don't persist messages
+      return;
+    }
     await sendMessage({
-      conversation_id: selectedConversation.id,
+      conversation_id: activeConv.id,
       content
     });
   };
@@ -81,7 +102,14 @@ const CurrentChatModule: React.FC = () => {
 
   const handleConfirmDelete = async () => {
     if (conversationToDelete) {
-      await deleteConversation(conversationToDelete);
+      if (isTestConversation(conversationToDelete)) {
+        deleteTestConversation(conversationToDelete);
+        if (testSelectedConv === conversationToDelete) {
+          setTestSelectedConv(null);
+        }
+      } else {
+        await deleteConversation(conversationToDelete);
+      }
       setConversationToDelete(null);
     }
     setDeleteDialogOpen(false);
@@ -112,13 +140,39 @@ const CurrentChatModule: React.FC = () => {
 
   const isAdmin = participants.find(p => p.user_id === user?.id)?.is_admin || false;
 
+  const handleSelectConversation = (conversation: typeof allConversations[0]) => {
+    if (isTestConversation(conversation.id)) {
+      setTestSelectedConv(conversation.id);
+      setSelectedConversation(null);
+    } else {
+      setTestSelectedConv(null);
+      selectConversation(conversation);
+    }
+  };
+
+  const activeConversation = testSelectedConv 
+    ? testConversations.find(c => c.id === testSelectedConv) || null
+    : selectedConversation;
+
+  const activeMessages = testSelectedConv 
+    ? getTestMessages(testSelectedConv) 
+    : messages;
+
+  const handleDeleteActiveMessage = (messageId: string) => {
+    if (testSelectedConv) {
+      deleteTestMessage(messageId);
+    } else {
+      deleteMessage(messageId);
+    }
+  };
+
   return (
     <div className="h-full flex">
       {/* Sidebar */}
       <ChatSidebar
-        conversations={conversations}
-        selectedConversation={selectedConversation}
-        onSelectConversation={selectConversation}
+        conversations={allConversations}
+        selectedConversation={activeConversation}
+        onSelectConversation={handleSelectConversation}
         onNewChat={handleNewChat}
         onNewGroup={handleNewGroup}
         onDeleteConversation={handleDeleteConversationClick}
@@ -128,24 +182,25 @@ const CurrentChatModule: React.FC = () => {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-background">
-        {selectedConversation ? (
+        {activeConversation ? (
           <>
             <ChatHeader
-              conversation={selectedConversation}
-              participants={participants}
+              conversation={activeConversation}
+              participants={testSelectedConv ? [] : participants}
               onAddParticipant={handleAddParticipant}
               onViewParticipants={() => setParticipantsDialogOpen(true)}
               onLeaveGroup={handleLeaveGroup}
-              onDeleteConversation={() => handleDeleteConversationClick(selectedConversation.id)}
+              onDeleteConversation={() => handleDeleteConversationClick(activeConversation.id)}
+              isTestChat={!!testSelectedConv}
             />
             <ChatMessageArea
-              messages={messages}
-              isLoading={isLoadingMessages}
-              onDeleteMessage={deleteMessage}
+              messages={activeMessages}
+              isLoading={testSelectedConv ? false : isLoadingMessages}
+              onDeleteMessage={handleDeleteActiveMessage}
             />
             <ChatInputArea
               onSend={handleSendMessage}
-              disabled={isLoadingMessages}
+              disabled={testSelectedConv ? false : isLoadingMessages}
             />
           </>
         ) : (
