@@ -28,6 +28,7 @@ interface ChatHeaderProps {
   onViewParticipants: () => void;
   onLeaveGroup: () => void;
   onDeleteConversation: () => void;
+  isTestChat?: boolean;
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({
@@ -36,7 +37,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   onAddParticipant,
   onViewParticipants,
   onLeaveGroup,
-  onDeleteConversation
+  onDeleteConversation,
+  isTestChat = false
 }) => {
   const { user } = useAuth();
   
@@ -138,7 +140,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                 </DropdownMenuItem>
               </>
             )}
-            {(isCreator || isAdmin) && (
+            {(isCreator || isAdmin || isTestChat) && (
               <DropdownMenuItem onClick={onDeleteConversation} className="text-destructive">
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete {conversation.type === 'group' ? 'Group' : 'Chat'}
