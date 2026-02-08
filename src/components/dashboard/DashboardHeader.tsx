@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import DashboardSidebar from './DashboardSidebar';
 import { ActiveModule } from '@/pages/DashboardPage';
+import testzoneLogo from '@/assets/testzone-logo.png';
 import { useMentions } from '@/hooks/useMentions';
 
 interface DashboardHeaderProps {
@@ -67,9 +68,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
 
         {/* Logo & Title */}
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <LayoutDashboard className="h-4 w-4 text-primary-foreground" />
-          </div>
+          <img src={testzoneLogo} alt="Testzone" className="h-8 w-8 rounded-lg object-contain" />
           <span className="font-semibold text-foreground hidden sm:inline">Testzone</span>
         </div>
       </div>

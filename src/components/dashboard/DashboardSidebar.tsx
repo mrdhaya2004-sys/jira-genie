@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
+import testzoneLogo from '@/assets/testzone-logo.png';
 import { useMentions } from '@/hooks/useMentions';
 
 interface DashboardSidebarProps {
@@ -70,9 +71,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     )}>
       {/* Header */}
       <div className="p-4 flex items-center gap-3">
-        <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
-          <LayoutDashboard className="h-6 w-6 text-primary-foreground" />
-        </div>
+        <img src={testzoneLogo} alt="Testzone" className="h-10 w-10 rounded-lg object-contain" />
         <div>
           <h1 className="font-semibold text-sidebar-foreground">Testzone</h1>
           <p className="text-xs text-sidebar-foreground/60">Dashboard</p>
