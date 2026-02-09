@@ -10,7 +10,7 @@ interface AuthLayoutProps {
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ 
   children, 
-  title = "Testzone",
+  title = "Test Zone",
   subtitle = "Welcome back! Let's build great things together."
 }) => {
   const features = [
