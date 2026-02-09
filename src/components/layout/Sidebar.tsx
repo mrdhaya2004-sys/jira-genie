@@ -52,9 +52,9 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     )}>
       {/* Header */}
       <div className="p-4 flex items-center gap-3">
-        <img src={testzoneLogo} alt="Testzone" className="h-10 w-10 rounded-lg object-contain" />
+        <img src={testzoneLogo} alt="Test Zone" className="h-10 w-10 rounded-lg object-contain" />
         <div>
-          <h1 className="font-semibold text-sidebar-foreground">Testzone</h1>
+          <h1 className="font-semibold text-sidebar-foreground">Test Zone</h1>
           <p className="text-xs text-sidebar-foreground/60">AI Jira Assistant</p>
         </div>
       </div>

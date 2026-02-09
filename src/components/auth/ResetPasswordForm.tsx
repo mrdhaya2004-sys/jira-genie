@@ -59,7 +59,7 @@ const ResetPasswordForm: React.FC = () => {
   if (isPasswordReset) {
     return (
       <AuthLayout 
-        title="Testzone" 
+        title="Test Zone" 
         subtitle="Your password has been reset successfully!"
       >
         <Card className="shadow-soft-lg border-border/50">
@@ -94,7 +94,7 @@ const ResetPasswordForm: React.FC = () => {
 
   return (
     <AuthLayout 
-      title="Testzone" 
+      title="Test Zone" 
       subtitle="Create a new secure password."
     >
       <Card className="shadow-soft-lg border-border/50">

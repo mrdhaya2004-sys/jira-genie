@@ -68,8 +68,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
 
         {/* Logo & Title */}
         <div className="flex items-center gap-2">
-          <img src={testzoneLogo} alt="Testzone" className="h-8 w-8 rounded-lg object-contain" />
-          <span className="font-semibold text-foreground hidden sm:inline">Testzone</span>
+          <img src={testzoneLogo} alt="Test Zone" className="h-8 w-8 rounded-lg object-contain" />
+          <span className="font-semibold text-foreground hidden sm:inline">Test Zone</span>
         </div>
       </div>
 

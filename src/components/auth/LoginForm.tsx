@@ -71,7 +71,7 @@ const LoginForm: React.FC = () => {
 
   return (
     <AuthLayout 
-      title="Testzone" 
+      title="Test Zone" 
       subtitle="Welcome back! Let's build great things together."
     >
       <Card className="shadow-soft-lg border-border/50">

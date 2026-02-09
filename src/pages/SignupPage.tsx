@@ -6,8 +6,8 @@ const SignupPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Sign Up - Testzone</title>
-        <meta name="description" content="Create your Testzone account to streamline IT ticket creation with AI-powered assistance." />
+        <title>Sign Up - Test Zone</title>
+        <meta name="description" content="Create your Test Zone account to streamline IT ticket creation with AI-powered assistance." />
       </Helmet>
       <SignupForm />
     </>

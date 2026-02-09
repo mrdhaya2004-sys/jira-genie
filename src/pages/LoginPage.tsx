@@ -6,8 +6,8 @@ const LoginPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Sign In - Testzone</title>
-        <meta name="description" content="Sign in to Testzone, your AI-powered Jira ticket creation assistant for IT Cloud teams." />
+        <title>Sign In - Test Zone</title>
+        <meta name="description" content="Sign in to Test Zone, your AI-powered Jira ticket creation assistant for IT Cloud teams." />
       </Helmet>
       <LoginForm />
     </>

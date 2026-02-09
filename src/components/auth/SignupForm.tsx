@@ -58,7 +58,7 @@ const SignupForm: React.FC = () => {
           toast.error(error.message || 'Sign up failed. Please try again.');
         }
       } else {
-        toast.success('Account created successfully! Welcome to Testzone.');
+        toast.success('Account created successfully! Welcome to Test Zone.');
         navigate('/');
       }
     } catch (error) {
@@ -83,7 +83,7 @@ const SignupForm: React.FC = () => {
 
   return (
     <AuthLayout 
-      title="Testzone" 
+      title="Test Zone" 
       subtitle="Join us and streamline your workflow today."
     >
       <Card className="shadow-soft-lg border-border/50">
