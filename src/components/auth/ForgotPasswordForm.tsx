@@ -50,7 +50,7 @@ const ForgotPasswordForm: React.FC = () => {
   if (isEmailSent) {
     return (
       <AuthLayout 
-        title="Testzone" 
+        title="Test Zone" 
         subtitle="Check your email to reset your password."
       >
         <Card className="shadow-soft-lg border-border/50">
@@ -105,7 +105,7 @@ const ForgotPasswordForm: React.FC = () => {
 
   return (
     <AuthLayout 
-      title="Testzone" 
+      title="Test Zone" 
       subtitle="Forgot your password? No worries!"
     >
       <Card className="shadow-soft-lg border-border/50">

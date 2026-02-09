@@ -36,7 +36,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
           {/* Logo */}
           <div className="flex items-center gap-4 mb-12">
             <div className="h-16 w-16 rounded-2xl bg-primary-foreground/20 backdrop-blur-sm flex items-center justify-center border border-primary-foreground/30 overflow-hidden">
-              <img src={testzoneLogo} alt="Testzone" className="h-12 w-12 object-contain" />
+              <img src={testzoneLogo} alt="Test Zone" className="h-12 w-12 object-contain" />
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
@@ -74,7 +74,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
           {/* Footer */}
           <div className="mt-12 pt-8 border-t border-primary-foreground/20">
             <p className="text-sm text-primary-foreground/60">
-              © 2024 Testzone. All rights reserved.
+              © 2024 Test Zone. All rights reserved.
             </p>
           </div>
         </div>
@@ -86,7 +86,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="flex justify-center mb-8 lg:hidden">
           <div className="flex items-center gap-3">
             <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center shadow-soft-lg overflow-hidden">
-              <img src={testzoneLogo} alt="Testzone" className="h-9 w-9 object-contain" />
+              <img src={testzoneLogo} alt="Test Zone" className="h-9 w-9 object-contain" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-foreground">{title}</h1>
