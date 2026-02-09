@@ -1,27 +1,30 @@
 import React from 'react';
 import { Sparkles, Zap, Shield, CheckCircle } from 'lucide-react';
 import testzoneLogo from '@/assets/testzone-logo.png';
-
 interface AuthLayoutProps {
   children: React.ReactNode;
   title?: string;
   subtitle?: string;
 }
-
-const AuthLayout: React.FC<AuthLayoutProps> = ({ 
-  children, 
+const AuthLayout: React.FC<AuthLayoutProps> = ({
+  children,
   title = "Test Zone",
   subtitle = "Welcome back! Let's build great things together."
 }) => {
-  const features = [
-    { icon: CheckCircle, text: 'Enterprise-grade security' },
-    { icon: Sparkles, text: 'AI-powered ticket creation' },
-    { icon: Zap, text: 'Smart duplicate detection' },
-    { icon: Shield, text: 'Auto-classification & assignment' },
-  ];
-
-  return (
-    <div className="min-h-screen flex bg-background">
+  const features = [{
+    icon: CheckCircle,
+    text: 'Enterprise-grade security'
+  }, {
+    icon: Sparkles,
+    text: 'AI-powered ticket creation'
+  }, {
+    icon: Zap,
+    text: 'Smart duplicate detection'
+  }, {
+    icon: Shield,
+    text: 'Auto-classification & assignment'
+  }];
+  return <div className="min-h-screen flex bg-background">
       {/* Left side - Branding Panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-accent relative overflow-hidden">
         {/* Background Pattern */}
@@ -57,18 +60,14 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
 
           {/* Features */}
           <div className="space-y-4">
-            {features.map((feature, index) => (
-              <div 
-                key={index} 
-                className="flex items-center gap-4 p-4 rounded-xl bg-primary-foreground/10 backdrop-blur-sm border border-primary-foreground/20 animate-slide-in-up"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
+            {features.map((feature, index) => <div key={index} className="flex items-center gap-4 p-4 rounded-xl bg-primary-foreground/10 backdrop-blur-sm border border-primary-foreground/20 animate-slide-in-up" style={{
+            animationDelay: `${index * 100}ms`
+          }}>
                 <div className="h-10 w-10 rounded-lg bg-primary-foreground/20 flex items-center justify-center">
                   <feature.icon className="h-5 w-5 text-primary-foreground" />
                 </div>
                 <span className="text-primary-foreground font-medium">{feature.text}</span>
-              </div>
-            ))}
+              </div>)}
           </div>
 
           {/* Footer */}
@@ -90,7 +89,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
             </div>
             <div>
               <h1 className="text-xl font-bold text-foreground">{title}</h1>
-              <p className="text-xs text-muted-foreground">IT Cloud Team</p>
+              <p className="text-xs text-muted-foreground">AI-Driven Tester</p>
             </div>
           </div>
         </div>
@@ -100,8 +99,6 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
           {children}
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default AuthLayout;
