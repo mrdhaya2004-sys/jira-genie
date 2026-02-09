@@ -84,8 +84,8 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         {/* Mobile Logo */}
         <div className="flex justify-center mb-8 lg:hidden">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center shadow-soft-lg overflow-hidden">
-              <img src={testzoneLogo} alt="Test Zone" className="h-9 w-9 object-contain" />
+            <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center shadow-soft-lg overflow-hidden border-[sidebar-accent-foreground] border-sidebar-accent">
+              <img src={testzoneLogo} alt="Test Zone" className="h-9 w-9 object-contain rounded" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-foreground">{title}</h1>
