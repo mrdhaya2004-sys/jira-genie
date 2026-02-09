@@ -1,5 +1,6 @@
 import React from 'react';
-import { Bot, Sparkles, Zap, Shield, CheckCircle } from 'lucide-react';
+import { Sparkles, Zap, Shield, CheckCircle } from 'lucide-react';
+import testzoneLogo from '@/assets/testzone-logo.png';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -34,8 +35,8 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20 text-primary-foreground">
           {/* Logo */}
           <div className="flex items-center gap-4 mb-12">
-            <div className="h-16 w-16 rounded-2xl bg-primary-foreground/20 backdrop-blur-sm flex items-center justify-center border border-primary-foreground/30">
-              <Bot className="h-9 w-9 text-primary-foreground" />
+            <div className="h-16 w-16 rounded-2xl bg-primary-foreground/20 backdrop-blur-sm flex items-center justify-center border border-primary-foreground/30 overflow-hidden">
+              <img src={testzoneLogo} alt="Testzone" className="h-12 w-12 object-contain" />
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
@@ -84,8 +85,8 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         {/* Mobile Logo */}
         <div className="flex justify-center mb-8 lg:hidden">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center shadow-soft-lg">
-              <Bot className="h-7 w-7 text-primary-foreground" />
+            <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center shadow-soft-lg overflow-hidden">
+              <img src={testzoneLogo} alt="Testzone" className="h-9 w-9 object-contain" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-foreground">{title}</h1>
