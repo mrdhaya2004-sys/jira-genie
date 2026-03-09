@@ -44,7 +44,7 @@ export const useAIConfig = () => {
       // Deactivate existing configs
       await supabase
         .from('ai_provider_configs')
-        .update({ is_active: false } as Record<string, unknown>)
+        .update({ is_active: false })
         .eq('user_id', user.id);
 
       // Insert new config
