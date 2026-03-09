@@ -120,7 +120,7 @@ const AIConfigurationModule: React.FC = () => {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <CheckCircle2 className="h-4 w-4 text-success" />
                 Active Configuration
               </CardTitle>
               <Button variant="ghost" size="sm" className="text-destructive" onClick={removeConfig}>

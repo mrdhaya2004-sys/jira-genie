@@ -58,7 +58,7 @@ export const useAIConfig = () => {
           endpoint_url: values.endpointUrl || null,
           display_name: values.displayName || null,
           is_active: true,
-        } as Record<string, unknown>)
+        })
         .select()
         .single();
 
