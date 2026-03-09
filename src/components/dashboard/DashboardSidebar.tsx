@@ -14,7 +14,8 @@ import {
   LayoutDashboard,
   Code2,
   ClipboardList,
-  FileCode2
+  FileCode2,
+  Brain
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
