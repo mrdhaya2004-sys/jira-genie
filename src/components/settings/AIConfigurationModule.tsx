@@ -282,31 +282,6 @@ const AIConfigurationModule: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Execution Flow */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Execution Flow</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-            <Badge variant="outline">User Request</Badge>
-            <span>→</span>
-            <Badge variant="default">Hive Mind</Badge>
-            <span>→</span>
-            <Badge variant="secondary">Agent</Badge>
-            <span>→</span>
-            <Badge variant="outline">AI Gateway</Badge>
-            <span>→</span>
-            <Badge variant={config ? 'default' : 'secondary'}>
-              {config ? `${AI_PROVIDERS.find(p => p.value === config.provider)?.label}` : 'Default AI'}
-            </Badge>
-            <span>→</span>
-            <Badge variant="outline">Validator</Badge>
-            <span>→</span>
-            <Badge variant="outline">Response</Badge>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
