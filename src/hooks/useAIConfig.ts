@@ -42,7 +42,7 @@ export const useAIConfig = () => {
       if (!user) throw new Error('Not authenticated');
 
       // Deactivate existing configs
-      await supabase
+      await (supabase as any)
         .from('ai_provider_configs')
         .update({ is_active: false })
         .eq('user_id', user.id);
