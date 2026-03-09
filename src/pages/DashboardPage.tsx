@@ -10,8 +10,9 @@ import XPathGeneratorModule from '@/components/xpath/XPathGeneratorModule';
 import MyTicketsModule from '@/components/tickets/MyTicketsModule';
 import HistoryModule from '@/components/automation/HistoryModule';
 import CurrentChatModule from '@/components/currentchat/CurrentChatModule';
+import AIConfigurationModule from '@/components/settings/AIConfigurationModule';
 
-export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator';
+export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'ai-settings';
 
 const DashboardPage: React.FC = () => {
   const [activeModule, setActiveModule] = useState<ActiveModule>('mentions');
@@ -40,6 +41,7 @@ const DashboardPage: React.FC = () => {
           {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule />}
           {activeModule === 'test-case-generator' && <TestCaseGeneratorModule />}
           {activeModule === 'xpath-generator' && <XPathGeneratorModule />}
+          {activeModule === 'ai-settings' && <AIConfigurationModule />}
         </main>
       </div>
     </div>

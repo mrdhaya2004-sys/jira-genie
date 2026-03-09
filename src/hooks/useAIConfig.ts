@@ -133,7 +133,7 @@ export const useAIConfig = () => {
   const removeConfig = useCallback(async () => {
     if (!config) return;
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('ai_provider_configs')
         .delete()
         .eq('id', config.id);
