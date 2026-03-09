@@ -106,6 +106,30 @@ serve(async (req) => {
       );
     }
     
+    // Build system prompt with context
+    let systemPrompt = `You are an Agentic AI assistant specialized in software testing, quality assurance, and mobile application analysis. You help users understand applications, generate test cases, create automation code, and support their testing efforts.
+
+WORKSPACE CONTEXT:
+`;
+
+    if (context.userStories) {
+      systemPrompt += `\n## User Stories:\n${context.userStories}\n`;
+    }
+
+    if (context.hasApk || context.hasIpa) {
+      systemPrompt += `\n## Uploaded Application Files:\n`;
+      context.appFiles?.forEach((f: { name: string; type: string }) => {
+        systemPrompt += `- ${f.name} (${f.type.toUpperCase()})\n`;
+      });
+      systemPrompt += `\nNote: You have access to the application structure through these uploaded files. Simulate understanding of the app's DOM, screens, and modules based on typical mobile app patterns and the provided user stories.\n`;
+    }
+
+    if (capability && CAPABILITY_PROMPTS[capability]) {
+      systemPrompt += `\n## Current Task:\n${CAPABILITY_PROMPTS[capability]}\n`;
+    }
+
+    systemPrompt += `\nAlways provide helpful, accurate, and actionable responses. When generating code, ensure it's production-ready and follows best practices.`;
+
     // Build messages array
     const messages = [
       { role: 'system', content: systemPrompt },
