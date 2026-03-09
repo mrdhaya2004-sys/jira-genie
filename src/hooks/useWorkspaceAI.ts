@@ -55,6 +55,12 @@ export const useWorkspaceAI = ({ workspaceId, files }: UseWorkspaceAIOptions) =>
     });
 
     try {
+      // Get user session for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated. Please sign in again.');
+      }
+
       // Prepare context from files
       const userStories = files
         .filter(f => f.file_type === 'user_story' && f.content_extracted)
