@@ -56,9 +56,9 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
             tabIndex={-1}
           >
             {showPassword ? (
-              <EyeOff className="h-4 w-4 text-muted-foreground" />
+              <EyeOff className="h-4 w-4 text-foreground/70" />
             ) : (
-              <Eye className="h-4 w-4 text-muted-foreground" />
+              <Eye className="h-4 w-4 text-foreground/70" />
             )}
             <span className="sr-only">
               {showPassword ? 'Hide password' : 'Show password'}
