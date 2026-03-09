@@ -43,11 +43,6 @@ serve(async (req) => {
 
     const { summary, rawDescription, issueType } = await req.json();
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
     const systemPrompt = `You are a professional Jira ticket description writer. Generate a well-structured ticket description following this exact format:
 
 *Environment:* [Version or environment info if mentioned, otherwise "N/A"]
@@ -78,21 +73,11 @@ User Description: ${rawDescription}
 
 Generate a professional Jira ticket description following the format.`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        stream: false,
-      }),
-    });
+    // Route through Hive Mind (non-streaming)
+    const response = await routeAIRequest(authHeader!, [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ], false);
 
     if (!response.ok) {
       if (response.status === 429) {
