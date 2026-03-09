@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { routeAIRequest } from "../_shared/hiveMindRouter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -69,76 +70,13 @@ serve(async (req) => {
       }
     }
     
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
-    // Build system prompt
-    let systemPrompt = `You are an expert QA Engineer and Test Case Generator AI. Your role is to create comprehensive, professional test cases based on user requirements.
-
-## Your Capabilities:
-- Generate functional, negative, boundary, edge case, and regression test cases
-- Follow industry-standard test case formats
-- Use precise, actionable test steps
-- Include expected results for each test case
-- Consider both positive and negative scenarios
-
-## Guidelines:
-1. Each test case must have a unique ID (e.g., TC_001, TC_002)
-2. Test steps should be clear and reproducible
-3. Expected results must be specific and measurable
-4. Consider edge cases and boundary conditions
-5. Include preconditions when relevant
-6. Prioritize test cases appropriately
-
-`;
-
-    // Add workspace context if available
-    if (context.userStories) {
-      systemPrompt += `\n## Application Context (User Stories):\n${context.userStories}\n\nUse this context to understand the application behavior and generate relevant test cases.\n`;
-    }
-
-    // Add Excel format instructions if structure is provided
-    if (context.excelStructure) {
-      const columns = context.excelStructure.columns.map((c: any) => `- ${c.key}: ${c.header}`).join('\n');
-      systemPrompt += `\n## Excel Output Format Required:
-The user has provided a reference Excel structure. Generate test cases matching this EXACT format.
-
-**Columns:**
-${columns}
-
-${EXCEL_FORMAT_INSTRUCTION}
-
-After the JSON, also provide the test cases in readable format for the chat.
-`;
-    }
-
-    // Add mode-specific instructions
-    if (mode === 'manual') {
-      systemPrompt += `\n## Mode: Manual
-You're operating without workspace context. Base your test cases purely on the user's description and general best practices.\n`;
-    }
-
-    systemPrompt += `\nNow, generate test cases based on the user's request. Be thorough but respect any limits specified by the user.`;
-
     const messages = [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: query },
     ];
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages,
-        stream: true,
-      }),
-    });
+    // Route through Hive Mind (uses custom provider if configured, else default)
+    const response = await routeAIRequest(authHeader!, messages, true);
 
     if (!response.ok) {
       if (response.status === 429) {

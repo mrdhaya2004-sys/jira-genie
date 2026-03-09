@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { routeAIRequest } from "../_shared/hiveMindRouter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -105,11 +106,6 @@ serve(async (req) => {
       );
     }
     
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
     // Build system prompt with context
     let systemPrompt = `You are an Agentic AI assistant specialized in software testing, quality assurance, and mobile application analysis. You help users understand applications, generate test cases, create automation code, and support their testing efforts.
 
@@ -128,7 +124,6 @@ WORKSPACE CONTEXT:
       systemPrompt += `\nNote: You have access to the application structure through these uploaded files. Simulate understanding of the app's DOM, screens, and modules based on typical mobile app patterns and the provided user stories.\n`;
     }
 
-    // Add capability-specific instructions
     if (capability && CAPABILITY_PROMPTS[capability]) {
       systemPrompt += `\n## Current Task:\n${CAPABILITY_PROMPTS[capability]}\n`;
     }
@@ -142,18 +137,8 @@ WORKSPACE CONTEXT:
       { role: 'user', content: message },
     ];
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages,
-        stream: true,
-      }),
-    });
+    // Route through Hive Mind
+    const response = await routeAIRequest(authHeader!, messages, true);
 
     if (!response.ok) {
       if (response.status === 429) {

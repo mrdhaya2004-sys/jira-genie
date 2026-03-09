@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_provider_configs: {
+        Row: {
+          api_key_encrypted: string
+          created_at: string
+          display_name: string | null
+          endpoint_url: string | null
+          id: string
+          is_active: boolean
+          model_name: string
+          provider: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          api_key_encrypted: string
+          created_at?: string
+          display_name?: string | null
+          endpoint_url?: string | null
+          id?: string
+          is_active?: boolean
+          model_name: string
+          provider: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          api_key_encrypted?: string
+          created_at?: string
+          display_name?: string | null
+          endpoint_url?: string | null
+          id?: string
+          is_active?: boolean
+          model_name?: string
+          provider?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
