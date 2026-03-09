@@ -19,7 +19,7 @@ export function useTeamsConnection() {
     try {
       const { data, error } = await supabase
         .from('teams_connections')
-        .select('*')
+        .select('id, user_id, microsoft_user_id, microsoft_display_name, microsoft_email, tenant_id, is_connected, last_synced_at, sync_enabled, created_at, updated_at')
         .eq('user_id', user.id)
         .maybeSingle();
 
