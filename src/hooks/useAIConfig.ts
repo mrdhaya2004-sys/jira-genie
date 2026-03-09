@@ -12,7 +12,7 @@ export const useAIConfig = () => {
   const fetchConfig = useCallback(async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('ai_provider_configs')
         .select('*')
         .eq('is_active', true)
