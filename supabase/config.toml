@@ -41,3 +41,9 @@ verify_jwt = false
 
 [functions.teams-send-message]
 verify_jwt = false
+
+[functions.hive-mind]
+verify_jwt = false
+
+[functions.test-ai-connection]
+verify_jwt = false
