@@ -48,7 +48,7 @@ export const useAIConfig = () => {
         .eq('user_id', user.id);
 
       // Insert new config
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('ai_provider_configs')
         .insert({
           user_id: user.id,
