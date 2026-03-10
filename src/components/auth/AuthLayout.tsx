@@ -22,7 +22,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
     text: 'Smart duplicate detection'
   }, {
     icon: Shield,
-    text: 'Auto-classification & assignment'
+    text: 'AI-DOM Analyzer'
   }];
   return <div className="min-h-screen flex bg-background">
       {/* Left side - Branding Panel */}
