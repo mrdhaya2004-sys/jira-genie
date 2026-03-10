@@ -316,7 +316,7 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
       setLastGeneratedScenario(assistantContent);
       setPhase('scenario_generated');
 
-      // Save to history
+      // Save to local history
       automationHistoryService.addEntry({
         toolType: 'scenario',
         title: query.slice(0, 50) + (query.length > 50 ? '...' : ''),
@@ -326,6 +326,16 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
           workspace: selectedWorkspace?.name,
           module: selectedModule || undefined,
         },
+      });
+
+      // Save to persistent history
+      addLog({
+        module_name: 'logic-scenario-creator',
+        action_type: 'generate',
+        input_prompt: query,
+        output_summary: `Generated ${selectedFramework?.toUpperCase()} scenarios for ${selectedModule}`,
+        workspace_id: selectedWorkspace?.id,
+        metadata: { framework: selectedFramework, module: selectedModule },
       });
 
       // After a short delay, offer to convert to code
