@@ -12,7 +12,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
   subtitle = "Welcome back! Let's build great things together."
 }) => {
   const features = [{
-    icon: CheckCircle,
+    icon: Brain,
     text: 'Hive Mind AI Workspace'
   }, {
     icon: Sparkles,
