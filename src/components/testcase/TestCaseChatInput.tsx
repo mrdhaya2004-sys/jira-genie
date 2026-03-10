@@ -10,6 +10,7 @@ interface TestCaseChatInputProps {
   disabled?: boolean;
   placeholder?: string;
   showExcelUpload?: boolean;
+  initialValue?: string;
 }
 
 const TestCaseChatInput: React.FC<TestCaseChatInputProps> = ({
@@ -18,11 +19,20 @@ const TestCaseChatInput: React.FC<TestCaseChatInputProps> = ({
   disabled = false,
   placeholder = "Type your test case request...",
   showExcelUpload = true,
+  initialValue,
 }) => {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(initialValue || '');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Update input when initialValue changes (resume feature)
+  useEffect(() => {
+    if (initialValue) {
+      setInput(initialValue);
+      textareaRef.current?.focus();
+    }
+  }, [initialValue]);
 
   const handleSubmit = () => {
     if (!input.trim() || disabled) return;

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -9,7 +9,11 @@ import TestCaseChatMessage from './TestCaseChatMessage';
 import TestCaseChatInput from './TestCaseChatInput';
 import HistoryPanel from '@/components/automation/HistoryPanel';
 
-const TestCaseGeneratorModule: React.FC = () => {
+interface TestCaseGeneratorModuleProps {
+  resumePrompt?: string | null;
+}
+
+const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resumePrompt }) => {
   const { workspaces, isLoading: workspacesLoading } = useWorkspaces();
   const {
     messages,
@@ -28,6 +32,18 @@ const TestCaseGeneratorModule: React.FC = () => {
   } = useTestCaseGenerator({ workspaces });
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
+
+  // Handle resume prompt from history
+  useEffect(() => {
+    if (resumePrompt) {
+      setPendingPrompt(resumePrompt);
+    }
+  }, [resumePrompt]);
+
+  const handleResumeFromPanel = (prompt: string) => {
+    setPendingPrompt(prompt);
+  };
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -61,16 +77,11 @@ const TestCaseGeneratorModule: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Status badges */}
           {selectedMode && (
-            <Badge variant="outline" className="text-xs">
-              {getModeLabel()}
-            </Badge>
+            <Badge variant="outline" className="text-xs">{getModeLabel()}</Badge>
           )}
           {selectedWorkspace && (
-            <Badge variant="outline" className="text-xs">
-              📁 {selectedWorkspace.name}
-            </Badge>
+            <Badge variant="outline" className="text-xs">📁 {selectedWorkspace.name}</Badge>
           )}
           {excelStructure && (
             <Badge variant="outline" className="text-xs">
@@ -79,13 +90,13 @@ const TestCaseGeneratorModule: React.FC = () => {
             </Badge>
           )}
           
-          <HistoryPanel toolType="testcase" />
+          <HistoryPanel 
+            toolType="testcase" 
+            moduleName="test-case-generator"
+            onResumePrompt={handleResumeFromPanel}
+          />
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resetFlow}
-          >
+          <Button variant="outline" size="sm" onClick={resetFlow}>
             <RotateCcw className="h-4 w-4 mr-1" />
             Start Over
           </Button>
@@ -105,7 +116,6 @@ const TestCaseGeneratorModule: React.FC = () => {
             />
           ))}
 
-          {/* Loading indicator */}
           {(isLoading || isStreaming) && phase === 'generating' && (
             <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -118,15 +128,15 @@ const TestCaseGeneratorModule: React.FC = () => {
       {/* Input Area */}
       {(phase === 'ready_for_query' || phase === 'completed') && (
         <TestCaseChatInput
-          onSend={handleUserQuery}
+          onSend={(msg) => { setPendingPrompt(null); handleUserQuery(msg); }}
           onExcelUpload={handleExcelUpload}
           disabled={isLoading || isStreaming}
           placeholder="Ask me to generate test cases..."
           showExcelUpload={true}
+          initialValue={pendingPrompt || undefined}
         />
       )}
 
-      {/* Disabled input for other phases */}
       {phase !== 'ready_for_query' && phase !== 'completed' && phase !== 'generating' && (
         <div className="border-t bg-muted/50 p-4">
           <p className="text-sm text-muted-foreground text-center">

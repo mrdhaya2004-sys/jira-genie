@@ -7,15 +7,25 @@ interface XPathChatInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  initialValue?: string;
 }
 
 const XPathChatInput: React.FC<XPathChatInputProps> = ({
   onSend,
   disabled = false,
   placeholder = "Describe the element you need XPaths for...",
+  initialValue,
 }) => {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(initialValue || '');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Update input when initialValue changes (resume feature)
+  useEffect(() => {
+    if (initialValue) {
+      setInput(initialValue);
+      textareaRef.current?.focus();
+    }
+  }, [initialValue]);
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();

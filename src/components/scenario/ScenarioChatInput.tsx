@@ -7,15 +7,25 @@ interface ScenarioChatInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  initialValue?: string;
 }
 
 const ScenarioChatInput: React.FC<ScenarioChatInputProps> = ({
   onSend,
   disabled = false,
   placeholder = "Describe the scenarios you want to generate...",
+  initialValue,
 }) => {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(initialValue || '');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Update input when initialValue changes (resume feature)
+  useEffect(() => {
+    if (initialValue) {
+      setInput(initialValue);
+      textareaRef.current?.focus();
+    }
+  }, [initialValue]);
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
