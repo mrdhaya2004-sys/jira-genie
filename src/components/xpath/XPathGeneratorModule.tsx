@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -10,7 +10,11 @@ import XPathChatInput from './XPathChatInput';
 import HistoryPanel from '@/components/automation/HistoryPanel';
 import type { Platform } from '@/types/xpath';
 
-const XPathGeneratorModule: React.FC = () => {
+interface XPathGeneratorModuleProps {
+  resumePrompt?: string | null;
+}
+
+const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumePrompt }) => {
   const { workspaces, isLoading: workspacesLoading } = useWorkspaces();
   const {
     messages,
@@ -28,8 +32,16 @@ const XPathGeneratorModule: React.FC = () => {
   } = useXPathGenerator({ workspaces });
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
-  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    if (resumePrompt) setPendingPrompt(resumePrompt);
+  }, [resumePrompt]);
+
+  const handleResumeFromPanel = (prompt: string) => {
+    setPendingPrompt(prompt);
+  };
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -61,30 +73,17 @@ const XPathGeneratorModule: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Status badges */}
-          {selectedWorkspace && (
-            <Badge variant="outline" className="text-xs">
-              📁 {selectedWorkspace.name}
-            </Badge>
-          )}
-          {selectedModule && (
-            <Badge variant="outline" className="text-xs">
-              📦 {selectedModule}
-            </Badge>
-          )}
-          {selectedPlatform && (
-            <Badge variant="outline" className="text-xs">
-              {getPlatformBadge()}
-            </Badge>
-          )}
+          {selectedWorkspace && <Badge variant="outline" className="text-xs">📁 {selectedWorkspace.name}</Badge>}
+          {selectedModule && <Badge variant="outline" className="text-xs">📦 {selectedModule}</Badge>}
+          {selectedPlatform && <Badge variant="outline" className="text-xs">{getPlatformBadge()}</Badge>}
           
-          <HistoryPanel toolType="xpath" />
+          <HistoryPanel 
+            toolType="xpath" 
+            moduleName="xpath-generator"
+            onResumePrompt={handleResumeFromPanel}
+          />
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resetFlow}
-          >
+          <Button variant="outline" size="sm" onClick={resetFlow}>
             <RotateCcw className="h-4 w-4 mr-1" />
             Start Over
           </Button>
@@ -104,7 +103,6 @@ const XPathGeneratorModule: React.FC = () => {
             />
           ))}
 
-          {/* Loading indicator */}
           {(isLoading || isStreaming) && phase === 'generating' && (
             <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -117,13 +115,13 @@ const XPathGeneratorModule: React.FC = () => {
       {/* Input Area */}
       {(phase === 'ready_for_query' || phase === 'xpath_generated') && (
         <XPathChatInput
-          onSend={handleUserQuery}
+          onSend={(msg) => { setPendingPrompt(null); handleUserQuery(msg); }}
           disabled={isLoading || isStreaming}
           placeholder={`Describe the element you need ${selectedPlatform === 'android' ? 'Android' : 'iOS'} XPaths for...`}
+          initialValue={pendingPrompt || undefined}
         />
       )}
 
-      {/* Disabled input for other phases */}
       {phase !== 'ready_for_query' && phase !== 'xpath_generated' && phase !== 'generating' && (
         <div className="border-t bg-muted/50 p-4">
           <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
