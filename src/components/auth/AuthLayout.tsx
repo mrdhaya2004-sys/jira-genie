@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Zap, Shield, Brain, Ticket } from 'lucide-react';
+import { Sparkles, Zap, ScanSearch, Brain, Ticket } from 'lucide-react';
 import testzoneLogo from '@/assets/testzone-logo.png';
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -21,7 +21,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
     icon: Zap,
     text: 'Smart duplicate detection'
   }, {
-    icon: Shield,
+    icon: ScanSearch,
     text: 'AI-DOM Analyzer'
   }];
   return <div className="min-h-screen flex bg-background">
