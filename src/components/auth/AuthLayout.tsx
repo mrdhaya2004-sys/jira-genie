@@ -39,7 +39,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
           {/* Logo */}
           <div className="flex items-center gap-4 mb-12">
             <div className="h-16 w-16 rounded-2xl bg-primary-foreground/20 backdrop-blur-sm flex items-center justify-center border border-primary-foreground/30 overflow-hidden">
-              <img src={testzoneLogo} alt="Test Zone" className="h-12 w-12 object-contain" />
+              <img src={testzoneLogo} alt="Test Zone" className="h-12 w-12 border-none object-fill" />
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
