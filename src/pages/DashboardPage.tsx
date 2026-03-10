@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import MentionsPanel from '@/components/dashboard/MentionsPanel';
@@ -14,8 +14,27 @@ import AIConfigurationModule from '@/components/settings/AIConfigurationModule';
 
 export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'ai-settings';
 
+const MODULE_MAP: Record<string, ActiveModule> = {
+  'test-case-generator': 'test-case-generator',
+  'logic-scenario-creator': 'logic-scenario-creator',
+  'xpath-generator': 'xpath-generator',
+  'jira-ticket-raiser': 'jira-ticket-raiser',
+  'agentic-ai': 'agentic-ai',
+};
+
 const DashboardPage: React.FC = () => {
   const [activeModule, setActiveModule] = useState<ActiveModule>('mentions');
+  const [resumePrompt, setResumePrompt] = useState<string | null>(null);
+
+  const handleResumeAction = useCallback((module: string, prompt: string) => {
+    const targetModule = MODULE_MAP[module];
+    if (targetModule) {
+      setResumePrompt(prompt);
+      setActiveModule(targetModule);
+      // Clear after a tick so the module can pick it up
+      setTimeout(() => setResumePrompt(null), 500);
+    }
+  }, []);
 
   return (
     <div className="flex h-screen bg-background">
@@ -35,7 +54,7 @@ const DashboardPage: React.FC = () => {
           {activeModule === 'mentions' && <MentionsPanel />}
           {activeModule === 'chat' && <CurrentChatModule />}
           {activeModule === 'tickets' && <MyTicketsModule />}
-          {activeModule === 'history' && <HistoryModule />}
+          {activeModule === 'history' && <HistoryModule onResumeAction={handleResumeAction} />}
           {activeModule === 'agentic-ai' && <AgenticAIModule />}
           {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule />}
           {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule />}
