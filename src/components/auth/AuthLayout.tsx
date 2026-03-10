@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Zap, Shield, CheckCircle } from 'lucide-react';
+import { Sparkles, Zap, Shield, Brain } from 'lucide-react';
 import testzoneLogo from '@/assets/testzone-logo.png';
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -12,7 +12,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
   subtitle = "Welcome back! Let's build great things together."
 }) => {
   const features = [{
-    icon: CheckCircle,
+    icon: Brain,
     text: 'Hive Mind AI Workspace'
   }, {
     icon: Sparkles,
