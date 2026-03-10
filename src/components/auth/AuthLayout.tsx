@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Zap, Shield, CheckCircle } from 'lucide-react';
+import { Sparkles, Zap, Shield, Brain } from 'lucide-react';
 import testzoneLogo from '@/assets/testzone-logo.png';
 interface AuthLayoutProps {
   children: React.ReactNode;
