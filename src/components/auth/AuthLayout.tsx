@@ -13,7 +13,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
 }) => {
   const features = [{
     icon: CheckCircle,
-    text: 'Enterprise-grade security'
+    text: 'Hive Mind AI Workspace'
   }, {
     icon: Sparkles,
     text: 'AI-powered ticket creation'
