@@ -25,6 +25,7 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const { toast } = useToast();
+  const { addLog } = useHistoryLogs();
 
   // Initial greeting
   useEffect(() => {
