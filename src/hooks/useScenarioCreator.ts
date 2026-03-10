@@ -30,6 +30,7 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
   const [selectedCodeFramework, setSelectedCodeFramework] = useState<CodeFramework | null>(null);
   const [generatedCode, setGeneratedCode] = useState<GeneratedCode | null>(null);
   const { toast } = useToast();
+  const { addLog } = useHistoryLogs();
 
   // Initial greeting
   useEffect(() => {
