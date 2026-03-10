@@ -70,6 +70,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
           setSession(currentSession);
           setUser(currentSession?.user ?? null);
+          if (event === 'SIGNED_IN') {
+            sessionHistoryService.startSession();
+          }
         } else if (event === 'SIGNED_OUT') {
           setSession(null);
           setUser(null);
