@@ -19,7 +19,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
     text: 'AI-powered ticket creation'
   }, {
     icon: Zap,
-    text: 'Smart duplicate detection'
+    text: 'Smart AI-Script Generator'
   }, {
     icon: ScanSearch,
     text: 'AI-DOM Analyzer'
