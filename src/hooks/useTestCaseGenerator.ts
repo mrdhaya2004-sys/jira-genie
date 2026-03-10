@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useHistoryLogs } from '@/hooks/useHistoryLogs';
 import { automationHistoryService } from '@/lib/automationHistory';
 import * as XLSX from 'xlsx';
 import type { Workspace } from '@/types/workspace';
@@ -18,6 +19,7 @@ interface UseTestCaseGeneratorOptions {
 
 export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions) => {
   const { toast } = useToast();
+  const { addLog } = useHistoryLogs();
   const [messages, setMessages] = useState<TestCaseChatMessage[]>([]);
   const [phase, setPhase] = useState<TestCaseFlowPhase>('initial');
   const [selectedMode, setSelectedMode] = useState<TestCaseMode | null>(null);
@@ -345,7 +347,7 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
 
       setPhase('completed');
 
-      // Save to history
+      // Save to local history
       automationHistoryService.addEntry({
         toolType: 'testcase',
         title: query.slice(0, 50) + (query.length > 50 ? '...' : ''),
@@ -353,6 +355,15 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
         metadata: {
           workspace: selectedWorkspace?.name,
         },
+      });
+
+      // Save to persistent history
+      addLog({
+        module_name: 'test-case-generator',
+        action_type: 'generate',
+        input_prompt: query,
+        output_summary: `Generated test cases${selectedWorkspace ? ` for ${selectedWorkspace.name}` : ' in manual mode'}`,
+        workspace_id: selectedWorkspace?.id,
       });
 
       // Add download prompt if we have structured test cases

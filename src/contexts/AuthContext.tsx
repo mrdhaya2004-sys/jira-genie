@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { sessionHistoryService } from '@/lib/sessionHistory';
 
 export interface UserProfile {
   id: string;
@@ -69,10 +70,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
           setSession(currentSession);
           setUser(currentSession?.user ?? null);
+          if (event === 'SIGNED_IN') {
+            sessionHistoryService.startSession();
+          }
         } else if (event === 'SIGNED_OUT') {
           setSession(null);
           setUser(null);
           setProfile(null);
+          sessionHistoryService.clearSession();
         } else {
           setSession(currentSession);
           setUser(currentSession?.user ?? null);

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useHistoryLogs } from '@/hooks/useHistoryLogs';
 import { automationHistoryService } from '@/lib/automationHistory';
 import type { 
   XPathFlowPhase, 
@@ -24,6 +25,7 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const { toast } = useToast();
+  const { addLog } = useHistoryLogs();
 
   // Initial greeting
   useEffect(() => {
@@ -301,7 +303,7 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
         }
       }
 
-      // Save to history
+      // Save to local history
       automationHistoryService.addEntry({
         toolType: 'xpath',
         title: query.slice(0, 50) + (query.length > 50 ? '...' : ''),
@@ -311,6 +313,16 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
           module: selectedModule || undefined,
           platform: selectedPlatform || undefined,
         },
+      });
+
+      // Save to persistent history
+      addLog({
+        module_name: 'xpath-generator',
+        action_type: 'generate',
+        input_prompt: query,
+        output_summary: `Generated ${selectedPlatform === 'android' ? 'Android' : 'iOS'} XPaths for ${selectedModule}`,
+        workspace_id: selectedWorkspace?.id,
+        metadata: { module: selectedModule, platform: selectedPlatform },
       });
 
       setPhase('xpath_generated');
