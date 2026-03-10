@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Zap, Shield, CheckCircle } from 'lucide-react';
+import { Sparkles, Zap, Shield, Brain, Ticket } from 'lucide-react';
 import testzoneLogo from '@/assets/testzone-logo.png';
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -12,17 +12,17 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
   subtitle = "Welcome back! Let's build great things together."
 }) => {
   const features = [{
-    icon: CheckCircle,
-    text: 'Enterprise-grade security'
+    icon: Brain,
+    text: 'Hive Mind AI Workspace'
   }, {
-    icon: Sparkles,
+    icon: Ticket,
     text: 'AI-powered ticket creation'
   }, {
     icon: Zap,
     text: 'Smart duplicate detection'
   }, {
     icon: Shield,
-    text: 'Auto-classification & assignment'
+    text: 'AI-DOM Analyzer'
   }];
   return <div className="min-h-screen flex bg-background">
       {/* Left side - Branding Panel */}
@@ -73,7 +73,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
           {/* Footer */}
           <div className="mt-12 pt-8 border-t border-primary-foreground/20">
             <p className="text-sm text-primary-foreground/60">
-              © 2025 Test Zone. All rights reserved.
+              © 2024 Test Zone. All rights reserved.
             </p>
           </div>
         </div>
