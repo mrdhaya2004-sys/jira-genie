@@ -347,7 +347,7 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
 
       setPhase('completed');
 
-      // Save to history
+      // Save to local history
       automationHistoryService.addEntry({
         toolType: 'testcase',
         title: query.slice(0, 50) + (query.length > 50 ? '...' : ''),
@@ -355,6 +355,15 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
         metadata: {
           workspace: selectedWorkspace?.name,
         },
+      });
+
+      // Save to persistent history
+      addLog({
+        module_name: 'test-case-generator',
+        action_type: 'generate',
+        input_prompt: query,
+        output_summary: `Generated test cases${selectedWorkspace ? ` for ${selectedWorkspace.name}` : ' in manual mode'}`,
+        workspace_id: selectedWorkspace?.id,
       });
 
       // Add download prompt if we have structured test cases
