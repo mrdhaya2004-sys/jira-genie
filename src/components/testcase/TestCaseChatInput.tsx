@@ -10,6 +10,7 @@ interface TestCaseChatInputProps {
   disabled?: boolean;
   placeholder?: string;
   showExcelUpload?: boolean;
+  initialValue?: string;
 }
 
 const TestCaseChatInput: React.FC<TestCaseChatInputProps> = ({
