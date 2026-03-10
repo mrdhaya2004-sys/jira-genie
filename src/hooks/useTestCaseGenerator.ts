@@ -19,6 +19,7 @@ interface UseTestCaseGeneratorOptions {
 
 export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions) => {
   const { toast } = useToast();
+  const { addLog } = useHistoryLogs();
   const [messages, setMessages] = useState<TestCaseChatMessage[]>([]);
   const [phase, setPhase] = useState<TestCaseFlowPhase>('initial');
   const [selectedMode, setSelectedMode] = useState<TestCaseMode | null>(null);
