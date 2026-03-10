@@ -43,7 +43,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-              <p className="text-primary-foreground/80 text-sm">IT Cloud Team Portal</p>
+              <p className="text-primary-foreground/80 text-sm">AI-Driven Test System </p>
             </div>
           </div>
 
@@ -53,9 +53,9 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
               {subtitle}
             </h2>
             <p className="text-lg text-primary-foreground/80 max-w-md">
-              Streamline your workflow with AI-powered ticket creation. 
-              Just describe your issue and let us handle the rest.
-            </p>
+              Streamline your testing workflow with AI-powered automation and intelligent QA management.
+            
+          </p>
           </div>
 
           {/* Features */}
