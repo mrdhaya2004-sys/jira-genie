@@ -57,9 +57,9 @@ const DashboardPage: React.FC = () => {
           {activeModule === 'history' && <HistoryModule onResumeAction={handleResumeAction} />}
           {activeModule === 'agentic-ai' && <AgenticAIModule />}
           {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule />}
-          {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule />}
-          {activeModule === 'test-case-generator' && <TestCaseGeneratorModule />}
-          {activeModule === 'xpath-generator' && <XPathGeneratorModule />}
+          {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule resumePrompt={resumePrompt} />}
+          {activeModule === 'test-case-generator' && <TestCaseGeneratorModule resumePrompt={resumePrompt} />}
+          {activeModule === 'xpath-generator' && <XPathGeneratorModule resumePrompt={resumePrompt} />}
           {activeModule === 'ai-settings' && <AIConfigurationModule />}
         </main>
       </div>
