@@ -73,7 +73,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
           {/* Footer */}
           <div className="mt-12 pt-8 border-t border-primary-foreground/20">
             <p className="text-sm text-primary-foreground/60">
-              © 2024 Test Zone. All rights reserved.
+              © 2025 Test Zone. All rights reserved.
             </p>
           </div>
         </div>
