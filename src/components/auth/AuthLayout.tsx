@@ -15,7 +15,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
     icon: Brain,
     text: 'Hive Mind AI Workspace'
   }, {
-    icon: Sparkles,
+    icon: Ticket,
     text: 'AI-powered ticket creation'
   }, {
     icon: Zap,
