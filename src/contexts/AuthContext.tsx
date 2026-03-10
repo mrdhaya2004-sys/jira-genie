@@ -74,6 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setSession(null);
           setUser(null);
           setProfile(null);
+          sessionHistoryService.clearSession();
         } else {
           setSession(currentSession);
           setUser(currentSession?.user ?? null);
