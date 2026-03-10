@@ -168,6 +168,53 @@ export type Database = {
         }
         Relationships: []
       }
+      history_logs: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          input_prompt: string | null
+          metadata: Json | null
+          module_name: string
+          output_summary: string | null
+          session_id: string
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          input_prompt?: string | null
+          metadata?: Json | null
+          module_name: string
+          output_summary?: string | null
+          session_id: string
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          input_prompt?: string | null
+          metadata?: Json | null
+          module_name?: string
+          output_summary?: string | null
+          session_id?: string
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "history_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mentions: {
         Row: {
           content_snippet: string
