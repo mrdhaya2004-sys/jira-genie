@@ -53,7 +53,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
               {subtitle}
             </h2>
             <p className="text-lg text-primary-foreground/80 max-w-md">
-              Streamline your testing workflow with AI-powered automation and intelligent QA management.
+              Streamline your testing workflow with AI powered automation and intelligent QA management.
             
           </p>
           </div>
