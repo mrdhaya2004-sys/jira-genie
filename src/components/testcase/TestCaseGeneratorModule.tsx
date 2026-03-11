@@ -8,12 +8,13 @@ import { useTestCaseGenerator } from '@/hooks/useTestCaseGenerator';
 import TestCaseChatMessage from './TestCaseChatMessage';
 import TestCaseChatInput from './TestCaseChatInput';
 import HistoryPanel from '@/components/automation/HistoryPanel';
+import type { ResumeData } from '@/pages/DashboardPage';
 
 interface TestCaseGeneratorModuleProps {
-  resumePrompt?: string | null;
+  resumeData?: ResumeData | null;
 }
 
-const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resumePrompt }) => {
+const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resumeData }) => {
   const { workspaces, isLoading: workspacesLoading } = useWorkspaces();
   const {
     messages,
@@ -29,17 +30,22 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
     handleUserQuery,
     generateExcelDownload,
     resetFlow,
+    resumeFromHistory,
   } = useTestCaseGenerator({ workspaces });
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
-  // Handle resume prompt from history
+  // Handle resume from history with episodic memory
   useEffect(() => {
-    if (resumePrompt) {
-      setPendingPrompt(resumePrompt);
+    if (resumeData && resumeData.module === 'test-case-generator') {
+      if (resumeData.historyLogId) {
+        resumeFromHistory(resumeData.historyLogId, resumeData.prompt);
+      } else {
+        setPendingPrompt(resumeData.prompt);
+      }
     }
-  }, [resumePrompt]);
+  }, [resumeData]);
 
   const handleResumeFromPanel = (prompt: string) => {
     setPendingPrompt(prompt);

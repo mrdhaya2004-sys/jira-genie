@@ -9,12 +9,13 @@ import XPathChatMessage from './XPathChatMessage';
 import XPathChatInput from './XPathChatInput';
 import HistoryPanel from '@/components/automation/HistoryPanel';
 import type { Platform } from '@/types/xpath';
+import type { ResumeData } from '@/pages/DashboardPage';
 
 interface XPathGeneratorModuleProps {
-  resumePrompt?: string | null;
+  resumeData?: ResumeData | null;
 }
 
-const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumePrompt }) => {
+const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData }) => {
   const { workspaces, isLoading: workspacesLoading } = useWorkspaces();
   const {
     messages,
@@ -29,14 +30,21 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumePromp
     handlePlatformSelect,
     handleUserQuery,
     resetFlow,
+    resumeFromHistory,
   } = useXPathGenerator({ workspaces });
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
   useEffect(() => {
-    if (resumePrompt) setPendingPrompt(resumePrompt);
-  }, [resumePrompt]);
+    if (resumeData && resumeData.module === 'xpath-generator') {
+      if (resumeData.historyLogId) {
+        resumeFromHistory(resumeData.historyLogId, resumeData.prompt);
+      } else {
+        setPendingPrompt(resumeData.prompt);
+      }
+    }
+  }, [resumeData]);
 
   const handleResumeFromPanel = (prompt: string) => {
     setPendingPrompt(prompt);
