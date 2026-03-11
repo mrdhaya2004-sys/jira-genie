@@ -376,6 +376,8 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
     setSelectedModule(null);
     setSelectedPlatform(null);
     setWorkspaceFiles([]);
+    setActiveHistoryLogId(null);
+    setEpisodicContext([]);
     
     // Re-add initial message
     setTimeout(() => {
@@ -401,6 +403,65 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
     }, 100);
   }, [workspaces, addMessage]);
 
+  const resumeFromHistory = useCallback(async (historyLogId: string, initialPrompt: string) => {
+    setIsLoading(true);
+    try {
+      const episodes = await loadEpisodes(historyLogId);
+      
+      if (episodes.length > 0) {
+        const context = buildConversationContext(episodes);
+        setEpisodicContext(context);
+        setActiveHistoryLogId(historyLogId);
+        setPhase('ready_for_query');
+        setSelectedPlatform('android');
+        setSelectedModule('Resumed');
+        
+        const rebuiltMessages: XPathChatMessage[] = [{
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: '🔄 **Resumed from previous session.** Here\'s your conversation history:',
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        }];
+        
+        for (const ep of episodes) {
+          rebuiltMessages.push({
+            id: crypto.randomUUID(),
+            role: ep.role as 'user' | 'assistant',
+            content: ep.content,
+            type: ep.role === 'assistant' ? 'xpath_result' : 'text',
+            timestamp: ep.created_at,
+          });
+        }
+
+        rebuiltMessages.push({
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: '✅ **Context loaded.** Continue generating XPaths.',
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        });
+
+        setMessages(rebuiltMessages);
+      } else {
+        setPhase('ready_for_query');
+        setSelectedPlatform('android');
+        setSelectedModule('Resumed');
+        setMessages([{
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: `🔄 Resuming previous session. Your last prompt was:\n\n> ${initialPrompt}\n\nContinue or ask a new question.`,
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        }]);
+      }
+    } catch (error) {
+      console.error('Error resuming from history:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [loadEpisodes, buildConversationContext]);
+
   return {
     messages,
     phase,
@@ -414,6 +475,7 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
     handlePlatformSelect,
     handleUserQuery,
     resetFlow,
+    resumeFromHistory,
   };
 };
 
