@@ -66,7 +66,7 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { workspaceId, module: appModule, platform, query, context } = await req.json();
+    const { workspaceId, module: appModule, platform, query, context, episodicMemory } = await req.json();
 
     console.log("XPath generation request:", { workspaceId, appModule, platform, query });
 
