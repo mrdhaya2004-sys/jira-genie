@@ -333,15 +333,33 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
         },
       });
 
-      // Save to persistent history
-      addLog({
-        module_name: 'logic-scenario-creator',
-        action_type: 'generate',
-        input_prompt: query,
-        output_summary: `Generated ${selectedFramework?.toUpperCase()} scenarios for ${selectedModule}`,
-        workspace_id: selectedWorkspace?.id,
-        metadata: { framework: selectedFramework, module: selectedModule },
-      });
+      // Save to persistent history and get log ID
+      let logId = activeHistoryLogId;
+      if (!logId) {
+        logId = await addLog({
+          module_name: 'logic-scenario-creator',
+          action_type: 'generate',
+          input_prompt: query,
+          output_summary: `Generated ${selectedFramework?.toUpperCase()} scenarios for ${selectedModule}`,
+          workspace_id: selectedWorkspace?.id,
+          metadata: { framework: selectedFramework, module: selectedModule },
+        }) || null;
+        if (logId) setActiveHistoryLogId(logId);
+      }
+
+      // Save episode pair
+      if (logId) {
+        const turnIdx = await getNextTurnIndex(logId);
+        await saveEpisodePair({
+          historyLogId: logId,
+          moduleName: 'logic-scenario-creator',
+          userPrompt: query,
+          aiResponse: assistantContent,
+          turnIndex: turnIdx,
+          workspaceId: selectedWorkspace?.id,
+        });
+        setEpisodicContext(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: assistantContent }]);
+      }
 
       // After a short delay, offer to convert to code
       setTimeout(() => {
