@@ -25,7 +25,7 @@ const MODULE_ICONS: Record<string, string> = {
 interface Props {
   log: HistoryLog;
   onDelete: (id: string) => void;
-  onResume?: (module: string, prompt: string) => void;
+  onResume?: (module: string, prompt: string, historyLogId: string) => void;
 }
 
 const HistoryLogEntry: React.FC<Props> = ({ log, onDelete, onResume }) => {
