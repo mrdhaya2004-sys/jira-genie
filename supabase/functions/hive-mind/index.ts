@@ -183,7 +183,7 @@ serve(async (req) => {
       );
     }
 
-    const { messages, capability, agent: agentOverride, stream = true, additionalContext } = await req.json();
+    const { messages, capability, agent: agentOverride, stream = true, additionalContext, episodicMemory } = await req.json();
 
     // Determine which agent to use
     const agentName = agentOverride || CAPABILITY_TO_AGENT[capability] || 'TestCaseAgent';
