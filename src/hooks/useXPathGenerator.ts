@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useHistoryLogs } from '@/hooks/useHistoryLogs';
+import { useEpisodicMemory } from '@/hooks/useEpisodicMemory';
 import { automationHistoryService } from '@/lib/automationHistory';
 import type { 
   XPathFlowPhase, 
