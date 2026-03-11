@@ -562,5 +562,6 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
     handleUserQuery,
     generateExcelDownload,
     resetFlow,
+    resumeFromHistory,
   };
 };
