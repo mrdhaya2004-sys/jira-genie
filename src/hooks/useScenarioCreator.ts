@@ -30,8 +30,11 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
   const [lastGeneratedScenario, setLastGeneratedScenario] = useState<string>('');
   const [selectedCodeFramework, setSelectedCodeFramework] = useState<CodeFramework | null>(null);
   const [generatedCode, setGeneratedCode] = useState<GeneratedCode | null>(null);
+  const [activeHistoryLogId, setActiveHistoryLogId] = useState<string | null>(null);
+  const [episodicContext, setEpisodicContext] = useState<Array<{ role: string; content: string }>>([]);
   const { toast } = useToast();
   const { addLog } = useHistoryLogs();
+  const { saveEpisodePair, loadEpisodes, buildConversationContext, getNextTurnIndex } = useEpisodicMemory();
 
   // Initial greeting
   useEffect(() => {
