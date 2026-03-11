@@ -21,6 +21,7 @@ interface UseTestCaseGeneratorOptions {
 export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions) => {
   const { toast } = useToast();
   const { addLog } = useHistoryLogs();
+  const { saveEpisodePair, loadEpisodes, buildConversationContext, getNextTurnIndex } = useEpisodicMemory();
   const [messages, setMessages] = useState<TestCaseChatMessage[]>([]);
   const [phase, setPhase] = useState<TestCaseFlowPhase>('initial');
   const [selectedMode, setSelectedMode] = useState<TestCaseMode | null>(null);
@@ -30,6 +31,8 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
   const [generatedTestCases, setGeneratedTestCases] = useState<GeneratedTestCase[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [activeHistoryLogId, setActiveHistoryLogId] = useState<string | null>(null);
+  const [episodicContext, setEpisodicContext] = useState<Array<{ role: string; content: string }>>([]);
 
   // Initial greeting
   useEffect(() => {
