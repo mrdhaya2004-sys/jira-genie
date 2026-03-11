@@ -25,8 +25,11 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
   const [workspaceFiles, setWorkspaceFiles] = useState<WorkspaceFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [activeHistoryLogId, setActiveHistoryLogId] = useState<string | null>(null);
+  const [episodicContext, setEpisodicContext] = useState<Array<{ role: string; content: string }>>([]);
   const { toast } = useToast();
   const { addLog } = useHistoryLogs();
+  const { saveEpisodePair, loadEpisodes, buildConversationContext, getNextTurnIndex } = useEpisodicMemory();
 
   // Initial greeting
   useEffect(() => {
