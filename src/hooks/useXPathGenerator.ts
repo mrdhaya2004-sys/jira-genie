@@ -320,15 +320,33 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
         },
       });
 
-      // Save to persistent history
-      addLog({
-        module_name: 'xpath-generator',
-        action_type: 'generate',
-        input_prompt: query,
-        output_summary: `Generated ${selectedPlatform === 'android' ? 'Android' : 'iOS'} XPaths for ${selectedModule}`,
-        workspace_id: selectedWorkspace?.id,
-        metadata: { module: selectedModule, platform: selectedPlatform },
-      });
+      // Save to persistent history and get log ID
+      let logId = activeHistoryLogId;
+      if (!logId) {
+        logId = await addLog({
+          module_name: 'xpath-generator',
+          action_type: 'generate',
+          input_prompt: query,
+          output_summary: `Generated ${selectedPlatform === 'android' ? 'Android' : 'iOS'} XPaths for ${selectedModule}`,
+          workspace_id: selectedWorkspace?.id,
+          metadata: { module: selectedModule, platform: selectedPlatform },
+        }) || null;
+        if (logId) setActiveHistoryLogId(logId);
+      }
+
+      // Save episode pair
+      if (logId) {
+        const turnIdx = await getNextTurnIndex(logId);
+        await saveEpisodePair({
+          historyLogId: logId,
+          moduleName: 'xpath-generator',
+          userPrompt: query,
+          aiResponse: assistantContent,
+          turnIndex: turnIdx,
+          workspaceId: selectedWorkspace?.id,
+        });
+        setEpisodicContext(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: assistantContent }]);
+      }
 
       setPhase('xpath_generated');
     } catch (error) {
