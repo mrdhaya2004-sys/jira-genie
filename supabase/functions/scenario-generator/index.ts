@@ -101,7 +101,7 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { workspaceId, framework, module: appModule, query, context } = await req.json();
+    const { workspaceId, framework, module: appModule, query, context, episodicMemory } = await req.json();
 
     console.log("Scenario generation request:", { workspaceId, framework, appModule, query });
 
