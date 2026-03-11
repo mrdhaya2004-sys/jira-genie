@@ -463,6 +463,8 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
     setGeneratedTestCases([]);
     setIsLoading(false);
     setIsStreaming(false);
+    setActiveHistoryLogId(null);
+    setEpisodicContext([]);
 
     // Re-add initial greeting
     setTimeout(() => {
@@ -477,6 +479,73 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
       });
     }, 100);
   }, [addMessage]);
+
+  /**
+   * Resume a previous conversation by loading episodes from a history log
+   */
+  const resumeFromHistory = useCallback(async (historyLogId: string, initialPrompt: string) => {
+    setIsLoading(true);
+    try {
+      const episodes = await loadEpisodes(historyLogId);
+      
+      if (episodes.length > 0) {
+        // Rebuild conversation context
+        const context = buildConversationContext(episodes);
+        setEpisodicContext(context);
+        setActiveHistoryLogId(historyLogId);
+        
+        // Set up the module in manual mode ready for query
+        setSelectedMode('manual');
+        setPhase('ready_for_query');
+        setMessages([]);
+        
+        // Rebuild chat messages from episodes
+        const rebuiltMessages: TestCaseChatMessage[] = [];
+        rebuiltMessages.push({
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: '🔄 **Resumed from previous session.** Here\'s your conversation history:',
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        });
+        
+        for (const ep of episodes) {
+          rebuiltMessages.push({
+            id: crypto.randomUUID(),
+            role: ep.role as 'user' | 'assistant',
+            content: ep.content,
+            type: 'text',
+            timestamp: ep.created_at,
+          });
+        }
+
+        rebuiltMessages.push({
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: '✅ **Context loaded.** You can continue the conversation from where you left off.',
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        });
+
+        setMessages(rebuiltMessages);
+      } else {
+        // No episodes found, just set the prompt
+        setSelectedMode('manual');
+        setPhase('ready_for_query');
+        setMessages([{
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: `🔄 Resuming previous session. Your last prompt was:\n\n> ${initialPrompt}\n\nYou can continue or ask a new question.`,
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        }]);
+      }
+    } catch (error) {
+      console.error('Error resuming from history:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [loadEpisodes, buildConversationContext, addMessage]);
 
   return {
     messages,
