@@ -168,6 +168,63 @@ export type Database = {
         }
         Relationships: []
       }
+      episodes: {
+        Row: {
+          content: string
+          created_at: string
+          history_log_id: string | null
+          id: string
+          metadata: Json | null
+          module_name: string
+          role: string
+          session_id: string
+          turn_index: number
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          history_log_id?: string | null
+          id?: string
+          metadata?: Json | null
+          module_name: string
+          role?: string
+          session_id: string
+          turn_index?: number
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          history_log_id?: string | null
+          id?: string
+          metadata?: Json | null
+          module_name?: string
+          role?: string
+          session_id?: string
+          turn_index?: number
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "episodes_history_log_id_fkey"
+            columns: ["history_log_id"]
+            isOneToOne: false
+            referencedRelation: "history_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "episodes_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       history_logs: {
         Row: {
           action_type: string
