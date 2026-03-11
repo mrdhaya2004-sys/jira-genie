@@ -264,6 +264,7 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
               userStories,
               excelStructure,
             },
+            episodicMemory: episodicContext.length > 0 ? episodicContext : undefined,
           }),
         }
       );
