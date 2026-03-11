@@ -717,6 +717,8 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
     setLastGeneratedScenario('');
     setSelectedCodeFramework(null);
     setGeneratedCode(null);
+    setActiveHistoryLogId(null);
+    setEpisodicContext([]);
     
     // Re-add initial message
     setTimeout(() => {
@@ -727,6 +729,65 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
       });
     }, 100);
   }, [addMessage]);
+
+  const resumeFromHistory = useCallback(async (historyLogId: string, initialPrompt: string) => {
+    setIsLoading(true);
+    try {
+      const episodes = await loadEpisodes(historyLogId);
+      
+      if (episodes.length > 0) {
+        const context = buildConversationContext(episodes);
+        setEpisodicContext(context);
+        setActiveHistoryLogId(historyLogId);
+        setPhase('ready_for_query');
+        setSelectedFramework('cucumber');
+        setSelectedModule('Resumed');
+        
+        const rebuiltMessages: ScenarioChatMessage[] = [{
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: '🔄 **Resumed from previous session.** Here\'s your conversation history:',
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        }];
+        
+        for (const ep of episodes) {
+          rebuiltMessages.push({
+            id: crypto.randomUUID(),
+            role: ep.role as 'user' | 'assistant',
+            content: ep.content,
+            type: ep.role === 'assistant' ? 'scenario' : 'text',
+            timestamp: ep.created_at,
+          });
+        }
+
+        rebuiltMessages.push({
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: '✅ **Context loaded.** Continue generating scenarios.',
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        });
+
+        setMessages(rebuiltMessages);
+      } else {
+        setPhase('ready_for_query');
+        setSelectedFramework('cucumber');
+        setSelectedModule('Resumed');
+        setMessages([{
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: `🔄 Resuming previous session. Your last prompt was:\n\n> ${initialPrompt}\n\nContinue or ask a new question.`,
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        }]);
+      }
+    } catch (error) {
+      console.error('Error resuming from history:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [loadEpisodes, buildConversationContext]);
 
   return {
     messages,
@@ -745,6 +806,7 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
     handleCodeFrameworkSelect,
     handleCodeAction,
     resetFlow,
+    resumeFromHistory,
   };
 };
 
