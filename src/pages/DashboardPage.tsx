@@ -22,17 +22,23 @@ const MODULE_MAP: Record<string, ActiveModule> = {
   'agentic-ai': 'agentic-ai',
 };
 
+export interface ResumeData {
+  module: string;
+  prompt: string;
+  historyLogId: string;
+}
+
 const DashboardPage: React.FC = () => {
   const [activeModule, setActiveModule] = useState<ActiveModule>('mentions');
-  const [resumePrompt, setResumePrompt] = useState<string | null>(null);
+  const [resumeData, setResumeData] = useState<ResumeData | null>(null);
 
-  const handleResumeAction = useCallback((module: string, prompt: string) => {
+  const handleResumeAction = useCallback((module: string, prompt: string, historyLogId?: string) => {
     const targetModule = MODULE_MAP[module];
     if (targetModule) {
-      setResumePrompt(prompt);
+      setResumeData({ module, prompt, historyLogId: historyLogId || '' });
       setActiveModule(targetModule);
       // Clear after a tick so the module can pick it up
-      setTimeout(() => setResumePrompt(null), 500);
+      setTimeout(() => setResumeData(null), 500);
     }
   }, []);
 
@@ -57,9 +63,9 @@ const DashboardPage: React.FC = () => {
           {activeModule === 'history' && <HistoryModule onResumeAction={handleResumeAction} />}
           {activeModule === 'agentic-ai' && <AgenticAIModule />}
           {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule />}
-          {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule resumePrompt={resumePrompt} />}
-          {activeModule === 'test-case-generator' && <TestCaseGeneratorModule resumePrompt={resumePrompt} />}
-          {activeModule === 'xpath-generator' && <XPathGeneratorModule resumePrompt={resumePrompt} />}
+          {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule resumeData={resumeData} />}
+          {activeModule === 'test-case-generator' && <TestCaseGeneratorModule resumeData={resumeData} />}
+          {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
           {activeModule === 'ai-settings' && <AIConfigurationModule />}
         </main>
       </div>
