@@ -362,14 +362,33 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
         },
       });
 
-      // Save to persistent history
-      addLog({
-        module_name: 'test-case-generator',
-        action_type: 'generate',
-        input_prompt: query,
-        output_summary: `Generated test cases${selectedWorkspace ? ` for ${selectedWorkspace.name}` : ' in manual mode'}`,
-        workspace_id: selectedWorkspace?.id,
-      });
+      // Save to persistent history and get log ID
+      let logId = activeHistoryLogId;
+      if (!logId) {
+        logId = await addLog({
+          module_name: 'test-case-generator',
+          action_type: 'generate',
+          input_prompt: query,
+          output_summary: `Generated test cases${selectedWorkspace ? ` for ${selectedWorkspace.name}` : ' in manual mode'}`,
+          workspace_id: selectedWorkspace?.id,
+        }) || null;
+        if (logId) setActiveHistoryLogId(logId);
+      }
+
+      // Save episode pair
+      if (logId) {
+        const turnIdx = await getNextTurnIndex(logId);
+        await saveEpisodePair({
+          historyLogId: logId,
+          moduleName: 'test-case-generator',
+          userPrompt: query,
+          aiResponse: fullContent,
+          turnIndex: turnIdx,
+          workspaceId: selectedWorkspace?.id,
+        });
+        // Update episodic context for future turns
+        setEpisodicContext(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: fullContent }]);
+      }
 
       // Add download prompt if we have structured test cases
       if (excelStructure) {
