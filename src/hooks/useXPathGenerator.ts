@@ -237,6 +237,7 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
               hasIpa,
               appFiles: appFiles.map(f => ({ name: f.file_name, type: f.file_type })),
             },
+            episodicMemory: episodicContext.length > 0 ? episodicContext : undefined,
           }),
         }
       );
