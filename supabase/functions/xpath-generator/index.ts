@@ -190,11 +190,22 @@ _Why: [Brief explanation of why this is recommended]_
 ## Workspace Context
 ${contextInfo || "No additional context available. Generate XPaths based on common UI patterns for the module."}`;
 
-    // Route through Hive Mind
-    const response = await routeAIRequest(authHeader!, [
+    // Build messages with episodic memory
+    const aiMessages: Array<{ role: string; content: string }> = [
       { role: "system", content: systemPrompt },
-      { role: "user", content: `Generate XPaths for: ${query}\n\nModule: ${appModule}\nPlatform: ${platform}` },
-    ], true);
+    ];
+
+    if (episodicMemory && Array.isArray(episodicMemory) && episodicMemory.length > 0) {
+      aiMessages[0].content += '\n\n[EPISODIC MEMORY] The user is continuing a previous conversation. Maintain context from the prior messages.';
+      for (const ep of episodicMemory) {
+        aiMessages.push({ role: ep.role, content: ep.content });
+      }
+    }
+
+    aiMessages.push({ role: "user", content: `Generate XPaths for: ${query}\n\nModule: ${appModule}\nPlatform: ${platform}` });
+
+    // Route through Hive Mind
+    const response = await routeAIRequest(authHeader!, aiMessages, true);
 
     if (!response.ok) {
       if (response.status === 429) {
