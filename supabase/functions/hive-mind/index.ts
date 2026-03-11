@@ -205,8 +205,19 @@ ${agent.systemPrompt}`;
       systemPrompt += `\n\nAdditional Context:\n${additionalContext}`;
     }
 
+    // If episodic memory is provided, inject previous conversation turns
+    // so the AI continues the conversation seamlessly
+    const previousTurns: Array<{ role: string; content: string }> = [];
+    if (episodicMemory && Array.isArray(episodicMemory) && episodicMemory.length > 0) {
+      systemPrompt += `\n\n[EPISODIC MEMORY] The user is resuming a previous conversation. The following messages are from the prior session. Continue naturally as if the conversation never stopped.`;
+      for (const ep of episodicMemory) {
+        previousTurns.push({ role: ep.role, content: ep.content });
+      }
+    }
+
     const fullMessages = [
       { role: 'system', content: systemPrompt },
+      ...previousTurns,
       ...messages,
     ];
 
