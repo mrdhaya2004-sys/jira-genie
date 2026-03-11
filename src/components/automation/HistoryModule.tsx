@@ -32,7 +32,7 @@ const MODULE_OPTIONS = [
 ];
 
 interface HistoryModuleProps {
-  onResumeAction?: (module: string, prompt: string) => void;
+  onResumeAction?: (module: string, prompt: string, historyLogId?: string) => void;
 }
 
 const HistoryModule: React.FC<HistoryModuleProps> = ({ onResumeAction }) => {

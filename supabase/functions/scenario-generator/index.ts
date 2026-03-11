@@ -101,7 +101,7 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { workspaceId, framework, module: appModule, query, context } = await req.json();
+    const { workspaceId, framework, module: appModule, query, context, episodicMemory } = await req.json();
 
     console.log("Scenario generation request:", { workspaceId, framework, appModule, query });
 
@@ -164,11 +164,22 @@ ${contextInfo || "No additional context available. Generate general scenarios ba
 - Add tags/annotations where appropriate for the framework
 - Ensure scenarios are copy-paste ready for automation engineers`;
 
-    // Route through Hive Mind
-    const response = await routeAIRequest(authHeader!, [
+    // Build messages with episodic memory
+    const aiMessages: Array<{ role: string; content: string }> = [
       { role: "system", content: systemPrompt },
-      { role: "user", content: `Generate automation scenarios for: ${query}\n\nModule: ${appModule}\nFramework: ${framework}` },
-    ], true);
+    ];
+
+    if (episodicMemory && Array.isArray(episodicMemory) && episodicMemory.length > 0) {
+      aiMessages[0].content += '\n\n[EPISODIC MEMORY] The user is continuing a previous conversation. Maintain context from the prior messages.';
+      for (const ep of episodicMemory) {
+        aiMessages.push({ role: ep.role, content: ep.content });
+      }
+    }
+
+    aiMessages.push({ role: "user", content: `Generate automation scenarios for: ${query}\n\nModule: ${appModule}\nFramework: ${framework}` });
+
+    // Route through Hive Mind
+    const response = await routeAIRequest(authHeader!, aiMessages, true);
 
     if (!response.ok) {
       if (response.status === 429) {

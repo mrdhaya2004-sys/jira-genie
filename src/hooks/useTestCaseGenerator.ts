@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useHistoryLogs } from '@/hooks/useHistoryLogs';
+import { useEpisodicMemory, Episode } from '@/hooks/useEpisodicMemory';
 import { automationHistoryService } from '@/lib/automationHistory';
 import * as XLSX from 'xlsx';
 import type { Workspace } from '@/types/workspace';
@@ -20,6 +21,7 @@ interface UseTestCaseGeneratorOptions {
 export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions) => {
   const { toast } = useToast();
   const { addLog } = useHistoryLogs();
+  const { saveEpisodePair, loadEpisodes, buildConversationContext, getNextTurnIndex } = useEpisodicMemory();
   const [messages, setMessages] = useState<TestCaseChatMessage[]>([]);
   const [phase, setPhase] = useState<TestCaseFlowPhase>('initial');
   const [selectedMode, setSelectedMode] = useState<TestCaseMode | null>(null);
@@ -29,6 +31,8 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
   const [generatedTestCases, setGeneratedTestCases] = useState<GeneratedTestCase[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [activeHistoryLogId, setActiveHistoryLogId] = useState<string | null>(null);
+  const [episodicContext, setEpisodicContext] = useState<Array<{ role: string; content: string }>>([]);
 
   // Initial greeting
   useEffect(() => {
@@ -260,6 +264,7 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
               userStories,
               excelStructure,
             },
+            episodicMemory: episodicContext.length > 0 ? episodicContext : undefined,
           }),
         }
       );
@@ -357,14 +362,33 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
         },
       });
 
-      // Save to persistent history
-      addLog({
-        module_name: 'test-case-generator',
-        action_type: 'generate',
-        input_prompt: query,
-        output_summary: `Generated test cases${selectedWorkspace ? ` for ${selectedWorkspace.name}` : ' in manual mode'}`,
-        workspace_id: selectedWorkspace?.id,
-      });
+      // Save to persistent history and get log ID
+      let logId = activeHistoryLogId;
+      if (!logId) {
+        logId = await addLog({
+          module_name: 'test-case-generator',
+          action_type: 'generate',
+          input_prompt: query,
+          output_summary: `Generated test cases${selectedWorkspace ? ` for ${selectedWorkspace.name}` : ' in manual mode'}`,
+          workspace_id: selectedWorkspace?.id,
+        }) || null;
+        if (logId) setActiveHistoryLogId(logId);
+      }
+
+      // Save episode pair
+      if (logId) {
+        const turnIdx = await getNextTurnIndex(logId);
+        await saveEpisodePair({
+          historyLogId: logId,
+          moduleName: 'test-case-generator',
+          userPrompt: query,
+          aiResponse: fullContent,
+          turnIndex: turnIdx,
+          workspaceId: selectedWorkspace?.id,
+        });
+        // Update episodic context for future turns
+        setEpisodicContext(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: fullContent }]);
+      }
 
       // Add download prompt if we have structured test cases
       if (excelStructure) {
@@ -439,6 +463,8 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
     setGeneratedTestCases([]);
     setIsLoading(false);
     setIsStreaming(false);
+    setActiveHistoryLogId(null);
+    setEpisodicContext([]);
 
     // Re-add initial greeting
     setTimeout(() => {
@@ -453,6 +479,73 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
       });
     }, 100);
   }, [addMessage]);
+
+  /**
+   * Resume a previous conversation by loading episodes from a history log
+   */
+  const resumeFromHistory = useCallback(async (historyLogId: string, initialPrompt: string) => {
+    setIsLoading(true);
+    try {
+      const episodes = await loadEpisodes(historyLogId);
+      
+      if (episodes.length > 0) {
+        // Rebuild conversation context
+        const context = buildConversationContext(episodes);
+        setEpisodicContext(context);
+        setActiveHistoryLogId(historyLogId);
+        
+        // Set up the module in manual mode ready for query
+        setSelectedMode('manual');
+        setPhase('ready_for_query');
+        setMessages([]);
+        
+        // Rebuild chat messages from episodes
+        const rebuiltMessages: TestCaseChatMessage[] = [];
+        rebuiltMessages.push({
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: '🔄 **Resumed from previous session.** Here\'s your conversation history:',
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        });
+        
+        for (const ep of episodes) {
+          rebuiltMessages.push({
+            id: crypto.randomUUID(),
+            role: ep.role as 'user' | 'assistant',
+            content: ep.content,
+            type: 'text',
+            timestamp: ep.created_at,
+          });
+        }
+
+        rebuiltMessages.push({
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: '✅ **Context loaded.** You can continue the conversation from where you left off.',
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        });
+
+        setMessages(rebuiltMessages);
+      } else {
+        // No episodes found, just set the prompt
+        setSelectedMode('manual');
+        setPhase('ready_for_query');
+        setMessages([{
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: `🔄 Resuming previous session. Your last prompt was:\n\n> ${initialPrompt}\n\nYou can continue or ask a new question.`,
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        }]);
+      }
+    } catch (error) {
+      console.error('Error resuming from history:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [loadEpisodes, buildConversationContext, addMessage]);
 
   return {
     messages,
@@ -469,5 +562,6 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
     handleUserQuery,
     generateExcelDownload,
     resetFlow,
+    resumeFromHistory,
   };
 };

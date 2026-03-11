@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useHistoryLogs } from '@/hooks/useHistoryLogs';
+import { useEpisodicMemory } from '@/hooks/useEpisodicMemory';
 import { automationHistoryService } from '@/lib/automationHistory';
 import type { 
   XPathFlowPhase, 
@@ -24,8 +25,11 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
   const [workspaceFiles, setWorkspaceFiles] = useState<WorkspaceFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [activeHistoryLogId, setActiveHistoryLogId] = useState<string | null>(null);
+  const [episodicContext, setEpisodicContext] = useState<Array<{ role: string; content: string }>>([]);
   const { toast } = useToast();
   const { addLog } = useHistoryLogs();
+  const { saveEpisodePair, loadEpisodes, buildConversationContext, getNextTurnIndex } = useEpisodicMemory();
 
   // Initial greeting
   useEffect(() => {
@@ -233,6 +237,7 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
               hasIpa,
               appFiles: appFiles.map(f => ({ name: f.file_name, type: f.file_type })),
             },
+            episodicMemory: episodicContext.length > 0 ? episodicContext : undefined,
           }),
         }
       );
@@ -315,15 +320,33 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
         },
       });
 
-      // Save to persistent history
-      addLog({
-        module_name: 'xpath-generator',
-        action_type: 'generate',
-        input_prompt: query,
-        output_summary: `Generated ${selectedPlatform === 'android' ? 'Android' : 'iOS'} XPaths for ${selectedModule}`,
-        workspace_id: selectedWorkspace?.id,
-        metadata: { module: selectedModule, platform: selectedPlatform },
-      });
+      // Save to persistent history and get log ID
+      let logId = activeHistoryLogId;
+      if (!logId) {
+        logId = await addLog({
+          module_name: 'xpath-generator',
+          action_type: 'generate',
+          input_prompt: query,
+          output_summary: `Generated ${selectedPlatform === 'android' ? 'Android' : 'iOS'} XPaths for ${selectedModule}`,
+          workspace_id: selectedWorkspace?.id,
+          metadata: { module: selectedModule, platform: selectedPlatform },
+        }) || null;
+        if (logId) setActiveHistoryLogId(logId);
+      }
+
+      // Save episode pair
+      if (logId) {
+        const turnIdx = await getNextTurnIndex(logId);
+        await saveEpisodePair({
+          historyLogId: logId,
+          moduleName: 'xpath-generator',
+          userPrompt: query,
+          aiResponse: assistantContent,
+          turnIndex: turnIdx,
+          workspaceId: selectedWorkspace?.id,
+        });
+        setEpisodicContext(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: assistantContent }]);
+      }
 
       setPhase('xpath_generated');
     } catch (error) {
@@ -353,6 +376,8 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
     setSelectedModule(null);
     setSelectedPlatform(null);
     setWorkspaceFiles([]);
+    setActiveHistoryLogId(null);
+    setEpisodicContext([]);
     
     // Re-add initial message
     setTimeout(() => {
@@ -378,6 +403,65 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
     }, 100);
   }, [workspaces, addMessage]);
 
+  const resumeFromHistory = useCallback(async (historyLogId: string, initialPrompt: string) => {
+    setIsLoading(true);
+    try {
+      const episodes = await loadEpisodes(historyLogId);
+      
+      if (episodes.length > 0) {
+        const context = buildConversationContext(episodes);
+        setEpisodicContext(context);
+        setActiveHistoryLogId(historyLogId);
+        setPhase('ready_for_query');
+        setSelectedPlatform('android');
+        setSelectedModule('Resumed');
+        
+        const rebuiltMessages: XPathChatMessage[] = [{
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: '🔄 **Resumed from previous session.** Here\'s your conversation history:',
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        }];
+        
+        for (const ep of episodes) {
+          rebuiltMessages.push({
+            id: crypto.randomUUID(),
+            role: ep.role as 'user' | 'assistant',
+            content: ep.content,
+            type: ep.role === 'assistant' ? 'xpath_result' : 'text',
+            timestamp: ep.created_at,
+          });
+        }
+
+        rebuiltMessages.push({
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: '✅ **Context loaded.** Continue generating XPaths.',
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        });
+
+        setMessages(rebuiltMessages);
+      } else {
+        setPhase('ready_for_query');
+        setSelectedPlatform('android');
+        setSelectedModule('Resumed');
+        setMessages([{
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: `🔄 Resuming previous session. Your last prompt was:\n\n> ${initialPrompt}\n\nContinue or ask a new question.`,
+          type: 'text',
+          timestamp: new Date().toISOString(),
+        }]);
+      }
+    } catch (error) {
+      console.error('Error resuming from history:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [loadEpisodes, buildConversationContext]);
+
   return {
     messages,
     phase,
@@ -391,6 +475,7 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
     handlePlatformSelect,
     handleUserQuery,
     resetFlow,
+    resumeFromHistory,
   };
 };
 

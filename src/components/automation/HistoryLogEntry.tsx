@@ -25,7 +25,7 @@ const MODULE_ICONS: Record<string, string> = {
 interface Props {
   log: HistoryLog;
   onDelete: (id: string) => void;
-  onResume?: (module: string, prompt: string) => void;
+  onResume?: (module: string, prompt: string, historyLogId: string) => void;
 }
 
 const HistoryLogEntry: React.FC<Props> = ({ log, onDelete, onResume }) => {
@@ -82,7 +82,7 @@ const HistoryLogEntry: React.FC<Props> = ({ log, onDelete, onResume }) => {
               size="icon"
               className="h-7 w-7"
               title="Resume this action"
-              onClick={() => onResume(log.module_name, log.input_prompt!)}
+              onClick={() => onResume(log.module_name, log.input_prompt!, log.id)}
             >
               <Play className="h-3.5 w-3.5 text-primary" />
             </Button>

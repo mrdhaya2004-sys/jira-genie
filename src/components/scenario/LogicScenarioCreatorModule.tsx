@@ -9,12 +9,13 @@ import ScenarioChatMessage from './ScenarioChatMessage';
 import ScenarioChatInput from './ScenarioChatInput';
 import HistoryPanel from '@/components/automation/HistoryPanel';
 import type { AutomationFramework, CodeFramework } from '@/types/scenario';
+import type { ResumeData } from '@/pages/DashboardPage';
 
 interface LogicScenarioCreatorModuleProps {
-  resumePrompt?: string | null;
+  resumeData?: ResumeData | null;
 }
 
-const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({ resumePrompt }) => {
+const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({ resumeData }) => {
   const { workspaces, isLoading: workspacesLoading } = useWorkspaces();
   const {
     messages,
@@ -33,14 +34,21 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
     handleCodeFrameworkSelect,
     handleCodeAction,
     resetFlow,
+    resumeFromHistory,
   } = useScenarioCreator({ workspaces });
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
   useEffect(() => {
-    if (resumePrompt) setPendingPrompt(resumePrompt);
-  }, [resumePrompt]);
+    if (resumeData && resumeData.module === 'logic-scenario-creator') {
+      if (resumeData.historyLogId) {
+        resumeFromHistory(resumeData.historyLogId, resumeData.prompt);
+      } else {
+        setPendingPrompt(resumeData.prompt);
+      }
+    }
+  }, [resumeData]);
 
   const handleResumeFromPanel = (prompt: string) => {
     setPendingPrompt(prompt);

@@ -91,7 +91,7 @@ export const useHistoryLogs = () => {
 
     // Add to persistent DB
     try {
-      const { error } = await supabase.from('history_logs').insert({
+      const { data, error } = await supabase.from('history_logs').insert({
         user_id: user.id,
         session_id: sessionId,
         module_name: entry.module_name,
@@ -100,10 +100,12 @@ export const useHistoryLogs = () => {
         output_summary: entry.output_summary || null,
         workspace_id: entry.workspace_id || null,
         metadata: entry.metadata || {},
-      });
+      }).select('id').single();
       if (error) throw error;
+      return (data as any)?.id as string | undefined;
     } catch (error) {
       console.error('Error saving history log:', error);
+      return undefined;
     }
   }, [user]);
 

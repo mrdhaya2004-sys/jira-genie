@@ -51,7 +51,7 @@ serve(async (req) => {
       );
     }
 
-    const { workspaceId, mode, query, context } = await req.json();
+    const { workspaceId, mode, query, context, episodicMemory } = await req.json();
 
     // If workspace mode, verify ownership
     if (workspaceId) {
@@ -69,11 +69,21 @@ serve(async (req) => {
         );
       }
     }
-    
-    const messages = [
+
+    // Build messages with episodic memory context
+    const messages: Array<{ role: string; content: string }> = [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: query },
     ];
+
+    // Inject previous conversation turns for episodic memory
+    if (episodicMemory && Array.isArray(episodicMemory) && episodicMemory.length > 0) {
+      messages[0].content += '\n\n[EPISODIC MEMORY] The user is continuing a previous conversation. Maintain context from the prior messages.';
+      for (const ep of episodicMemory) {
+        messages.push({ role: ep.role, content: ep.content });
+      }
+    }
+
+    messages.push({ role: 'user', content: query });
 
     // Route through Hive Mind (uses custom provider if configured, else default)
     const response = await routeAIRequest(authHeader!, messages, true);
