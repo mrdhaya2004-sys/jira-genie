@@ -70,6 +70,30 @@ serve(async (req) => {
       }
     }
 
+    // Build system prompt
+    let contextInfo = '';
+    if (context?.userStories) {
+      contextInfo += `\n\n## User Stories (from Workspace Brain):\n${context.userStories}`;
+    }
+    if (context?.excelStructure) {
+      contextInfo += `\n\n## Excel Structure:\n${EXCEL_FORMAT_INSTRUCTION}\nColumns: ${JSON.stringify(context.excelStructure)}`;
+    }
+
+    const systemPrompt = `You are an expert QA Engineer specializing in test case generation.
+
+## Your Task
+Generate comprehensive, well-structured test cases based on the user's request.
+
+## Important Rules
+1. Generate functional, negative, edge-case, and boundary test cases as appropriate
+2. Each test case must have: Title, Preconditions, Steps, Expected Result
+3. Use realistic test data
+4. Consider positive, negative, and edge cases
+5. Be thorough but concise
+6. Format output in clean markdown
+
+${contextInfo || 'No additional context. Generate test cases based on common patterns.'}`;
+
     // Build messages with episodic memory context
     const messages: Array<{ role: string; content: string }> = [
       { role: 'system', content: systemPrompt },
