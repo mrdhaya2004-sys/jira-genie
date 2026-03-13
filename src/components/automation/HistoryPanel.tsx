@@ -29,6 +29,8 @@ import {
 } from '@/lib/automationHistory';
 import { useHistoryLogs, HistoryLog } from '@/hooks/useHistoryLogs';
 import { sessionHistoryService } from '@/lib/sessionHistory';
+import HistoryLogEntry from './HistoryLogEntry';
+import HistoryViewDialog from './HistoryViewDialog';
 
 interface HistoryPanelProps {
   toolType?: AutomationToolType;
