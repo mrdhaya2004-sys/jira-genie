@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -6,20 +6,16 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   History,
-  Clock,
   Trash2,
-  X,
   RotateCcw,
   Search,
   Download,
   CalendarDays,
   LayoutGrid,
-  Play,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useHistoryLogs } from '@/hooks/useHistoryLogs';
-import { sessionHistoryService } from '@/lib/sessionHistory';
+import { useHistoryLogs, HistoryLog } from '@/hooks/useHistoryLogs';
 import HistoryLogEntry from './HistoryLogEntry';
+import HistoryViewDialog from './HistoryViewDialog';
 import SessionHistoryBar from './SessionHistoryBar';
 
 const MODULE_OPTIONS = [
@@ -53,11 +49,12 @@ const HistoryModule: React.FC<HistoryModuleProps> = ({ onResumeAction }) => {
     exportAsCSV,
   } = useHistoryLogs();
 
+  const [viewingLog, setViewingLog] = useState<HistoryLog | null>(null);
+
   const grouped = viewMode === 'date' ? logsByDate() : logsByModule();
 
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Session History Bar */}
       <SessionHistoryBar />
 
       {/* Header */}
@@ -74,7 +71,7 @@ const HistoryModule: React.FC<HistoryModuleProps> = ({ onResumeAction }) => {
               </Badge>
             </h2>
             <p className="text-xs text-muted-foreground">
-              Complete audit trail of all automation activity
+              Complete audit trail — click <strong>View</strong> to inspect or <strong>Continue</strong> to resume
             </p>
           </div>
         </div>
@@ -104,9 +101,8 @@ const HistoryModule: React.FC<HistoryModuleProps> = ({ onResumeAction }) => {
         </div>
       </div>
 
-      {/* Toolbar: Search + View Toggle + Filter */}
+      {/* Toolbar */}
       <div className="border-b bg-card/50 px-4 py-2 flex flex-wrap items-center gap-3">
-        {/* Search */}
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -117,7 +113,6 @@ const HistoryModule: React.FC<HistoryModuleProps> = ({ onResumeAction }) => {
           />
         </div>
 
-        {/* View mode */}
         <Tabs value={viewMode} onValueChange={v => setViewMode(v as 'date' | 'module')}>
           <TabsList className="h-8">
             <TabsTrigger value="date" className="text-xs px-2 h-6 gap-1">
@@ -129,7 +124,6 @@ const HistoryModule: React.FC<HistoryModuleProps> = ({ onResumeAction }) => {
           </TabsList>
         </Tabs>
 
-        {/* Module filter */}
         <div className="flex items-center gap-1.5">
           {MODULE_OPTIONS.map(opt => (
             <Button
@@ -177,6 +171,7 @@ const HistoryModule: React.FC<HistoryModuleProps> = ({ onResumeAction }) => {
                       key={log.id}
                       log={log}
                       onDelete={deleteLog}
+                      onView={setViewingLog}
                       onResume={onResumeAction}
                     />
                   ))}
@@ -186,6 +181,13 @@ const HistoryModule: React.FC<HistoryModuleProps> = ({ onResumeAction }) => {
           )}
         </div>
       </ScrollArea>
+
+      {/* View Dialog */}
+      <HistoryViewDialog
+        log={viewingLog}
+        open={!!viewingLog}
+        onOpenChange={(open) => { if (!open) setViewingLog(null); }}
+      />
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Play, Clock } from 'lucide-react';
+import { Eye, Play, Trash2, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { sessionHistoryService } from '@/lib/sessionHistory';
 import type { HistoryLog } from '@/hooks/useHistoryLogs';
@@ -25,10 +25,11 @@ const MODULE_ICONS: Record<string, string> = {
 interface Props {
   log: HistoryLog;
   onDelete: (id: string) => void;
+  onView?: (log: HistoryLog) => void;
   onResume?: (module: string, prompt: string, historyLogId: string) => void;
 }
 
-const HistoryLogEntry: React.FC<Props> = ({ log, onDelete, onResume }) => {
+const HistoryLogEntry: React.FC<Props> = ({ log, onDelete, onView, onResume }) => {
   const d = new Date(log.created_at);
   const colorClass = MODULE_COLORS[log.module_name] || 'bg-muted text-muted-foreground';
   const icon = MODULE_ICONS[log.module_name] || '📄';
@@ -53,7 +54,7 @@ const HistoryLogEntry: React.FC<Props> = ({ log, onDelete, onResume }) => {
           </div>
 
           {log.input_prompt && (
-            <p className="text-sm text-foreground mb-1 line-clamp-2">
+            <p className="text-sm font-medium text-foreground mb-0.5 line-clamp-1">
               {log.input_prompt}
             </p>
           )}
@@ -72,30 +73,43 @@ const HistoryLogEntry: React.FC<Props> = ({ log, onDelete, onResume }) => {
             <span className="text-muted-foreground/50">•</span>
             <span>{d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 mt-2">
+            {onView && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs gap-1.5"
+                onClick={() => onView(log)}
+              >
+                <Eye className="h-3 w-3" />
+                View
+              </Button>
+            )}
+            {log.input_prompt && onResume && (
+              <Button
+                variant="default"
+                size="sm"
+                className="h-7 text-xs gap-1.5"
+                onClick={() => onResume(log.module_name, log.input_prompt!, log.id)}
+              >
+                <Play className="h-3 w-3" />
+                Continue
+              </Button>
+            )}
+          </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {log.input_prompt && onResume && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              title="Resume this action"
-              onClick={() => onResume(log.module_name, log.input_prompt!, log.id)}
-            >
-              <Play className="h-3.5 w-3.5 text-primary" />
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => onDelete(log.id)}
-          >
-            <X className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
-          </Button>
-        </div>
+        {/* Delete */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+          onClick={() => onDelete(log.id)}
+        >
+          <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+        </Button>
       </div>
     </div>
   );
