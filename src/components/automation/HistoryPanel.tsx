@@ -49,6 +49,7 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
 }) => {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [viewingLog, setViewingLog] = useState<HistoryLog | null>(null);
   const { logs, fetchLogs } = useHistoryLogs();
 
   // Filter persistent logs by module name
@@ -90,11 +91,18 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
     loadHistory();
   };
 
-  const handleResume = (log: HistoryLog) => {
-    if (log.input_prompt && onResumePrompt) {
-      onResumePrompt(log.input_prompt);
+  const handleResume = (module: string, prompt: string, historyLogId: string) => {
+    if (prompt && onResumePrompt) {
+      onResumePrompt(prompt);
       setIsOpen(false);
     }
+  };
+
+  const handleDeleteLog = async (id: string) => {
+    // Remove from local state for immediate UI feedback
+    const { supabase } = await import('@/integrations/supabase/client');
+    await supabase.from('history_logs').delete().eq('id', id);
+    fetchLogs();
   };
 
   const getToolIcon = (type: AutomationToolType) => {
@@ -116,167 +124,124 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
   const totalCount = filteredLogs.length || history.length;
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className={cn("gap-2", className)}>
-          <History className="h-4 w-4" />
-          History
-          {totalCount > 0 && (
-            <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
-              {totalCount}
-            </Badge>
-          )}
-        </Button>
-      </SheetTrigger>
-      <SheetContent className="w-[400px] sm:w-[540px]">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <History className="h-5 w-5" />
-            Recent Activity
-          </SheetTitle>
-          <SheetDescription>
-            {toolType 
-              ? `Your recent ${automationHistoryService.getToolLabel(toolType)} sessions`
-              : 'Your recent automation tool sessions'}
-            {onResumePrompt && ' — Click ▶ to resume'}
-          </SheetDescription>
-        </SheetHeader>
+    <>
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button variant="outline" size="sm" className={cn("gap-2", className)}>
+            <History className="h-4 w-4" />
+            History
+            {totalCount > 0 && (
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                {totalCount}
+              </Badge>
+            )}
+          </Button>
+        </SheetTrigger>
+        <SheetContent className="w-[400px] sm:w-[540px]">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Recent Activity
+            </SheetTitle>
+            <SheetDescription>
+              {toolType 
+                ? `Your recent ${automationHistoryService.getToolLabel(toolType)} sessions`
+                : 'Your recent automation tool sessions'}
+              {' — Click View to inspect or Continue to resume'}
+            </SheetDescription>
+          </SheetHeader>
 
-        <div className="mt-4">
-          {filteredLogs.length > 0 && (
-            <div className="flex justify-end mb-3">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleClearAll}
-                className="text-muted-foreground hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Clear All
-              </Button>
-            </div>
-          )}
-
-          <ScrollArea className="h-[calc(100vh-200px)]">
-            {/* Persistent DB logs */}
-            {filteredLogs.length > 0 ? (
-              <div className="space-y-2">
-                {filteredLogs.map((log) => (
-                  <div
-                    key={log.id}
-                    className="group relative p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline" className="text-xs">
-                            {sessionHistoryService.getModuleLabel(log.module_name)}
-                          </Badge>
-                          <Badge variant="secondary" className="text-xs capitalize">
-                            {log.action_type}
-                          </Badge>
-                        </div>
-                        
-                        {log.input_prompt && (
-                          <p className="text-sm font-medium truncate mb-0.5">
-                            {log.input_prompt.slice(0, 80)}{log.input_prompt.length > 80 ? '...' : ''}
-                          </p>
-                        )}
-                        
-                        {log.output_summary && (
-                          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                            {log.output_summary}
-                          </p>
-                        )}
-
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          <span>
-                            {new Date(log.created_at).toLocaleDateString('en-US', {
-                              day: 'numeric', month: 'short',
-                            })}
-                          </span>
-                          <span className="text-muted-foreground/50">•</span>
-                          <span>
-                            {new Date(log.created_at).toLocaleTimeString('en-US', {
-                              hour: '2-digit', minute: '2-digit',
-                            })}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Resume + Delete */}
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {log.input_prompt && onResumePrompt && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            title="Resume this prompt"
-                            onClick={() => handleResume(log)}
-                          >
-                            <Play className="h-3.5 w-3.5 text-primary" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : history.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                  <History className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <p className="text-muted-foreground text-sm">No recent activity</p>
-                <p className="text-muted-foreground text-xs mt-1">
-                  Your automation sessions will appear here
-                </p>
-              </div>
-            ) : (
-              // Fallback to local storage entries
-              <div className="space-y-2">
-                {history.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className={cn(
-                      "group relative p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors",
-                      onSelectEntry && "cursor-pointer"
-                    )}
-                    onClick={() => onSelectEntry?.(entry)}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={cn(
-                        "h-8 w-8 rounded-md flex items-center justify-center flex-shrink-0",
-                        getToolColor(entry.toolType)
-                      )}>
-                        {getToolIcon(entry.toolType)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="font-medium text-sm truncate block">{entry.title}</span>
-                        <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{entry.summary}</p>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          <span>{automationHistoryService.formatTimestamp(entry.timestamp)}</span>
-                        </div>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => handleDelete(entry.id, e)}
-                      >
-                        <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+          <div className="mt-4">
+            {filteredLogs.length > 0 && (
+              <div className="flex justify-end mb-3">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleClearAll}
+                  className="text-muted-foreground hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Clear All
+                </Button>
               </div>
             )}
-          </ScrollArea>
-        </div>
-      </SheetContent>
-    </Sheet>
+
+            <ScrollArea className="h-[calc(100vh-200px)]">
+              {/* Persistent DB logs rendered with HistoryLogEntry */}
+              {filteredLogs.length > 0 ? (
+                <div className="space-y-2">
+                  {filteredLogs.map((log) => (
+                    <HistoryLogEntry
+                      key={log.id}
+                      log={log}
+                      onDelete={handleDeleteLog}
+                      onView={setViewingLog}
+                      onResume={handleResume}
+                    />
+                  ))}
+                </div>
+              ) : history.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                    <History className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-sm">No recent activity</p>
+                  <p className="text-muted-foreground text-xs mt-1">
+                    Your automation sessions will appear here
+                  </p>
+                </div>
+              ) : (
+                // Fallback to local storage entries
+                <div className="space-y-2">
+                  {history.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className={cn(
+                        "group relative p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors",
+                        onSelectEntry && "cursor-pointer"
+                      )}
+                      onClick={() => onSelectEntry?.(entry)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={cn(
+                          "h-8 w-8 rounded-md flex items-center justify-center flex-shrink-0",
+                          getToolColor(entry.toolType)
+                        )}>
+                          {getToolIcon(entry.toolType)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-medium text-sm truncate block">{entry.title}</span>
+                          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{entry.summary}</p>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            <span>{automationHistoryService.formatTimestamp(entry.timestamp)}</span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => handleDelete(entry.id, e)}
+                        >
+                          <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* View Dialog */}
+      <HistoryViewDialog
+        log={viewingLog}
+        open={!!viewingLog}
+        onOpenChange={(open) => { if (!open) setViewingLog(null); }}
+      />
+    </>
   );
 };
 
