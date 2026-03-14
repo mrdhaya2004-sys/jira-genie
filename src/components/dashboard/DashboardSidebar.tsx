@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
 import testzoneLogo from '@/assets/testzone-logo.png';
 import { useMentions } from '@/hooks/useMentions';
+import HelpChatDialog from '@/components/help/HelpChatDialog';
 
 interface DashboardSidebarProps {
   className?: string;
@@ -35,6 +36,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 }) => {
   const { profile, signOut } = useAuth();
   const { unreadCount } = useMentions();
+  const [helpChatOpen, setHelpChatOpen] = useState(false);
 
   const getInitials = (name: string) => {
     return name.
@@ -66,6 +68,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
 
   return (
+    <>
     <aside className={cn(
       "flex flex-col h-full bg-sidebar text-sidebar-foreground",
       className
@@ -143,7 +146,10 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           <Brain className="h-4 w-4" />
           AI Configuration
         </button>
-        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors">
+        <button
+          onClick={() => setHelpChatOpen(true)}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors"
+        >
           <HelpCircle className="h-4 w-4" />
           Help & Support
         </button>
@@ -178,8 +184,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           </Button>
         </div>
       </div>
-    </aside>);
-
+    </aside>
+    <HelpChatDialog open={helpChatOpen} onOpenChange={setHelpChatOpen} />
+    </>);
 };
 
 export default DashboardSidebar;
