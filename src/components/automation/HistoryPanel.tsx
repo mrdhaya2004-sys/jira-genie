@@ -36,7 +36,7 @@ interface HistoryPanelProps {
   toolType?: AutomationToolType;
   moduleName?: string;
   onSelectEntry?: (entry: HistoryEntry) => void;
-  onResumePrompt?: (prompt: string) => void;
+  onResumePrompt?: (prompt: string, historyLogId?: string) => void;
   className?: string;
 }
 
