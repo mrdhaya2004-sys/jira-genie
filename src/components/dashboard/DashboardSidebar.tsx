@@ -183,8 +183,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           </Button>
         </div>
       </div>
-    </aside>);
-
+    </aside>
+    <HelpChatDialog open={helpChatOpen} onOpenChange={setHelpChatOpen} />
+    </>);
 };
 
 export default DashboardSidebar;
