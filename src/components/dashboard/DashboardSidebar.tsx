@@ -68,6 +68,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
 
   return (
+    <>
     <aside className={cn(
       "flex flex-col h-full bg-sidebar text-sidebar-foreground",
       className
