@@ -50,8 +50,12 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
     }
   }, [resumeData]);
 
-  const handleResumeFromPanel = (prompt: string) => {
-    setPendingPrompt(prompt);
+  const handleResumeFromPanel = (prompt: string, historyLogId?: string) => {
+    if (historyLogId) {
+      resumeFromHistory(historyLogId, prompt);
+    } else {
+      setPendingPrompt(prompt);
+    }
   };
 
   useEffect(() => {

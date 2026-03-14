@@ -93,7 +93,7 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
 
   const handleResume = (module: string, prompt: string, historyLogId: string) => {
     if (prompt && onResumePrompt) {
-      onResumePrompt(prompt);
+      onResumePrompt(prompt, historyLogId);
       setIsOpen(false);
     }
   };
