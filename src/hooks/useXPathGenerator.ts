@@ -31,21 +31,33 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
   const { addLog } = useHistoryLogs();
   const { saveEpisodePair, loadEpisodes, buildConversationContext, getNextTurnIndex } = useEpisodicMemory();
 
-  // Initial greeting
+  // Initial greeting — re-run when workspaces load so options appear
   useEffect(() => {
-    if (messages.length === 0) {
-      addMessage({
-        role: 'assistant',
-        content: "Hi! 🧬 I can generate XPaths for your application based on DOM analysis.\n\n**Please select a workspace to continue:**",
-        type: 'workspace_select',
-        options: workspaces.map(w => ({
-          id: w.id,
-          label: w.name,
-          value: w.id,
-          description: w.description || undefined,
-        })),
-      });
+    if (workspaces.length === 0 && messages.length === 0) {
+      // Show loading state while workspaces are being fetched
+      return;
     }
+
+    // If we already have workspace_select messages with options, skip
+    const hasWorkspaceOptions = messages.some(
+      m => m.type === 'workspace_select' && m.options && m.options.length > 0
+    );
+    if (hasWorkspaceOptions) return;
+
+    // Remove any stale initial message (empty options) and add fresh one
+    setMessages(prev => prev.filter(m => m.type !== 'workspace_select'));
+
+    addMessage({
+      role: 'assistant',
+      content: "Hi! 🧬 I can generate XPaths for your application based on DOM analysis.\n\n**Please select a workspace to continue:**",
+      type: 'workspace_select',
+      options: workspaces.map(w => ({
+        id: w.id,
+        label: w.name,
+        value: w.id,
+        description: w.description || undefined,
+      })),
+    });
   }, [workspaces]);
 
   const addMessage = useCallback((message: Omit<XPathChatMessage, 'id' | 'timestamp'>) => {
