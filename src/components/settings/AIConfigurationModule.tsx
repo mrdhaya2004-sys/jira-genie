@@ -101,7 +101,7 @@ const AIConfigurationModule: React.FC = () => {
                 All AI requests are orchestrated through the Hive Mind controller. Custom AI providers are routed through specialized agents your API keys never bypass the Hive Mind layer.
               
               </p>
-              <div className="flex flex-wrap gap-2 mt-3">
+              <div className="flex-wrap gap-2 mt-3 border-0 items-start justify-start flex flex-row rounded-sm">
                 {['Test Case Agent', 'Scenario Agent', 'Automation Agent', 'DOM Agent', 'Ticket Agent'].map((agent) =>
                 <Badge key={agent} variant="secondary" className="text-xs">
                     <Zap className="h-3 w-3 mr-1" />
