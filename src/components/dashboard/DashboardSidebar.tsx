@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
 import testzoneLogo from '@/assets/testzone-logo.png';
 import { useMentions } from '@/hooks/useMentions';
+import HelpChatDialog from '@/components/help/HelpChatDialog';
 
 interface DashboardSidebarProps {
   className?: string;
