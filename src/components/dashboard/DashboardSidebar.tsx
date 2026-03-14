@@ -36,6 +36,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 }) => {
   const { profile, signOut } = useAuth();
   const { unreadCount } = useMentions();
+  const [helpChatOpen, setHelpChatOpen] = useState(false);
 
   const getInitials = (name: string) => {
     return name.
