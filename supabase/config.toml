@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.test-ai-connection]
 verify_jwt = false
+
+[functions.help-chat]
+verify_jwt = false
