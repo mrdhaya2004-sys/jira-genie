@@ -60,9 +60,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   const automationItems = [
   { icon: LayoutDashboard, label: 'Agentic AI – Core Workspace', module: 'agentic-ai' as ActiveModule },
   { icon: ClipboardList, label: 'Test Case Generator', module: 'test-case-generator' as ActiveModule },
-  { icon: Ticket, label: 'Jira Ticket Raiser', module: 'jira-ticket-raiser' as ActiveModule },
   { icon: Code2, label: 'Logic Scenario Creator', module: 'logic-scenario-creator' as ActiveModule },
-  { icon: FileCode2, label: 'XPath Generator', module: 'xpath-generator' as ActiveModule }];
+  { icon: FileCode2, label: 'XPath Generator', module: 'xpath-generator' as ActiveModule },
+  { icon: Ticket, label: 'Jira Ticket Raiser', module: 'jira-ticket-raiser' as ActiveModule }];
 
 
   return (
