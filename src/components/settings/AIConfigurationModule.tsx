@@ -18,8 +18,8 @@ import {
   XCircle,
   Trash2,
   Zap,
-  Network,
-} from 'lucide-react';
+  Network } from
+'lucide-react';
 
 const AIConfigurationModule: React.FC = () => {
   const { config, isLoading, isTesting, saveConfig, testConnection, removeConfig } = useAIConfig();
@@ -31,7 +31,7 @@ const AIConfigurationModule: React.FC = () => {
   const [displayName, setDisplayName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const selectedProvider = AI_PROVIDERS.find(p => p.value === provider);
+  const selectedProvider = AI_PROVIDERS.find((p) => p.value === provider);
 
   useEffect(() => {
     if (config) {
@@ -51,7 +51,7 @@ const AIConfigurationModule: React.FC = () => {
       apiKey: apiKey || config?.api_key_encrypted || '',
       model,
       endpointUrl: endpointUrl || undefined,
-      displayName: displayName || undefined,
+      displayName: displayName || undefined
     });
     setIsSaving(false);
     setApiKey('');
@@ -63,7 +63,7 @@ const AIConfigurationModule: React.FC = () => {
       provider,
       apiKey: apiKey || config?.api_key_encrypted || '',
       model,
-      endpointUrl: endpointUrl || undefined,
+      endpointUrl: endpointUrl || undefined
     });
   };
 
@@ -71,8 +71,8 @@ const AIConfigurationModule: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -98,16 +98,16 @@ const AIConfigurationModule: React.FC = () => {
             <div className="space-y-2">
               <h3 className="font-medium text-foreground">Hive Mind Architecture</h3>
               <p className="text-sm text-muted-foreground">
-                All AI requests are orchestrated through the Hive Mind controller. Custom AI providers are routed
-                through specialized agents — your API keys never bypass the Hive Mind layer.
+                All AI requests are orchestrated through the Hive Mind controller. Custom AI providers are routed through specialized agents your API keys never bypass the Hive Mind layer.
+              
               </p>
               <div className="flex flex-wrap gap-2 mt-3">
-                {['Test Case Agent', 'Scenario Agent', 'Automation Agent', 'DOM Agent', 'Ticket Agent'].map(agent => (
-                  <Badge key={agent} variant="secondary" className="text-xs">
+                {['Test Case Agent', 'Scenario Agent', 'Automation Agent', 'DOM Agent', 'Ticket Agent'].map((agent) =>
+                <Badge key={agent} variant="secondary" className="text-xs">
                     <Zap className="h-3 w-3 mr-1" />
                     {agent}
                   </Badge>
-                ))}
+                )}
               </div>
             </div>
           </div>
@@ -115,8 +115,8 @@ const AIConfigurationModule: React.FC = () => {
       </Card>
 
       {/* Current Status */}
-      {config && (
-        <Card>
+      {config &&
+      <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
@@ -133,18 +133,18 @@ const AIConfigurationModule: React.FC = () => {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Provider:</span>
-                <span className="ml-2 font-medium">{AI_PROVIDERS.find(p => p.value === config.provider)?.label}</span>
+                <span className="ml-2 font-medium">{AI_PROVIDERS.find((p) => p.value === config.provider)?.label}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Model:</span>
                 <span className="ml-2 font-medium">{config.model_name}</span>
               </div>
-              {config.display_name && (
-                <div>
+              {config.display_name &&
+            <div>
                   <span className="text-muted-foreground">Name:</span>
                   <span className="ml-2 font-medium">{config.display_name}</span>
                 </div>
-              )}
+            }
               <div>
                 <span className="text-muted-foreground">API Key:</span>
                 <span className="ml-2 font-medium">••••••••</span>
@@ -152,7 +152,7 @@ const AIConfigurationModule: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-      )}
+      }
 
       <Separator />
 
@@ -179,9 +179,9 @@ const AIConfigurationModule: React.FC = () => {
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
               <SelectContent>
-                {AI_PROVIDERS.map(p => (
-                  <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                ))}
+                {AI_PROVIDERS.map((p) =>
+                <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -197,8 +197,8 @@ const AIConfigurationModule: React.FC = () => {
               type="password"
               placeholder={config ? '••••••••  (leave empty to keep current)' : 'Enter your API key'}
               value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-            />
+              onChange={(e) => setApiKey(e.target.value)} />
+            
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Shield className="h-3 w-3" />
               Keys are stored securely and never exposed to the frontend
@@ -208,39 +208,39 @@ const AIConfigurationModule: React.FC = () => {
           {/* Model */}
           <div className="space-y-2">
             <Label htmlFor="model">Model Name</Label>
-            {selectedProvider && selectedProvider.defaultModels.length > 0 ? (
-              <Select value={model} onValueChange={setModel}>
+            {selectedProvider && selectedProvider.defaultModels.length > 0 ?
+            <Select value={model} onValueChange={setModel}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select model" />
                 </SelectTrigger>
                 <SelectContent>
-                  {selectedProvider.defaultModels.map(m => (
-                    <SelectItem key={m} value={m}>{m}</SelectItem>
-                  ))}
+                  {selectedProvider.defaultModels.map((m) =>
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+                )}
                 </SelectContent>
-              </Select>
-            ) : (
-              <Input
-                id="model"
-                placeholder="e.g., llama-3.1-70b"
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-              />
-            )}
+              </Select> :
+
+            <Input
+              id="model"
+              placeholder="e.g., llama-3.1-70b"
+              value={model}
+              onChange={(e) => setModel(e.target.value)} />
+
+            }
           </div>
 
           {/* Endpoint URL */}
-          {selectedProvider?.requiresEndpoint && (
-            <div className="space-y-2">
+          {selectedProvider?.requiresEndpoint &&
+          <div className="space-y-2">
               <Label htmlFor="endpointUrl">Endpoint URL</Label>
               <Input
-                id="endpointUrl"
-                placeholder="https://your-endpoint.com/v1/chat/completions"
-                value={endpointUrl}
-                onChange={(e) => setEndpointUrl(e.target.value)}
-              />
+              id="endpointUrl"
+              placeholder="https://your-endpoint.com/v1/chat/completions"
+              value={endpointUrl}
+              onChange={(e) => setEndpointUrl(e.target.value)} />
+            
             </div>
-          )}
+          }
 
           {/* Display Name */}
           <div className="space-y-2">
@@ -249,8 +249,8 @@ const AIConfigurationModule: React.FC = () => {
               id="displayName"
               placeholder="e.g., Production GPT-4"
               value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-            />
+              onChange={(e) => setDisplayName(e.target.value)} />
+            
           </div>
 
           {/* Actions */}
@@ -258,32 +258,32 @@ const AIConfigurationModule: React.FC = () => {
             <Button
               variant="outline"
               onClick={handleTest}
-              disabled={isTesting || (!apiKey && !config)}
-            >
-              {isTesting ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Plug className="h-4 w-4 mr-2" />
-              )}
+              disabled={isTesting || !apiKey && !config}>
+              
+              {isTesting ?
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" /> :
+
+              <Plug className="h-4 w-4 mr-2" />
+              }
               Test Connection
             </Button>
             <Button
               onClick={handleSave}
-              disabled={isSaving || (!apiKey && !config) || !model}
-            >
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-              )}
+              disabled={isSaving || !apiKey && !config || !model}>
+              
+              {isSaving ?
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" /> :
+
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              }
               Save Configuration
             </Button>
           </div>
         </CardContent>
       </Card>
 
-    </div>
-  );
+    </div>);
+
 };
 
 export default AIConfigurationModule;
