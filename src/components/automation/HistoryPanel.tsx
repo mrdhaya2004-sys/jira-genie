@@ -36,7 +36,7 @@ interface HistoryPanelProps {
   toolType?: AutomationToolType;
   moduleName?: string;
   onSelectEntry?: (entry: HistoryEntry) => void;
-  onResumePrompt?: (prompt: string) => void;
+  onResumePrompt?: (prompt: string, historyLogId?: string) => void;
   className?: string;
 }
 
@@ -93,7 +93,7 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
 
   const handleResume = (module: string, prompt: string, historyLogId: string) => {
     if (prompt && onResumePrompt) {
-      onResumePrompt(prompt);
+      onResumePrompt(prompt, historyLogId);
       setIsOpen(false);
     }
   };
