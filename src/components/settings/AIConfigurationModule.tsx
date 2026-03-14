@@ -102,7 +102,7 @@ const AIConfigurationModule: React.FC = () => {
                 through specialized agents — your API keys never bypass the Hive Mind layer.
               </p>
               <div className="flex flex-wrap gap-2 mt-3">
-                {['TestCaseAgent', 'ScenarioAgent', 'AutomationAgent', 'DOMAgent', 'TicketAgent'].map(agent => (
+                {['Test Case Agent', 'Scenario Agent', 'Automation Agent', 'DOM Agent', 'Ticket Agent'].map(agent => (
                   <Badge key={agent} variant="secondary" className="text-xs">
                     <Zap className="h-3 w-3 mr-1" />
                     {agent}
