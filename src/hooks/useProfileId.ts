@@ -60,7 +60,7 @@ export function useProfileId() {
   }, [user]);
 
   return {
-    profileId: (profile as Record<string, unknown>)?.profile_id as string | null,
+    profileId: (profile as unknown as Record<string, unknown>)?.profile_id as string | null,
     checkAvailability,
     saveProfileId,
     isChecking,

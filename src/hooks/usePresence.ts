@@ -19,12 +19,12 @@ export function usePresence() {
     try {
       const { error } = await supabase
         .from('user_presence')
-        .upsert({
+        .upsert([{
           user_id: user.id,
           status,
           last_seen_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        } as Record<string, unknown>, { onConflict: 'user_id' });
+        }] as any, { onConflict: 'user_id' });
 
       if (error) console.error('Error updating presence:', error);
     } catch (err) {

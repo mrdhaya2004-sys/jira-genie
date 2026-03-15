@@ -57,7 +57,7 @@ export function useReactions(conversationId: string | null) {
     } else {
       const { data, error } = await supabase
         .from('message_reactions')
-        .insert({ message_id: messageId, user_id: user.id, emoji } as Record<string, unknown>)
+        .insert([{ message_id: messageId, user_id: user.id, emoji }] as any)
         .select()
         .single();
 
