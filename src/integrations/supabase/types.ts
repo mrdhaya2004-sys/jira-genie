@@ -140,6 +140,7 @@ export type Database = {
           id: string
           is_teams_synced: boolean
           name: string | null
+          organization_id: string | null
           teams_chat_id: string | null
           type: Database["public"]["Enums"]["conversation_type"]
           updated_at: string
@@ -151,6 +152,7 @@ export type Database = {
           id?: string
           is_teams_synced?: boolean
           name?: string | null
+          organization_id?: string | null
           teams_chat_id?: string | null
           type?: Database["public"]["Enums"]["conversation_type"]
           updated_at?: string
@@ -162,11 +164,20 @@ export type Database = {
           id?: string
           is_teams_synced?: boolean
           name?: string | null
+          organization_id?: string | null
           teams_chat_id?: string | null
           type?: Database["public"]["Enums"]["conversation_type"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "conversations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       episodes: {
         Row: {
@@ -322,6 +333,94 @@ export type Database = {
           },
         ]
       }
+      message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_members: {
+        Row: {
+          id: string
+          joined_at: string
+          organization_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          organization_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          organization_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          domain: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -332,6 +431,7 @@ export type Database = {
           full_name: string
           id: string
           mobile_number: string | null
+          profile_id: string | null
           updated_at: string
           user_id: string
         }
@@ -344,6 +444,7 @@ export type Database = {
           full_name: string
           id?: string
           mobile_number?: string | null
+          profile_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -356,6 +457,7 @@ export type Database = {
           full_name?: string
           id?: string
           mobile_number?: string | null
+          profile_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -407,6 +509,27 @@ export type Database = {
           sync_enabled?: boolean
           tenant_id?: string | null
           token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_presence: {
+        Row: {
+          last_seen_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          last_seen_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          last_seen_at?: string
+          status?: string
           updated_at?: string
           user_id?: string
         }
@@ -526,7 +649,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_org_member: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       conversation_type: "direct" | "group"
