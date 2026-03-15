@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Users, User, MoreVertical, Trash2, Settings } from 'lucide-react';
+import { Search, Plus, Users, User, MoreVertical, Trash2, AtSign } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import TeamsBadge from '@/components/teams/TeamsBadge';
 import TeamsIcon from '@/components/teams/TeamsIcon';
+import OnlineStatusIndicator from './OnlineStatusIndicator';
 
 interface ChatSidebarProps {
   conversations: Conversation[];
@@ -25,7 +26,9 @@ interface ChatSidebarProps {
   onNewGroup: () => void;
   onDeleteConversation: (conversationId: string) => void;
   onOpenTeamsSettings: () => void;
+  onOpenUserSearch: () => void;
   isLoading: boolean;
+  getPresenceStatus?: (userId: string) => 'online' | 'offline';
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -36,7 +39,9 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onNewGroup,
   onDeleteConversation,
   onOpenTeamsSettings,
-  isLoading
+  onOpenUserSearch,
+  isLoading,
+  getPresenceStatus,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -46,20 +51,11 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   });
 
   const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   const formatTime = (dateString: string) => {
-    try {
-      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
-    } catch {
-      return '';
-    }
+    try { return formatDistanceToNow(new Date(dateString), { addSuffix: true }); } catch { return ''; }
   };
 
   return (
@@ -69,6 +65,9 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Chats</h2>
           <div className="flex gap-1">
+            <Button variant="ghost" size="icon-sm" onClick={onOpenUserSearch} title="Search Users">
+              <AtSign className="h-4 w-4" />
+            </Button>
             <Button variant="ghost" size="icon-sm" onClick={onOpenTeamsSettings} title="Teams Integration">
               <TeamsIcon className="h-4 w-4" />
             </Button>
@@ -109,7 +108,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           <div className="p-8 text-center text-muted-foreground">
             <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <p className="text-sm">No conversations yet</p>
-            <p className="text-xs mt-1">Start a new chat or create a group</p>
+            <p className="text-xs mt-1">Search users with @ or start a new chat</p>
           </div>
         ) : (
           <div className="p-2">
@@ -118,39 +117,29 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 key={conv.id}
                 className={cn(
                   "flex items-center gap-3 p-3 rounded-lg cursor-pointer group transition-colors",
-                  selectedConversation?.id === conv.id
-                    ? "bg-accent"
-                    : "hover:bg-muted/50"
+                  selectedConversation?.id === conv.id ? "bg-accent" : "hover:bg-muted/50"
                 )}
                 onClick={() => onSelectConversation(conv)}
               >
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={conv.avatar_url || undefined} />
-                  <AvatarFallback className={conv.type === 'group' ? 'bg-primary/10 text-primary' : 'bg-accent'}>
-                    {conv.type === 'group' ? (
-                      <Users className="h-4 w-4" />
-                    ) : (
-                      getInitials(conv.name || 'DC')
-                    )}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={conv.avatar_url || undefined} />
+                    <AvatarFallback className={conv.type === 'group' ? 'bg-primary/10 text-primary' : 'bg-accent'}>
+                      {conv.type === 'group' ? <Users className="h-4 w-4" /> : getInitials(conv.name || 'DC')}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-sm truncate">
-                      {conv.name || 'Direct Chat'}
-                    </span>
+                    <span className="font-medium text-sm truncate">{conv.name || 'Direct Chat'}</span>
                     {conv.last_message && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatTime(conv.last_message.created_at)}
-                      </span>
+                      <span className="text-xs text-muted-foreground">{formatTime(conv.last_message.created_at)}</span>
                     )}
                   </div>
                   {conv.last_message && (
                     <p className="text-xs text-muted-foreground truncate mt-0.5">
-                      {conv.last_message.is_deleted 
-                        ? 'Message deleted' 
-                        : conv.last_message.content}
+                      {conv.last_message.is_deleted ? 'Message deleted' : conv.last_message.content}
                     </p>
                   )}
                 </div>
@@ -169,13 +158,9 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       className="text-destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteConversation(conv.id);
-                      }}
+                      onClick={(e) => { e.stopPropagation(); onDeleteConversation(conv.id); }}
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Chat
+                      <Trash2 className="h-4 w-4 mr-2" />Delete Chat
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -183,9 +168,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 {conv.is_teams_synced ? (
                   <TeamsBadge />
                 ) : conv.type === 'group' ? (
-                  <Badge variant="secondary" className="text-xs">
-                    Group
-                  </Badge>
+                  <Badge variant="secondary" className="text-xs">Group</Badge>
                 ) : null}
               </div>
             ))}
