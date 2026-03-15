@@ -42,6 +42,7 @@ const CurrentChatModule: React.FC = () => {
   const { testConversations, deleteTestConversation, deleteTestMessage, getTestMessages, isTestConversation } = useTestChats();
   const { getStatus, fetchPresence } = usePresence();
   const { profileId } = useProfileId();
+  const { isHiveMindMention, extractHiveMindQuery, sendToHiveMind } = useHiveMindChat();
 
   const [testSelectedConv, setTestSelectedConv] = useState<string | null>(null);
 
