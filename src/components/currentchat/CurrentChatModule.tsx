@@ -105,6 +105,14 @@ const CurrentChatModule: React.FC = () => {
     if (!activeConversation) return;
     if (isTestConversation(activeConversation.id)) return;
     await sendMessage({ conversation_id: activeConversation.id, content });
+
+    // Check for @HiveMind mention
+    if (isHiveMindMention(content)) {
+      const query = extractHiveMindQuery(content);
+      if (query) {
+        sendToHiveMind(query, activeConversation.id);
+      }
+    }
   };
 
   const handleStartChatFromSearch = async (userId: string, userName: string) => {
