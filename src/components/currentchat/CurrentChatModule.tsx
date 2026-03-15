@@ -16,6 +16,7 @@ import { usePresence } from '@/hooks/usePresence';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import { useReactions } from '@/hooks/useReactions';
 import { useProfileId } from '@/hooks/useProfileId';
+import { useHiveMindChat } from '@/hooks/useHiveMindChat';
 import { useAuth } from '@/contexts/AuthContext';
 import { CreateConversationData } from '@/types/chat';
 import {
