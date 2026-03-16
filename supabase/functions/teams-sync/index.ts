@@ -13,6 +13,7 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
     // Validate auth
     const authHeader = req.headers.get('Authorization');
@@ -39,8 +40,11 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
-    // Get user's Teams connection
-    const { data: connection, error: connError } = await supabase
+    // Use service role client to access token columns (revoked from anon/authenticated)
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
+
+    // Get user's Teams connection (including tokens via service role)
+    const { data: connection, error: connError } = await supabaseAdmin
       .from('teams_connections')
       .select('*')
       .eq('user_id', user.id)
