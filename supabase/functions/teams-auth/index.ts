@@ -13,6 +13,7 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
     // Validate auth
     const authHeader = req.headers.get('Authorization');
@@ -35,6 +36,9 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Service role client for token storage (columns revoked from anon/authenticated)
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
 
     const body = await req.json();
     const { action } = body;
@@ -124,7 +128,7 @@ Deno.serve(async (req) => {
       // Upsert teams connection
       const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000).toISOString();
 
-      const { error: upsertError } = await supabase
+      const { error: upsertError } = await supabaseAdmin
         .from('teams_connections')
         .upsert({
           user_id: userId,
