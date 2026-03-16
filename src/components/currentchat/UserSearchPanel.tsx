@@ -77,7 +77,7 @@ const UserSearchPanel: React.FC<UserSearchPanelProps> = ({
           <div className="p-8 text-center text-muted-foreground">
             <AtSign className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <p className="text-sm">No users found</p>
-            <p className="text-xs mt-1">Try searching by @profile_id or name</p>
+            <p className="text-xs mt-1">Try searching by @username or name</p>
           </div>
         ) : query.length < 2 ? (
           <div className="p-8 text-center text-muted-foreground">
