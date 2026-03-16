@@ -238,7 +238,7 @@ Deno.serve(async (req) => {
       }
 
       // Update last synced
-      await supabase
+      await supabaseAdmin
         .from('teams_connections')
         .update({ last_synced_at: new Date().toISOString() })
         .eq('user_id', user.id);
