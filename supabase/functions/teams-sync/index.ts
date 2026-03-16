@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
       accessToken = refreshData.access_token;
       const newExpiresAt = new Date(Date.now() + refreshData.expires_in * 1000).toISOString();
       
-      await supabase
+      await supabaseAdmin
         .from('teams_connections')
         .update({
           access_token: refreshData.access_token,
