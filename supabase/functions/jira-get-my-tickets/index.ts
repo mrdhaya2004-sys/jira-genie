@@ -15,6 +15,31 @@ function sanitizeDomain(domain: string): string {
     .trim();
 }
 
+// Escape JQL special characters to prevent injection attacks
+function escapeJQLString(str: string): string {
+  return str
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/'/g, "\\'")
+    .replace(/\[/g, '\\[')
+    .replace(/\]/g, '\\]')
+    .replace(/\(/g, '\\(')
+    .replace(/\)/g, '\\)')
+    .replace(/\{/g, '\\{')
+    .replace(/\}/g, '\\}')
+    .replace(/~/g, '\\~')
+    .replace(/\*/g, '\\*')
+    .replace(/\?/g, '\\?')
+    .replace(/\^/g, '\\^')
+    .replace(/!/g, '\\!');
+}
+
+// Validate and sanitize filter input
+function sanitizeFilterInput(input: string, maxLength: number = 100): string {
+  if (!input || typeof input !== 'string') return '';
+  return input.trim().slice(0, maxLength).replace(/\0/g, '');
+}
+
 interface TicketFilters {
   issueType?: string;
   status?: string;
@@ -94,17 +119,23 @@ serve(async (req) => {
     
     // Add issue type filter
     if (filters.issueType && filters.issueType !== 'all') {
-      jqlParts.push(`issuetype = "${filters.issueType}"`);
+      const sanitizedType = sanitizeFilterInput(filters.issueType);
+      if (sanitizedType) {
+        jqlParts.push(`issuetype = "${escapeJQLString(sanitizedType)}"`);
+      }
     }
     
     // Add status filter
     if (filters.status && filters.status !== 'all') {
-      jqlParts.push(`status = "${filters.status}"`);
+      const sanitizedStatus = sanitizeFilterInput(filters.status);
+      if (sanitizedStatus) {
+        jqlParts.push(`status = "${escapeJQLString(sanitizedStatus)}"`);
+      }
     }
     
     // Add search query filter
     if (filters.searchQuery) {
-      const escapedQuery = filters.searchQuery.replace(/"/g, '\\"');
+      const escapedQuery = escapeJQLString(sanitizeFilterInput(filters.searchQuery, 255));
       jqlParts.push(`(summary ~ "${escapedQuery}" OR key = "${escapedQuery}")`);
     }
 

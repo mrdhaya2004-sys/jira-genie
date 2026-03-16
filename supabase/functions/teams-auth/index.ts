@@ -12,8 +12,7 @@ Deno.serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 
     // Validate auth
     const authHeader = req.headers.get('Authorization');
@@ -24,8 +23,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -73,7 +75,8 @@ Deno.serve(async (req) => {
 
     if (action === 'callback') {
       // Handle OAuth callback - exchange code for tokens
-      const { code, state: userId } = body;
+      const { code } = body;
+      const userId = user.id; // Use verified user identity, not body param
 
       if (!code || !userId || !clientId || !clientSecret || !tenantId) {
         return new Response(JSON.stringify({ error: 'Missing parameters' }), {
