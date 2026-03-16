@@ -75,7 +75,8 @@ Deno.serve(async (req) => {
 
     if (action === 'callback') {
       // Handle OAuth callback - exchange code for tokens
-      const { code, state: userId } = body;
+      const { code } = body;
+      const userId = user.id; // Use verified user identity, not body param
 
       if (!code || !userId || !clientId || !clientSecret || !tenantId) {
         return new Response(JSON.stringify({ error: 'Missing parameters' }), {
