@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
       // Upsert teams connection
       const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000).toISOString();
 
-      const { error: upsertError } = await supabase
+      const { error: upsertError } = await supabaseAdmin
         .from('teams_connections')
         .upsert({
           user_id: userId,

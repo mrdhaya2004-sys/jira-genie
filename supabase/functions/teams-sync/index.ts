@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
       if (!refreshResponse.ok) {
         console.error('Token refresh failed:', refreshData);
         // Mark connection as disconnected
-        await supabase
+        await supabaseAdmin
           .from('teams_connections')
           .update({ is_connected: false })
           .eq('user_id', user.id);
