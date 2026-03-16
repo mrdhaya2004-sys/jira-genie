@@ -34,27 +34,51 @@ export function useProfileId() {
     
     setIsSaving(true);
     try {
-      const { error } = await supabase
+      // First check if a profile row exists
+      const { data: existing } = await supabase
         .from('profiles')
-        .update({ profile_id: profileId })
+        .select('id')
         .eq('user_id', user.id)
-        .select();
+        .maybeSingle();
+
+      let error;
+      if (existing) {
+        // Update existing profile
+        const result = await supabase
+          .from('profiles')
+          .update({ profile_id: profileId })
+          .eq('user_id', user.id);
+        error = result.error;
+      } else {
+        // Create profile row if it doesn't exist (e.g. OAuth users)
+        const result = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            profile_id: profileId,
+            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            email: user.email || '',
+            employee_id: user.user_metadata?.employee_id || 'N/A',
+          });
+        error = result.error;
+      }
 
       if (error) {
         if (error.message.includes('duplicate') || error.message.includes('unique')) {
-          toast.error('This profile ID already exists. Please choose another.');
+          toast.error('This username is already taken. Please choose another.');
         } else {
-          toast.error('Failed to save profile ID');
+          console.error('Save error:', error);
+          toast.error('Failed to save username');
         }
         return false;
       }
 
       toast.success('Username saved successfully.');
-      if (refreshProfile) await refreshProfile();
+      await refreshProfile();
       return true;
     } catch (error) {
       console.error('Error saving profile ID:', error);
-      toast.error('Failed to save profile ID');
+      toast.error('Failed to save username');
       return false;
     } finally {
       setIsSaving(false);
