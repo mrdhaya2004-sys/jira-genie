@@ -292,6 +292,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resetPassword,
         updatePassword,
         signInWithGoogle,
+        refreshProfile,
       }}
     >
       {children}
