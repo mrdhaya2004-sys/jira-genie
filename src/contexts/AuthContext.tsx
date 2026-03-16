@@ -12,6 +12,7 @@ export interface UserProfile {
   mobile_number?: string;
   date_of_birth?: string;
   avatar_url?: string;
+  profile_id?: string | null;
   created_at: string;
   updated_at: string;
 }

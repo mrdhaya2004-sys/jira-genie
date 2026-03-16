@@ -36,8 +36,9 @@ export function useProfileId() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ profile_id: profileId } as Record<string, unknown>)
-        .eq('user_id', user.id);
+        .update({ profile_id: profileId })
+        .eq('user_id', user.id)
+        .select();
 
       if (error) {
         if (error.message.includes('duplicate') || error.message.includes('unique')) {
