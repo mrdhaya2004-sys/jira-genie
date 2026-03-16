@@ -15,6 +15,31 @@ function sanitizeDomain(domain: string): string {
     .trim();
 }
 
+// Escape JQL special characters to prevent injection attacks
+function escapeJQLString(str: string): string {
+  return str
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/'/g, "\\'")
+    .replace(/\[/g, '\\[')
+    .replace(/\]/g, '\\]')
+    .replace(/\(/g, '\\(')
+    .replace(/\)/g, '\\)')
+    .replace(/\{/g, '\\{')
+    .replace(/\}/g, '\\}')
+    .replace(/~/g, '\\~')
+    .replace(/\*/g, '\\*')
+    .replace(/\?/g, '\\?')
+    .replace(/\^/g, '\\^')
+    .replace(/!/g, '\\!');
+}
+
+// Validate and sanitize filter input
+function sanitizeFilterInput(input: string, maxLength: number = 100): string {
+  if (!input || typeof input !== 'string') return '';
+  return input.trim().slice(0, maxLength).replace(/\0/g, '');
+}
+
 interface TicketFilters {
   issueType?: string;
   status?: string;
