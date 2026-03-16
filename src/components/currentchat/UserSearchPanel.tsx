@@ -58,7 +58,7 @@ const UserSearchPanel: React.FC<UserSearchPanelProps> = ({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by @profile_id or name..."
+            placeholder="Search by @username or name..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-9"
