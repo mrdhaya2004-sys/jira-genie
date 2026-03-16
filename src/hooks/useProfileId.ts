@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export function useProfileId() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [isChecking, setIsChecking] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -48,7 +48,8 @@ export function useProfileId() {
         return false;
       }
 
-      toast.success('Profile created successfully.');
+      toast.success('Username saved successfully.');
+      if (refreshProfile) await refreshProfile();
       return true;
     } catch (error) {
       console.error('Error saving profile ID:', error);
@@ -57,7 +58,7 @@ export function useProfileId() {
     } finally {
       setIsSaving(false);
     }
-  }, [user]);
+  }, [user, refreshProfile]);
 
   return {
     profileId: (profile as unknown as Record<string, unknown>)?.profile_id as string | null,

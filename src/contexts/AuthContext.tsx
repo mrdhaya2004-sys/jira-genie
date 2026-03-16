@@ -28,6 +28,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
+  refreshProfile: () => Promise<void>;
 }
 
 export interface SignUpData {
@@ -271,6 +272,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error: error as Error | null };
   }, []);
 
+  const refreshProfile = useCallback(async () => {
+    if (user) {
+      await fetchProfile(user.id);
+    }
+  }, [user, fetchProfile]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -285,6 +292,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resetPassword,
         updatePassword,
         signInWithGoogle,
+        refreshProfile,
       }}
     >
       {children}
