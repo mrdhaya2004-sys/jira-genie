@@ -11,8 +11,9 @@ import MyTicketsModule from '@/components/tickets/MyTicketsModule';
 import HistoryModule from '@/components/automation/HistoryModule';
 import CurrentChatModule from '@/components/currentchat/CurrentChatModule';
 import AIConfigurationModule from '@/components/settings/AIConfigurationModule';
+import ProfileModule from '@/components/profile/ProfileModule';
 
-export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'ai-settings';
+export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'ai-settings' | 'profile';
 
 const MODULE_MAP: Record<string, ActiveModule> = {
   'test-case-generator': 'test-case-generator',
