@@ -48,7 +48,8 @@ export function useProfileId() {
         return false;
       }
 
-      toast.success('Profile created successfully.');
+      toast.success('Username saved successfully.');
+      if (refreshProfile) await refreshProfile();
       return true;
     } catch (error) {
       console.error('Error saving profile ID:', error);

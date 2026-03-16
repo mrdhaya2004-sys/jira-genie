@@ -111,7 +111,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onClick={() => onModuleChange('profile')}>
               <User className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>

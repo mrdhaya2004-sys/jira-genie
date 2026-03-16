@@ -68,6 +68,7 @@ const DashboardPage: React.FC = () => {
           {activeModule === 'test-case-generator' && <TestCaseGeneratorModule resumeData={resumeData} />}
           {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
           {activeModule === 'ai-settings' && <AIConfigurationModule />}
+          {activeModule === 'profile' && <ProfileModule />}
         </main>
       </div>
     </div>
