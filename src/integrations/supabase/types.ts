@@ -649,6 +649,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_conversation_member: {
+        Args: { _conversation_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_org_member: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
