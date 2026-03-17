@@ -153,7 +153,14 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           <HelpCircle className="h-4 w-4" />
           Help & Support
         </button>
-        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors">
+        <button
+          onClick={() => onModuleChange('profile')}
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+            activeModule === 'profile' ?
+            "bg-sidebar-accent text-sidebar-accent-foreground" :
+            "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+          )}>
           <Settings className="h-4 w-4" />
           Settings
         </button>
@@ -164,16 +171,18 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       {/* User Profile */}
       <div className="p-3">
         <div className="flex items-center gap-3 p-2 rounded-lg bg-sidebar-accent/50">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={profile?.avatar_url || undefined} />
-            <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-sm">
-              {profile?.full_name ? getInitials(profile.full_name) : 'U'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{profile?.full_name}</p>
-            <p className="text-xs text-sidebar-foreground/60 truncate">{profile?.employee_id}</p>
-          </div>
+          <button onClick={() => onModuleChange('profile')} className="flex items-center gap-3 flex-1 min-w-0">
+            <Avatar className="h-9 w-9">
+              <AvatarImage src={profile?.avatar_url || undefined} />
+              <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-sm">
+                {profile?.full_name ? getInitials(profile.full_name) : 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-sm font-medium truncate">{profile?.full_name}</p>
+              <p className="text-xs text-sidebar-foreground/60 truncate">{profile?.employee_id}</p>
+            </div>
+          </button>
           <Button
             variant="ghost"
             size="icon"
