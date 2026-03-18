@@ -158,21 +158,27 @@ export function useChat() {
 
       if (convError) throw convError;
 
-      // Add participants (including creator as admin)
-      const participantsToInsert = [
-        { conversation_id: newConv.id, user_id: user.id, is_admin: true },
-        ...data.participant_ids.map(userId => ({
+      // Add creator as admin first (must be committed before adding others for RLS)
+      const { error: adminError } = await supabase
+        .from('conversation_participants')
+        .insert({ conversation_id: newConv.id, user_id: user.id, is_admin: true });
+
+      if (adminError) throw adminError;
+
+      // Then add other participants
+      if (data.participant_ids.length > 0) {
+        const otherParticipants = data.participant_ids.map(userId => ({
           conversation_id: newConv.id,
           user_id: userId,
           is_admin: false
-        }))
-      ];
+        }));
 
-      const { error: partError } = await supabase
-        .from('conversation_participants')
-        .insert(participantsToInsert);
+        const { error: partError } = await supabase
+          .from('conversation_participants')
+          .insert(otherParticipants);
 
-      if (partError) throw partError;
+        if (partError) throw partError;
+      }
 
       toast.success(data.type === 'group' ? 'Group created successfully' : 'Chat created');
       await fetchConversations();
