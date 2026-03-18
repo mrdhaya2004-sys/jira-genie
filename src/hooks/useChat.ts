@@ -145,51 +145,30 @@ export function useChat() {
     if (!user) return null;
 
     try {
-      // Create the conversation (without .select() since SELECT RLS requires membership)
-      const { data: insertedRows, error: convError } = await supabase
+      // Create the conversation
+      const { data: newConv, error: convError } = await supabase
         .from('conversations')
         .insert({
           name: data.name || null,
           type: data.type,
           created_by: user.id
         })
-        .select('id');
+        .select()
+        .single();
 
-      // If select fails due to RLS, try without select
-      let convId: string;
-      if (convError) {
-        // Fallback: insert without returning data, then find by querying after adding participant
-        const { error: insertOnlyError } = await supabase
-          .from('conversations')
-          .insert({
-            name: data.name || null,
-            type: data.type,
-            created_by: user.id
-          });
-
-        if (insertOnlyError) throw insertOnlyError;
-
-        // We need the ID, so add self as participant via a different approach
-        // First, find the conversation we just created (most recent by this user)
-        // This is a workaround - let's use RPC or a different strategy
-        // Actually, let's fix this properly with an RLS policy change
-        throw new Error('Could not retrieve conversation ID');
-      }
-
-      convId = insertedRows?.[0]?.id;
-      if (!convId) throw new Error('No conversation ID returned');
+      if (convError) throw convError;
 
       // Add creator as admin first (must be committed before adding others for RLS)
       const { error: adminError } = await supabase
         .from('conversation_participants')
-        .insert({ conversation_id: convId, user_id: user.id, is_admin: true });
+        .insert({ conversation_id: newConv.id, user_id: user.id, is_admin: true });
 
       if (adminError) throw adminError;
 
       // Then add other participants
       if (data.participant_ids.length > 0) {
         const otherParticipants = data.participant_ids.map(userId => ({
-          conversation_id: convId,
+          conversation_id: newConv.id,
           user_id: userId,
           is_admin: false
         }));
@@ -203,15 +182,7 @@ export function useChat() {
 
       toast.success(data.type === 'group' ? 'Group created successfully' : 'Chat created');
       await fetchConversations();
-
-      // Fetch the full conversation now that we're a member
-      const { data: fullConv } = await supabase
-        .from('conversations')
-        .select('*')
-        .eq('id', convId)
-        .single();
-
-      return (fullConv as Conversation) || null;
+      return newConv as Conversation;
     } catch (error) {
       console.error('Error creating conversation:', error);
       toast.error('Failed to create conversation');
