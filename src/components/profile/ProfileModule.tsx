@@ -30,7 +30,7 @@ const RESERVED_USERNAMES = [
 ];
 
 const ProfileModule: React.FC = () => {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const { profileId, checkAvailability, saveProfileId, isChecking, isSaving } = useProfileId();
 
   const [isEditing, setIsEditing] = useState(false);

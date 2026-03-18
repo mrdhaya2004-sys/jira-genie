@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import AuthLayout from './AuthLayout';
 import PasswordInput from './PasswordInput';
 import SocialLoginButtons from './SocialLoginButtons';
-import AvatarUpload from './AvatarUpload';
+import SignupAvatarUpload from './SignupAvatarUpload';
 
 const SignupForm: React.FC = () => {
   const navigate = useNavigate();
