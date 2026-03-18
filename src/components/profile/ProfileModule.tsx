@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfileId } from '@/hooks/useProfileId';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import AvatarUpload from '@/components/auth/AvatarUpload';
 import {
   AtSign,
   CheckCircle,
@@ -30,7 +30,7 @@ const RESERVED_USERNAMES = [
 ];
 
 const ProfileModule: React.FC = () => {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const { profileId, checkAvailability, saveProfileId, isChecking, isSaving } = useProfileId();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -123,17 +123,20 @@ const ProfileModule: React.FC = () => {
         {/* Profile Header Card */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-5">
-              <Avatar className="h-20 w-20 border-2 border-primary/20">
-                <AvatarImage src={profile?.avatar_url || undefined} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xl font-semibold">
-                  {profile?.full_name ? getInitials(profile.full_name) : 'U'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="space-y-1">
+            <div className="flex flex-col sm:flex-row items-center gap-5">
+              <AvatarUpload
+                currentAvatarUrl={profile?.avatar_url}
+                userId={profile?.user_id || ''}
+                userName={profile?.full_name}
+                onAvatarUpdated={(url) => {
+                  refreshProfile();
+                }}
+                size="md"
+              />
+              <div className="space-y-1 text-center sm:text-left">
                 <h2 className="text-xl font-bold text-foreground">{profile?.full_name}</h2>
                 {hasUsername && !isEditing && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 justify-center sm:justify-start">
                     <Badge variant="secondary" className="text-sm font-medium gap-1">
                       <AtSign className="h-3.5 w-3.5" />
                       {profileId?.replace('@', '')}
