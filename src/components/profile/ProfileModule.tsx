@@ -123,17 +123,20 @@ const ProfileModule: React.FC = () => {
         {/* Profile Header Card */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-5">
-              <Avatar className="h-20 w-20 border-2 border-primary/20">
-                <AvatarImage src={profile?.avatar_url || undefined} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xl font-semibold">
-                  {profile?.full_name ? getInitials(profile.full_name) : 'U'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="space-y-1">
+            <div className="flex flex-col sm:flex-row items-center gap-5">
+              <AvatarUpload
+                currentAvatarUrl={profile?.avatar_url}
+                userId={profile?.user_id || ''}
+                userName={profile?.full_name}
+                onAvatarUpdated={(url) => {
+                  refreshProfile();
+                }}
+                size="md"
+              />
+              <div className="space-y-1 text-center sm:text-left">
                 <h2 className="text-xl font-bold text-foreground">{profile?.full_name}</h2>
                 {hasUsername && !isEditing && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 justify-center sm:justify-start">
                     <Badge variant="secondary" className="text-sm font-medium gap-1">
                       <AtSign className="h-3.5 w-3.5" />
                       {profileId?.replace('@', '')}
