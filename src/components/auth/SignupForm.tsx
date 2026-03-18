@@ -115,7 +115,7 @@ const SignupForm: React.FC = () => {
           </div>
 
           {/* Avatar Upload */}
-          <AvatarUpload
+          <SignupAvatarUpload
             value={avatarUrl || undefined}
             onChange={(url) => setAvatarUrl(url)}
             disabled={isFormLoading}
