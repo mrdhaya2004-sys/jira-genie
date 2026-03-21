@@ -175,11 +175,50 @@ export function useChat() {
     }
   }, []);
 
-  // Create a new conversation
+  // Create a new conversation (checks for existing direct chats first)
   const createConversation = useCallback(async (data: CreateConversationData): Promise<Conversation | null> => {
     if (!user) return null;
 
     try {
+      // For direct chats, check if a conversation already exists with this user
+      if (data.type === 'direct' && data.participant_ids.length === 1) {
+        const otherUserId = data.participant_ids[0];
+
+        // Find conversations where both users are participants
+        const { data: myConvs } = await supabase
+          .from('conversation_participants')
+          .select('conversation_id')
+          .eq('user_id', user.id);
+
+        if (myConvs && myConvs.length > 0) {
+          const myConvIds = myConvs.map(c => c.conversation_id);
+
+          const { data: sharedConvs } = await supabase
+            .from('conversation_participants')
+            .select('conversation_id')
+            .eq('user_id', otherUserId)
+            .in('conversation_id', myConvIds);
+
+          if (sharedConvs && sharedConvs.length > 0) {
+            // Check if any of these shared conversations are direct type
+            const { data: directConvs } = await supabase
+              .from('conversations')
+              .select('*')
+              .in('id', sharedConvs.map(c => c.conversation_id))
+              .eq('type', 'direct')
+              .limit(1)
+              .maybeSingle();
+
+            if (directConvs) {
+              // Return existing conversation instead of creating duplicate
+              toast.info('Opening existing conversation');
+              await fetchConversations();
+              return directConvs as Conversation;
+            }
+          }
+        }
+      }
+
       // Create the conversation
       const { data: newConv, error: convError } = await supabase
         .from('conversations')
