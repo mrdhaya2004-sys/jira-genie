@@ -39,7 +39,23 @@ export function useChat() {
 
       if (error) throw error;
 
-      // Fetch last message for each conversation
+      // Collect all participant user IDs to fetch profiles
+      const allParticipantIds = new Set<string>();
+      (data || []).forEach(conv => {
+        conv.conversation_participants?.forEach((p: { user_id: string }) => {
+          allParticipantIds.add(p.user_id);
+        });
+      });
+
+      // Fetch all participant profiles in one query
+      const { data: allProfiles } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email, avatar_url')
+        .in('user_id', Array.from(allParticipantIds));
+
+      const profileMap = new Map(allProfiles?.map(p => [p.user_id, p]) || []);
+
+      // Fetch last message for each conversation and resolve display name/avatar
       const conversationsWithLastMessage = await Promise.all(
         (data || []).map(async (conv) => {
           const { data: lastMessageData } = await supabase
@@ -51,8 +67,27 @@ export function useChat() {
             .limit(1)
             .maybeSingle();
 
+          // For direct chats, resolve the OTHER participant's name and avatar
+          let displayName = conv.name;
+          let displayAvatar = conv.avatar_url;
+
+          if (conv.type === 'direct') {
+            const otherParticipant = conv.conversation_participants?.find(
+              (p: { user_id: string }) => p.user_id !== user.id
+            );
+            if (otherParticipant) {
+              const otherProfile = profileMap.get(otherParticipant.user_id);
+              if (otherProfile) {
+                displayName = otherProfile.full_name;
+                displayAvatar = otherProfile.avatar_url;
+              }
+            }
+          }
+
           return {
             ...conv,
+            name: displayName,
+            avatar_url: displayAvatar,
             last_message: lastMessageData || undefined
           } as Conversation;
         })
@@ -356,7 +391,44 @@ export function useChat() {
     }
   }, [user, fetchConversations]);
 
-  // Realtime subscriptions
+  // Global realtime listener - refreshes conversation list when ANY conversation gets a new message
+  useEffect(() => {
+    if (!user) return;
+
+    const globalChannel = supabase
+      .channel('global-chat-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+        },
+        () => {
+          // Refresh conversation list to show latest messages
+          fetchConversations();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'conversation_participants',
+        },
+        () => {
+          // New conversation added for this user
+          fetchConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(globalChannel);
+    };
+  }, [user, fetchConversations]);
+
+  // Realtime subscriptions for active conversation messages
   useEffect(() => {
     if (!user || !selectedConversation) return;
 
@@ -380,7 +452,11 @@ export function useChat() {
             .eq('user_id', newMessage.sender_id)
             .maybeSingle();
 
-          setMessages(prev => [...prev, { ...newMessage, sender: profile || undefined }]);
+          setMessages(prev => {
+            // Prevent duplicate messages
+            if (prev.some(m => m.id === newMessage.id)) return prev;
+            return [...prev, { ...newMessage, sender: profile || undefined }];
+          });
         }
       )
       .on(
