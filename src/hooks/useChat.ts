@@ -39,7 +39,23 @@ export function useChat() {
 
       if (error) throw error;
 
-      // Fetch last message for each conversation
+      // Collect all participant user IDs to fetch profiles
+      const allParticipantIds = new Set<string>();
+      (data || []).forEach(conv => {
+        conv.conversation_participants?.forEach((p: { user_id: string }) => {
+          allParticipantIds.add(p.user_id);
+        });
+      });
+
+      // Fetch all participant profiles in one query
+      const { data: allProfiles } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email, avatar_url')
+        .in('user_id', Array.from(allParticipantIds));
+
+      const profileMap = new Map(allProfiles?.map(p => [p.user_id, p]) || []);
+
+      // Fetch last message for each conversation and resolve display name/avatar
       const conversationsWithLastMessage = await Promise.all(
         (data || []).map(async (conv) => {
           const { data: lastMessageData } = await supabase
@@ -51,8 +67,27 @@ export function useChat() {
             .limit(1)
             .maybeSingle();
 
+          // For direct chats, resolve the OTHER participant's name and avatar
+          let displayName = conv.name;
+          let displayAvatar = conv.avatar_url;
+
+          if (conv.type === 'direct') {
+            const otherParticipant = conv.conversation_participants?.find(
+              (p: { user_id: string }) => p.user_id !== user.id
+            );
+            if (otherParticipant) {
+              const otherProfile = profileMap.get(otherParticipant.user_id);
+              if (otherProfile) {
+                displayName = otherProfile.full_name;
+                displayAvatar = otherProfile.avatar_url;
+              }
+            }
+          }
+
           return {
             ...conv,
+            name: displayName,
+            avatar_url: displayAvatar,
             last_message: lastMessageData || undefined
           } as Conversation;
         })
