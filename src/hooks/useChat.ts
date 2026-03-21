@@ -93,7 +93,30 @@ export function useChat() {
         })
       );
 
-      setConversations(conversationsWithLastMessage);
+      // Deduplicate direct conversations with the same user
+      const seen = new Map<string, Conversation>();
+      const deduped: Conversation[] = [];
+      for (const conv of conversationsWithLastMessage) {
+        if (conv.type === 'direct') {
+          const otherParticipant = (conv as any).conversation_participants?.find(
+            (p: { user_id: string }) => p.user_id !== user!.id
+          );
+          const key = otherParticipant ? `direct-${otherParticipant.user_id}` : conv.id;
+          const existing = seen.get(key);
+          if (existing) {
+            // Keep the one with the most recent activity
+            if (conv.updated_at > existing.updated_at) {
+              deduped[deduped.indexOf(existing)] = conv;
+              seen.set(key, conv);
+            }
+            continue;
+          }
+          seen.set(key, conv);
+        }
+        deduped.push(conv);
+      }
+
+      setConversations(deduped);
     } catch (error) {
       console.error('Error fetching conversations:', error);
       toast.error('Failed to load conversations');
