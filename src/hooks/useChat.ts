@@ -391,7 +391,44 @@ export function useChat() {
     }
   }, [user, fetchConversations]);
 
-  // Realtime subscriptions
+  // Global realtime listener - refreshes conversation list when ANY conversation gets a new message
+  useEffect(() => {
+    if (!user) return;
+
+    const globalChannel = supabase
+      .channel('global-chat-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+        },
+        () => {
+          // Refresh conversation list to show latest messages
+          fetchConversations();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'conversation_participants',
+        },
+        () => {
+          // New conversation added for this user
+          fetchConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(globalChannel);
+    };
+  }, [user, fetchConversations]);
+
+  // Realtime subscriptions for active conversation messages
   useEffect(() => {
     if (!user || !selectedConversation) return;
 
@@ -415,7 +452,11 @@ export function useChat() {
             .eq('user_id', newMessage.sender_id)
             .maybeSingle();
 
-          setMessages(prev => [...prev, { ...newMessage, sender: profile || undefined }]);
+          setMessages(prev => {
+            // Prevent duplicate messages
+            if (prev.some(m => m.id === newMessage.id)) return prev;
+            return [...prev, { ...newMessage, sender: profile || undefined }];
+          });
         }
       )
       .on(
