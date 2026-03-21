@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Conversation, ChatMessageData } from '@/types/chat';
+import type { Conversation, ChatMessageData } from '@/types/chat';
 
 const TEST_CONVERSATIONS: Conversation[] = [
   {
