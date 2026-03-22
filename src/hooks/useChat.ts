@@ -453,7 +453,7 @@ export function useChat() {
     }
   }, [user, fetchConversations]);
 
-  // Global realtime listener - refreshes conversation list when ANY conversation gets a new message
+  // Global realtime listener - refreshes conversation list and active messages
   useEffect(() => {
     if (!user) return;
 
@@ -466,9 +466,30 @@ export function useChat() {
           schema: 'public',
           table: 'chat_messages',
         },
-        () => {
+        async (payload) => {
+          const newMessage = payload.new as ChatMessageData;
+          
           // Refresh conversation list to show latest messages
           fetchConversations();
+
+          // If this message is for the currently selected conversation, add it to messages
+          setSelectedConversation(prev => {
+            if (prev && newMessage.conversation_id === prev.id) {
+              // Fetch sender profile and add message
+              supabase
+                .from('profiles')
+                .select('user_id, full_name, email, avatar_url')
+                .eq('user_id', newMessage.sender_id)
+                .maybeSingle()
+                .then(({ data: profile }) => {
+                  setMessages(prevMsgs => {
+                    if (prevMsgs.some(m => m.id === newMessage.id)) return prevMsgs;
+                    return [...prevMsgs, { ...newMessage, sender: profile || undefined }];
+                  });
+                });
+            }
+            return prev;
+          });
         }
       )
       .on(
@@ -479,7 +500,6 @@ export function useChat() {
           table: 'conversation_participants',
         },
         () => {
-          // New conversation added for this user
           fetchConversations();
         }
       )
@@ -515,7 +535,6 @@ export function useChat() {
             .maybeSingle();
 
           setMessages(prev => {
-            // Prevent duplicate messages
             if (prev.some(m => m.id === newMessage.id)) return prev;
             return [...prev, { ...newMessage, sender: profile || undefined }];
           });
