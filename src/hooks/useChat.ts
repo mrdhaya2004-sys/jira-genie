@@ -55,7 +55,7 @@ export function useChat() {
 
       const profileMap = new Map(allProfiles?.map(p => [p.user_id, p]) || []);
 
-      // Fetch last message for each conversation and resolve display name/avatar
+      // Fetch last message for each conversation and resolve display name/avatar + unread count
       const conversationsWithLastMessage = await Promise.all(
         (data || []).map(async (conv) => {
           const { data: lastMessageData } = await supabase
@@ -66,6 +66,31 @@ export function useChat() {
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
+
+          // Calculate unread count based on last_read_at
+          const myParticipation = conv.conversation_participants?.find(
+            (p: { user_id: string }) => p.user_id === user!.id
+          );
+          let unreadCount = 0;
+          if (myParticipation?.last_read_at) {
+            const { count } = await supabase
+              .from('chat_messages')
+              .select('id', { count: 'exact', head: true })
+              .eq('conversation_id', conv.id)
+              .eq('is_deleted', false)
+              .neq('sender_id', user!.id)
+              .gt('created_at', myParticipation.last_read_at);
+            unreadCount = count || 0;
+          } else {
+            // Never read - count all messages from others
+            const { count } = await supabase
+              .from('chat_messages')
+              .select('id', { count: 'exact', head: true })
+              .eq('conversation_id', conv.id)
+              .eq('is_deleted', false)
+              .neq('sender_id', user!.id);
+            unreadCount = count || 0;
+          }
 
           // For direct chats, resolve the OTHER participant's name and avatar
           let displayName = conv.name;
@@ -88,7 +113,8 @@ export function useChat() {
             ...conv,
             name: displayName,
             avatar_url: displayAvatar,
-            last_message: lastMessageData || undefined
+            last_message: lastMessageData || undefined,
+            unread_count: unreadCount
           } as Conversation;
         })
       );

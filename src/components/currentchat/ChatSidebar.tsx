@@ -132,13 +132,20 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-sm truncate">{conv.name || 'Direct Chat'}</span>
-                    {conv.last_message && (
-                      <span className="text-xs text-muted-foreground">{formatTime(conv.last_message.created_at)}</span>
-                    )}
+                    <span className={cn("text-sm truncate", conv.unread_count ? "font-bold" : "font-medium")}>{conv.name || 'Direct Chat'}</span>
+                    <div className="flex items-center gap-1.5">
+                      {conv.last_message && (
+                        <span className="text-xs text-muted-foreground">{formatTime(conv.last_message.created_at)}</span>
+                      )}
+                      {(conv.unread_count ?? 0) > 0 && (
+                        <Badge className="h-5 min-w-5 flex items-center justify-center px-1.5 text-[10px] font-bold">
+                          {conv.unread_count! > 99 ? '99+' : conv.unread_count}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   {conv.last_message && (
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">
+                    <p className={cn("text-xs truncate mt-0.5", conv.unread_count ? "text-foreground font-medium" : "text-muted-foreground")}>
                       {conv.last_message.is_deleted ? 'Message deleted' : conv.last_message.content}
                     </p>
                   )}
