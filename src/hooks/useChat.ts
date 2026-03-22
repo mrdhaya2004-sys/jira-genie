@@ -465,12 +465,27 @@ export function useChat() {
     }
   }, [user, selectedConversation?.id]);
 
-  // Select a conversation
+  // Select a conversation and mark as read
   const selectConversation = useCallback(async (conversation: Conversation) => {
     setSelectedConversation(conversation);
+    
+    // Mark conversation as read by updating last_read_at
+    if (user) {
+      await supabase
+        .from('conversation_participants')
+        .update({ last_read_at: new Date().toISOString() })
+        .eq('conversation_id', conversation.id)
+        .eq('user_id', user.id);
+      
+      // Clear unread count locally
+      setConversations(prev => prev.map(c => 
+        c.id === conversation.id ? { ...c, unread_count: 0 } : c
+      ));
+    }
+    
     await fetchMessages(conversation.id);
     await fetchParticipants(conversation.id);
-  }, [fetchMessages, fetchParticipants]);
+  }, [fetchMessages, fetchParticipants, user]);
 
   // Initial fetch
   useEffect(() => {
