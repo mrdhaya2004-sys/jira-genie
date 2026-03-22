@@ -535,7 +535,6 @@ export function useChat() {
             .maybeSingle();
 
           setMessages(prev => {
-            // Prevent duplicate messages
             if (prev.some(m => m.id === newMessage.id)) return prev;
             return [...prev, { ...newMessage, sender: profile || undefined }];
           });
