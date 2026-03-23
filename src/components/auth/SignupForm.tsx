@@ -70,8 +70,14 @@ const SignupForm: React.FC = () => {
   };
 
   const handleGoogleSignup = async () => {
-    const { error } = await signInWithGoogle();
-    if (error) {
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result?.error) {
+        toast.error('Google signup failed. Please try again.');
+      }
+    } catch (error) {
       toast.error('Google signup failed. Please try again.');
     }
   };
