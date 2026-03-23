@@ -15,6 +15,7 @@ import AuthLayout from './AuthLayout';
 import PasswordInput from './PasswordInput';
 import SocialLoginButtons from './SocialLoginButtons';
 import SignupAvatarUpload from './SignupAvatarUpload';
+import { lovable } from '@/integrations/lovable/index';
 
 const SignupForm: React.FC = () => {
   const navigate = useNavigate();
