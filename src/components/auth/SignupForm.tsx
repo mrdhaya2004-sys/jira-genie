@@ -75,10 +75,32 @@ const SignupForm: React.FC = () => {
         redirect_uri: window.location.origin,
       });
       if (result?.error) {
+        const msg = result.error.message || '';
+        if (msg.includes('Popup was blocked')) {
+          toast.error('Pop-up blocked! Please allow pop-ups for this site and try again.', {
+            description: 'Go to your browser settings → Pop-ups → Allow for this site.',
+            duration: 8000,
+          });
+        } else if (msg.includes('cancelled')) {
+          toast.info('Google sign-up was cancelled.');
+        } else if (msg.includes('not supported in Preview')) {
+          toast.error('Google sign-up is not available in Preview mode. Please open the app in a new tab.', { duration: 6000 });
+        } else {
+          toast.error('Google signup failed. Please try again.');
+        }
+      }
+    } catch (error: any) {
+      const msg = error?.message || '';
+      if (msg.includes('Popup was blocked')) {
+        toast.error('Pop-up blocked! Please allow pop-ups for this site and try again.', {
+          description: 'Go to your browser settings → Pop-ups → Allow for this site.',
+          duration: 8000,
+        });
+      } else if (msg.includes('cancelled')) {
+        toast.info('Google sign-up was cancelled.');
+      } else {
         toast.error('Google signup failed. Please try again.');
       }
-    } catch (error) {
-      toast.error('Google signup failed. Please try again.');
     }
   };
 
