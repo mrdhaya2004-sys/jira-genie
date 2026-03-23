@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { lovable } from '@/integrations/lovable/index';
 import AuthLayout from './AuthLayout';
 import PasswordInput from './PasswordInput';
 import SocialLoginButtons from './SocialLoginButtons';
@@ -57,8 +58,14 @@ const LoginForm: React.FC = () => {
   };
 
   const handleGoogleLogin = async () => {
-    const { error } = await signInWithGoogle();
-    if (error) {
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result?.error) {
+        toast.error('Google login failed. Please try again.');
+      }
+    } catch (error) {
       toast.error('Google login failed. Please try again.');
     }
   };
