@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { lovable } from '@/integrations/lovable/index';
 import AuthLayout from './AuthLayout';
 import PasswordInput from './PasswordInput';
 import SocialLoginButtons from './SocialLoginButtons';
