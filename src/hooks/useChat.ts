@@ -8,6 +8,7 @@ import {
   SendMessageData,
   ConversationParticipant 
 } from '@/types/chat';
+import { notifyChatMessage, notifyMention } from '@/lib/notificationService';
 import { toast } from 'sonner';
 
 export function useChat() {
