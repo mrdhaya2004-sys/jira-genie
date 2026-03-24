@@ -24,7 +24,7 @@ const typeIconMap: Record<string, React.ReactNode> = {
   system: <Cpu className="h-4 w-4 text-muted-foreground" />,
 };
 
-const NotificationPanel: React.FC<NotificationPanelProps> = ({
+const NotificationPanel = React.forwardRef<HTMLDivElement, NotificationPanelProps>(({
   notifications,
   isLoading,
   hasMore,
@@ -33,7 +33,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
   onDelete,
   onLoadMore,
   onNotificationClick,
-}) => {
+}, ref) => {
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
