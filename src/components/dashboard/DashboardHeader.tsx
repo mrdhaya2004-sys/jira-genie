@@ -11,7 +11,6 @@ import {
   Key,
   HelpCircle,
   Sliders,
-  LayoutDashboard
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -22,10 +21,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import DashboardSidebar from './DashboardSidebar';
 import { ActiveModule } from '@/pages/DashboardPage';
 import testzoneLogo from '@/assets/testzone-logo.png';
-import { useMentions } from '@/hooks/useMentions';
+import { useNotifications } from '@/hooks/useNotifications';
+import NotificationPanel from '@/components/notifications/NotificationPanel';
 
 interface DashboardHeaderProps {
   activeModule: ActiveModule;
@@ -34,7 +39,16 @@ interface DashboardHeaderProps {
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModuleChange }) => {
   const { profile, signOut } = useAuth();
-  const { unreadCount } = useMentions();
+  const {
+    notifications,
+    isLoading,
+    unreadCount,
+    hasMore,
+    loadMore,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+  } = useNotifications();
 
   const getInitials = (name: string) => {
     return name
@@ -43,6 +57,17 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const handleNotificationClick = (notification: any) => {
+    markAsRead(notification.id);
+    if (notification.type === 'chat' && notification.reference_id) {
+      onModuleChange('chat');
+    } else if (notification.type === 'jira' && notification.reference_id) {
+      onModuleChange('tickets');
+    } else if (notification.reference_type === 'mention') {
+      onModuleChange('mentions');
+    }
   };
 
   return (
@@ -75,20 +100,31 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
 
       {/* Right side - Actions & Profile */}
       <div className="flex items-center gap-2">
-        {/* Notifications */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="relative h-9 w-9"
-          onClick={() => onModuleChange('mentions')}
-        >
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 h-4 min-w-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium flex items-center justify-center">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
-        </Button>
+        {/* Notifications Bell */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="relative h-9 w-9">
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 h-4 min-w-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="p-0 w-auto" sideOffset={8}>
+            <NotificationPanel
+              notifications={notifications}
+              isLoading={isLoading}
+              hasMore={hasMore}
+              onMarkAsRead={markAsRead}
+              onMarkAllAsRead={markAllAsRead}
+              onDelete={deleteNotification}
+              onLoadMore={loadMore}
+              onNotificationClick={handleNotificationClick}
+            />
+          </PopoverContent>
+        </Popover>
         
         {/* Profile Dropdown */}
         <DropdownMenu>
