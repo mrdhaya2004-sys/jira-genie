@@ -337,13 +337,34 @@ export function useChat() {
         .update({ updated_at: new Date().toISOString() })
         .eq('id', data.conversation_id);
 
+      // Notify other participants
+      const senderName = profile?.full_name || 'Someone';
+      const otherParticipants = participants.filter(p => p.user_id !== user.id);
+
+      // Check for @username mentions
+      const mentionRegex = /@(\w+)/g;
+      const mentionedUsernames = [...data.content.matchAll(mentionRegex)].map(m => m[1]);
+      const isEveryoneMention = mentionedUsernames.includes('everyone');
+
+      for (const p of otherParticipants) {
+        const isMentioned = mentionedUsernames.some(
+          u => p.profile?.full_name?.toLowerCase().includes(u.toLowerCase())
+        );
+
+        if (isMentioned || isEveryoneMention) {
+          notifyMention(p.user_id, senderName, data.content, 'chat', data.conversation_id);
+        } else {
+          notifyChatMessage(p.user_id, senderName, data.content, data.conversation_id);
+        }
+      }
+
       return true;
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
       return false;
     }
-  }, [user]);
+  }, [user, profile, participants]);
 
   // Delete a message (soft delete)
   const deleteMessage = useCallback(async (messageId: string): Promise<boolean> => {
