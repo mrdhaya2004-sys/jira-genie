@@ -145,6 +145,8 @@ const NotificationPanel = React.forwardRef<HTMLDivElement, NotificationPanelProp
       </ScrollArea>
     </div>
   );
-};
+});
+
+NotificationPanel.displayName = 'NotificationPanel';
 
 export default NotificationPanel;
