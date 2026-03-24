@@ -12,7 +12,7 @@ import { notifyChatMessage, notifyMention } from '@/lib/notificationService';
 import { toast } from 'sonner';
 
 export function useChat() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<ChatMessageData[]>([]);
