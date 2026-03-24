@@ -19,8 +19,8 @@ interface NotificationPanelProps {
 }
 
 const typeIconMap: Record<string, React.ReactNode> = {
-  chat: <MessageSquare className="h-4 w-4 text-blue-500" />,
-  jira: <Ticket className="h-4 w-4 text-orange-500" />,
+  chat: <MessageSquare className="h-4 w-4 text-primary" />,
+  jira: <Ticket className="h-4 w-4 text-accent-foreground" />,
   system: <Cpu className="h-4 w-4 text-muted-foreground" />,
 };
 
