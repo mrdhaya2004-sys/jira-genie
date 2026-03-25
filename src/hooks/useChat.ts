@@ -601,6 +601,18 @@ export function useChat() {
             if (prev.some(m => m.id === newMessage.id)) return prev;
             return [...prev, { ...newMessage, sender: profile || undefined }];
           });
+
+          // Mark as read immediately since user is viewing this conversation
+          await supabase
+            .from('conversation_participants')
+            .update({ last_read_at: new Date().toISOString() })
+            .eq('conversation_id', selectedConversation.id)
+            .eq('user_id', user.id);
+
+          // Keep local unread count at 0 for the active conversation
+          setConversations(prev => prev.map(c =>
+            c.id === selectedConversation.id ? { ...c, unread_count: 0 } : c
+          ));
         }
       )
       .on(

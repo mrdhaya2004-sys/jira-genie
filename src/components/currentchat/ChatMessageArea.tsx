@@ -56,12 +56,13 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
   onToggleReaction,
 }) => {
   const { user } = useAuth();
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    // Use requestAnimationFrame to ensure DOM has updated before scrolling
+    requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    });
   }, [messages]);
 
   const getInitials = (name: string) => {
@@ -103,7 +104,7 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
   }
 
   return (
-    <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+    <ScrollArea className="flex-1 p-4">
       <div className="space-y-6">
         {Object.entries(groupedMessages).map(([date, dateMessages]) => (
           <div key={date}>
@@ -202,6 +203,7 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
           </div>
         ))}
       </div>
+      <div ref={bottomRef} />
     </ScrollArea>
   );
 };
