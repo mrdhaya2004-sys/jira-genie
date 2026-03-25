@@ -56,12 +56,13 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
   onToggleReaction,
 }) => {
   const { user } = useAuth();
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    // Use requestAnimationFrame to ensure DOM has updated before scrolling
+    requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    });
   }, [messages]);
 
   const getInitials = (name: string) => {
