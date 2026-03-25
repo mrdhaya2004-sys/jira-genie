@@ -331,11 +331,23 @@ export function useChat() {
 
       if (error) throw error;
 
-      // Update conversation updated_at
-      await supabase
-        .from('conversations')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', data.conversation_id);
+      // Update conversation updated_at and mark as read for sender
+      await Promise.all([
+        supabase
+          .from('conversations')
+          .update({ updated_at: new Date().toISOString() })
+          .eq('id', data.conversation_id),
+        supabase
+          .from('conversation_participants')
+          .update({ last_read_at: new Date().toISOString() })
+          .eq('conversation_id', data.conversation_id)
+          .eq('user_id', user.id),
+      ]);
+
+      // Clear unread count locally for the sent conversation
+      setConversations(prev => prev.map(c =>
+        c.id === data.conversation_id ? { ...c, unread_count: 0 } : c
+      ));
 
       // Notify other participants
       const senderName = profile?.full_name || 'Someone';
