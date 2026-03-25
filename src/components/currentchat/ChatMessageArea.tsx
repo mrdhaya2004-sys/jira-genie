@@ -104,7 +104,7 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
   }
 
   return (
-    <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+    <ScrollArea className="flex-1 p-4">
       <div className="space-y-6">
         {Object.entries(groupedMessages).map(([date, dateMessages]) => (
           <div key={date}>
