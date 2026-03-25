@@ -203,6 +203,7 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
           </div>
         ))}
       </div>
+      <div ref={bottomRef} />
     </ScrollArea>
   );
 };
