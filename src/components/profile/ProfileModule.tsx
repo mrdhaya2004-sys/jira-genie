@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfileId } from '@/hooks/useProfileId';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import AvatarUpload from '@/components/auth/AvatarUpload';
 import {
   AtSign,
@@ -20,8 +20,11 @@ import {
   Calendar,
   Phone,
   IdCard,
+  Save,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const RESERVED_USERNAMES = [
   'admin', 'administrator', 'root', 'system', 'support', 'help',
@@ -29,93 +32,188 @@ const RESERVED_USERNAMES = [
   'bot', 'api', 'null', 'undefined', 'test', 'dev',
 ];
 
+interface ProfileFormData {
+  fullName: string;
+  employeeId: string;
+  mobileNumber: string;
+  username: string;
+}
+
+interface FormErrors {
+  fullName?: string;
+  employeeId?: string;
+  mobileNumber?: string;
+  username?: string;
+}
+
 const ProfileModule: React.FC = () => {
-  const { profile, refreshProfile } = useAuth();
-  const { profileId, checkAvailability, saveProfileId, isChecking, isSaving } = useProfileId();
+  const { profile, user, refreshProfile } = useAuth();
+  const { profileId, checkAvailability, saveProfileId, isChecking, isSaving: isSavingUsername } = useProfileId();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [input, setInput] = useState('');
-  const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState<ProfileFormData>({
+    fullName: '',
+    employeeId: '',
+    mobileNumber: '',
+    username: '',
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
 
-  const hasUsername = !!profileId;
-
-  // Reset input when entering edit mode
+  // Populate form when entering edit mode
   useEffect(() => {
-    if (isEditing && profileId) {
-      setInput(profileId.replace(/^@/, ''));
+    if (isEditing && profile) {
+      setFormData({
+        fullName: profile.full_name || '',
+        employeeId: profile.employee_id || '',
+        mobileNumber: profile.mobile_number || '',
+        username: profileId?.replace(/^@/, '') || '',
+      });
+      setErrors({});
+      setUsernameAvailable(null);
     }
-  }, [isEditing, profileId]);
+  }, [isEditing, profile, profileId]);
 
-  const formatInput = (value: string): string => {
-    let clean = value.replace(/^@/, '').toLowerCase().replace(/[^a-z0-9_]/g, '');
-    if (clean.length > 20) clean = clean.slice(0, 20);
-    return clean;
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cleaned = formatInput(e.target.value);
-    setInput(cleaned);
-    setIsAvailable(null);
-    setValidationError(null);
-  };
-
-  useEffect(() => {
-    if (!input || input.length < 3) {
-      setIsAvailable(null);
-      if (input.length > 0 && input.length < 3) {
-        setValidationError('Must be at least 3 characters');
-      } else {
-        setValidationError(null);
+  // Validate individual field
+  const validateField = useCallback((field: keyof ProfileFormData, value: string): string | undefined => {
+    switch (field) {
+      case 'fullName': {
+        const trimmed = value.trim();
+        if (trimmed.length < 3) return 'Full name must be at least 3 characters';
+        if (!/^[a-zA-Z\s'-]+$/.test(trimmed)) return 'Name can only contain letters and spaces';
+        return undefined;
       }
+      case 'employeeId': {
+        const trimmed = value.trim();
+        if (!trimmed) return 'Employee ID is required';
+        if (!/^[a-zA-Z0-9_-]+$/.test(trimmed)) return 'Invalid employee ID';
+        return undefined;
+      }
+      case 'mobileNumber': {
+        const trimmed = value.trim();
+        if (!trimmed) return undefined; // optional
+        if (!/^\d{10}$/.test(trimmed)) return 'Invalid mobile number (must be 10 digits)';
+        return undefined;
+      }
+      case 'username': {
+        if (!value) return undefined;
+        if (value.length < 3) return 'Must be at least 3 characters';
+        if (value.length > 20) return 'Must be 20 characters or less';
+        if (!/^[a-z0-9_]+$/.test(value)) return 'Lowercase letters, numbers and underscores only';
+        if (RESERVED_USERNAMES.includes(value)) return 'This username is reserved';
+        return undefined;
+      }
+      default:
+        return undefined;
+    }
+  }, []);
+
+  const handleFieldChange = (field: keyof ProfileFormData, value: string) => {
+    let cleanValue = value;
+    if (field === 'username') {
+      cleanValue = value.replace(/^@/, '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20);
+    }
+    if (field === 'mobileNumber') {
+      cleanValue = value.replace(/\D/g, '').slice(0, 10);
+    }
+
+    setFormData(prev => ({ ...prev, [field]: cleanValue }));
+    const error = validateField(field, cleanValue);
+    setErrors(prev => ({ ...prev, [field]: error }));
+
+    if (field === 'username') {
+      setUsernameAvailable(null);
+    }
+  };
+
+  // Debounced username availability check
+  useEffect(() => {
+    if (!isEditing) return;
+    const username = formData.username;
+    if (!username || username.length < 3 || errors.username) {
+      setUsernameAvailable(null);
+      return;
+    }
+    // Same as current — no need to check
+    if (profileId === `@${username}`) {
+      setUsernameAvailable(null);
       return;
     }
 
-    // Check reserved
-    if (RESERVED_USERNAMES.includes(input)) {
-      setIsAvailable(false);
-      setValidationError('This username is reserved. Please choose another.');
-      return;
-    }
-
-    // If editing and same as current, skip check
-    if (isEditing && profileId === `@${input}`) {
-      setIsAvailable(null);
-      setValidationError(null);
-      return;
-    }
-
-    setValidationError(null);
     const timer = setTimeout(async () => {
-      const available = await checkAvailability(`@${input}`);
-      setIsAvailable(available);
+      const available = await checkAvailability(`@${username}`);
+      setUsernameAvailable(available);
     }, 500);
-
     return () => clearTimeout(timer);
-  }, [input, checkAvailability, isEditing, profileId]);
+  }, [formData.username, isEditing, errors.username, profileId, checkAvailability]);
 
-  const handleSubmit = async () => {
-    if (input.length < 3 || (isAvailable !== true && !(isEditing && profileId === `@${input}`))) return;
+  const validateAll = (): boolean => {
+    const newErrors: FormErrors = {
+      fullName: validateField('fullName', formData.fullName),
+      employeeId: validateField('employeeId', formData.employeeId),
+      mobileNumber: validateField('mobileNumber', formData.mobileNumber),
+      username: validateField('username', formData.username),
+    };
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(Boolean);
+  };
 
-    const success = await saveProfileId(`@${input}`);
-    if (success) {
+  const handleSave = async () => {
+    if (!validateAll() || !user) return;
+
+    // If username changed, check availability
+    const usernameChanged = formData.username && profileId !== `@${formData.username}`;
+    if (usernameChanged && usernameAvailable === false) {
+      setErrors(prev => ({ ...prev, username: 'Username already exists' }));
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Update profile fields
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: formData.fullName.trim(),
+          employee_id: formData.employeeId.trim(),
+          mobile_number: formData.mobileNumber.trim() || null,
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Update username if changed
+      if (usernameChanged && formData.username) {
+        const success = await saveProfileId(`@${formData.username}`);
+        if (!success) {
+          setIsSaving(false);
+          return;
+        }
+      }
+
+      await refreshProfile();
       setIsEditing(false);
-      setInput('');
-      setIsAvailable(null);
+      toast.success('Profile updated successfully');
+    } catch (err: any) {
+      console.error('Profile update error:', err);
+      toast.error('Failed to update profile');
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    setInput('');
-    setIsAvailable(null);
-    setValidationError(null);
+    setFormData({ fullName: '', employeeId: '', mobileNumber: '', username: '' });
+    setErrors({});
+    setUsernameAvailable(null);
   };
 
   const getInitials = (name: string) =>
     name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
-  const showUsernameForm = !hasUsername || isEditing;
+  const hasUsername = !!profileId;
 
   return (
     <div className="h-full overflow-y-auto p-4 md:p-6 lg:p-8">
@@ -128,199 +226,204 @@ const ProfileModule: React.FC = () => {
                 currentAvatarUrl={profile?.avatar_url}
                 userId={profile?.user_id || ''}
                 userName={profile?.full_name}
-                onAvatarUpdated={(url) => {
-                  refreshProfile();
-                }}
+                onAvatarUpdated={() => refreshProfile()}
                 size="md"
               />
-              <div className="space-y-1 text-center sm:text-left">
+              <div className="space-y-1 text-center sm:text-left flex-1">
                 <h2 className="text-xl font-bold text-foreground">{profile?.full_name}</h2>
-                {hasUsername && !isEditing && (
+                {hasUsername && (
                   <div className="flex items-center gap-2 justify-center sm:justify-start">
                     <Badge variant="secondary" className="text-sm font-medium gap-1">
                       <AtSign className="h-3.5 w-3.5" />
                       {profileId?.replace('@', '')}
                     </Badge>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => setIsEditing(true)}
-                      className="h-7 w-7"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
                   </div>
                 )}
                 <p className="text-sm text-muted-foreground">{profile?.email}</p>
               </div>
+              {!isEditing && (
+                <Button variant="outline" onClick={() => setIsEditing(true)} className="gap-2">
+                  <Pencil className="h-4 w-4" />
+                  Edit Profile
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Username Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <AtSign className="h-5 w-5 text-primary" />
-              {hasUsername && !isEditing ? 'Your Username' : 'Create Your Username'}
-            </CardTitle>
-            <CardDescription>
-              {hasUsername && !isEditing
-                ? 'Your unique username for chat search and mentions.'
-                : 'Choose a unique username so team members can find and mention you.'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {showUsernameForm ? (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">@</span>
-                    <Input
-                      id="username"
-                      placeholder="your_username"
-                      value={input}
-                      onChange={handleInputChange}
-                      className="pl-8 pr-10"
-                      maxLength={20}
-                      autoFocus
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      {isChecking && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                      {!isChecking && isAvailable === true && (
-                        <CheckCircle className="h-4 w-4 text-success" />
-                      )}
-                      {!isChecking && isAvailable === false && (
-                        <XCircle className="h-4 w-4 text-destructive" />
-                      )}
-                    </div>
-                  </div>
-
-                  {validationError && (
-                    <p className="text-xs text-destructive">{validationError}</p>
-                  )}
-                  {isAvailable === false && !isChecking && !validationError && (
-                    <p className="text-xs text-destructive">This username is already taken. Please choose another.</p>
-                  )}
-                  {isAvailable === true && !isChecking && (
-                    <p className="text-xs text-success">Username is available!</p>
-                  )}
-                </div>
-
-                {/* Rules */}
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium">Rules:</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    <Badge variant="secondary" className="text-xs">Starts with @</Badge>
-                    <Badge variant="secondary" className="text-xs">Lowercase only</Badge>
-                    <Badge variant="secondary" className="text-xs">3–20 characters</Badge>
-                    <Badge variant="secondary" className="text-xs">Letters, numbers, underscores</Badge>
-                    <Badge variant="secondary" className="text-xs">No spaces</Badge>
-                  </div>
-                </div>
-
-                {/* Preview */}
-                {input && (
-                  <div className="bg-muted/50 rounded-lg p-3">
-                    <p className="text-sm text-muted-foreground">Your username will be:</p>
-                    <p className={cn(
-                      'text-lg font-semibold',
-                      isAvailable ? 'text-primary' : 'text-foreground'
-                    )}>
-                      @{input}
-                    </p>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="flex gap-2">
-                  {isEditing && (
-                    <Button variant="outline" onClick={handleCancel}>
-                      Cancel
-                    </Button>
-                  )}
-                  <Button
-                    onClick={handleSubmit}
-                    disabled={!isAvailable || isSaving || input.length < 3}
-                  >
-                    {isSaving ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : isEditing ? (
-                      'Update Username'
-                    ) : (
-                      'Create Username'
-                    )}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-4">
-                <BadgeCheck className="h-5 w-5 text-success flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">Username: {profileId}</p>
-                  <p className="text-xs text-muted-foreground">Used for chat search and @mentions</p>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                  <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                  Edit
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Profile Details */}
+        {/* Profile Details / Edit Form */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <User className="h-5 w-5 text-primary" />
-              Profile Details
+              {isEditing ? 'Edit Profile' : 'Profile Details'}
             </CardTitle>
+            {isEditing && (
+              <CardDescription>Update your profile information. Email cannot be changed.</CardDescription>
+            )}
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Full Name</p>
-                  <p className="text-sm font-medium">{profile?.full_name || '—'}</p>
+          <CardContent className="space-y-5">
+            {isEditing ? (
+              <>
+                {/* Username */}
+                <div className="space-y-2">
+                  <Label htmlFor="edit-username">Username</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">@</span>
+                    <Input
+                      id="edit-username"
+                      placeholder="your_username"
+                      value={formData.username}
+                      onChange={e => handleFieldChange('username', e.target.value)}
+                      className={cn('pl-8 pr-10', errors.username && 'border-destructive')}
+                      maxLength={20}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {isChecking && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                      {!isChecking && usernameAvailable === true && (
+                        <CheckCircle className="h-4 w-4 text-success" />
+                      )}
+                      {!isChecking && usernameAvailable === false && (
+                        <XCircle className="h-4 w-4 text-destructive" />
+                      )}
+                    </div>
+                  </div>
+                  {errors.username && <p className="text-xs text-destructive">{errors.username}</p>}
+                  {usernameAvailable === false && !errors.username && (
+                    <p className="text-xs text-destructive">Username already exists</p>
+                  )}
+                  {usernameAvailable === true && !errors.username && (
+                    <p className="text-xs text-success">Username is available!</p>
+                  )}
                 </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="text-sm font-medium">{profile?.email || '—'}</p>
+
+                {/* Full Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="edit-fullname">Full Name</Label>
+                  <Input
+                    id="edit-fullname"
+                    placeholder="John Doe"
+                    value={formData.fullName}
+                    onChange={e => handleFieldChange('fullName', e.target.value)}
+                    className={cn(errors.fullName && 'border-destructive')}
+                  />
+                  {errors.fullName && <p className="text-xs text-destructive">{errors.fullName}</p>}
                 </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                <IdCard className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Employee ID</p>
-                  <p className="text-sm font-medium">{profile?.employee_id || '—'}</p>
+
+                {/* Employee ID */}
+                <div className="space-y-2">
+                  <Label htmlFor="edit-empid">Employee ID</Label>
+                  <Input
+                    id="edit-empid"
+                    placeholder="EMP001"
+                    value={formData.employeeId}
+                    onChange={e => handleFieldChange('employeeId', e.target.value)}
+                    className={cn(errors.employeeId && 'border-destructive')}
+                  />
+                  {errors.employeeId && <p className="text-xs text-destructive">{errors.employeeId}</p>}
                 </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Mobile</p>
-                  <p className="text-sm font-medium">{profile?.mobile_number || '—'}</p>
+
+                {/* Mobile Number */}
+                <div className="space-y-2">
+                  <Label htmlFor="edit-mobile">Mobile Number</Label>
+                  <Input
+                    id="edit-mobile"
+                    placeholder="9876543210"
+                    value={formData.mobileNumber}
+                    onChange={e => handleFieldChange('mobileNumber', e.target.value)}
+                    className={cn(errors.mobileNumber && 'border-destructive')}
+                    inputMode="numeric"
+                  />
+                  {errors.mobileNumber && <p className="text-xs text-destructive">{errors.mobileNumber}</p>}
                 </div>
-              </div>
-              {profile?.date_of_birth && (
+
+                {/* Email (read-only) */}
+                <div className="space-y-2">
+                  <Label htmlFor="edit-email">Email</Label>
+                  <Input
+                    id="edit-email"
+                    value={profile?.email || ''}
+                    disabled
+                    className="bg-muted/50 cursor-not-allowed opacity-70"
+                  />
+                  <p className="text-xs text-muted-foreground">Email cannot be changed</p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    onClick={handleSave}
+                    disabled={isSaving || isSavingUsername}
+                    className="gap-2"
+                  >
+                    {isSaving || isSavingUsername ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                  <Button variant="outline" onClick={handleCancel} className="gap-2">
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {hasUsername && (
+                  <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                    <AtSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Username</p>
+                      <p className="text-sm font-medium">{profileId}</p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                  <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Date of Birth</p>
-                    <p className="text-sm font-medium">{profile.date_of_birth}</p>
+                    <p className="text-xs text-muted-foreground">Full Name</p>
+                    <p className="text-sm font-medium">{profile?.full_name || '—'}</p>
                   </div>
                 </div>
-              )}
-            </div>
+                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                  <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Email</p>
+                    <p className="text-sm font-medium">{profile?.email || '—'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                  <IdCard className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Employee ID</p>
+                    <p className="text-sm font-medium">{profile?.employee_id || '—'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                  <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Mobile</p>
+                    <p className="text-sm font-medium">{profile?.mobile_number || '—'}</p>
+                  </div>
+                </div>
+                {profile?.date_of_birth && (
+                  <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Date of Birth</p>
+                      <p className="text-sm font-medium">{profile.date_of_birth}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
