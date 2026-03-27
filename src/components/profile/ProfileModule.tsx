@@ -8,6 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import AvatarUpload from '@/components/auth/AvatarUpload';
+import CountryCodeSelect from '@/components/profile/CountryCodeSelect';
+import {
+  parseMobileNumber,
+  formatMobileForStorage,
+  validateMobileForCountry,
+  getCountryByCode,
+  DEFAULT_COUNTRY,
+} from '@/lib/countryCodes';
 import {
   AtSign,
   CheckCircle,
@@ -36,6 +44,7 @@ interface ProfileFormData {
   fullName: string;
   employeeId: string;
   mobileNumber: string;
+  mobileCountryCode: string;
   username: string;
 }
 
@@ -56,6 +65,7 @@ const ProfileModule: React.FC = () => {
     fullName: '',
     employeeId: '',
     mobileNumber: '',
+    mobileCountryCode: DEFAULT_COUNTRY,
     username: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -64,10 +74,12 @@ const ProfileModule: React.FC = () => {
   // Populate form when entering edit mode
   useEffect(() => {
     if (isEditing && profile) {
+      const parsed = parseMobileNumber(profile.mobile_number);
       setFormData({
         fullName: profile.full_name || '',
         employeeId: profile.employee_id || '',
-        mobileNumber: profile.mobile_number || '',
+        mobileNumber: parsed.number,
+        mobileCountryCode: parsed.countryCode,
         username: profileId?.replace(/^@/, '') || '',
       });
       setErrors({});
@@ -76,7 +88,7 @@ const ProfileModule: React.FC = () => {
   }, [isEditing, profile, profileId]);
 
   // Validate individual field
-  const validateField = useCallback((field: keyof ProfileFormData, value: string): string | undefined => {
+  const validateField = useCallback((field: keyof ProfileFormData, value: string, countryCode?: string): string | undefined => {
     switch (field) {
       case 'fullName': {
         const trimmed = value.trim();
@@ -93,8 +105,7 @@ const ProfileModule: React.FC = () => {
       case 'mobileNumber': {
         const trimmed = value.trim();
         if (!trimmed) return undefined; // optional
-        if (!/^\d{10}$/.test(trimmed)) return 'Invalid mobile number (must be 10 digits)';
-        return undefined;
+        return validateMobileForCountry(countryCode || formData.mobileCountryCode, trimmed);
       }
       case 'username': {
         if (!value) return undefined;
@@ -107,7 +118,7 @@ const ProfileModule: React.FC = () => {
       default:
         return undefined;
     }
-  }, []);
+  }, [formData.mobileCountryCode]);
 
   const handleFieldChange = (field: keyof ProfileFormData, value: string) => {
     let cleanValue = value;
@@ -115,7 +126,9 @@ const ProfileModule: React.FC = () => {
       cleanValue = value.replace(/^@/, '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20);
     }
     if (field === 'mobileNumber') {
-      cleanValue = value.replace(/\D/g, '').slice(0, 10);
+      const country = getCountryByCode(formData.mobileCountryCode);
+      const maxLen = country?.maxLength || 15;
+      cleanValue = value.replace(/\D/g, '').slice(0, maxLen);
     }
 
     setFormData(prev => ({ ...prev, [field]: cleanValue }));
@@ -127,6 +140,15 @@ const ProfileModule: React.FC = () => {
     }
   };
 
+  const handleCountryCodeChange = (code: string) => {
+    setFormData(prev => ({ ...prev, mobileCountryCode: code }));
+    // Re-validate mobile number with new country
+    if (formData.mobileNumber) {
+      const error = validateMobileForCountry(code, formData.mobileNumber);
+      setErrors(prev => ({ ...prev, mobileNumber: error }));
+    }
+  };
+
   // Debounced username availability check
   useEffect(() => {
     if (!isEditing) return;
@@ -135,7 +157,6 @@ const ProfileModule: React.FC = () => {
       setUsernameAvailable(null);
       return;
     }
-    // Same as current — no need to check
     if (profileId === `@${username}`) {
       setUsernameAvailable(null);
       return;
@@ -152,7 +173,7 @@ const ProfileModule: React.FC = () => {
     const newErrors: FormErrors = {
       fullName: validateField('fullName', formData.fullName),
       employeeId: validateField('employeeId', formData.employeeId),
-      mobileNumber: validateField('mobileNumber', formData.mobileNumber),
+      mobileNumber: validateField('mobileNumber', formData.mobileNumber, formData.mobileCountryCode),
       username: validateField('username', formData.username),
     };
     setErrors(newErrors);
@@ -162,7 +183,6 @@ const ProfileModule: React.FC = () => {
   const handleSave = async () => {
     if (!validateAll() || !user) return;
 
-    // If username changed, check availability
     const usernameChanged = formData.username && profileId !== `@${formData.username}`;
     if (usernameChanged && usernameAvailable === false) {
       setErrors(prev => ({ ...prev, username: 'Username already exists' }));
@@ -171,19 +191,19 @@ const ProfileModule: React.FC = () => {
 
     setIsSaving(true);
     try {
-      // Update profile fields
+      const mobileForStorage = formatMobileForStorage(formData.mobileCountryCode, formData.mobileNumber);
+
       const { error } = await supabase
         .from('profiles')
         .update({
           full_name: formData.fullName.trim(),
           employee_id: formData.employeeId.trim(),
-          mobile_number: formData.mobileNumber.trim() || null,
+          mobile_number: mobileForStorage,
         })
         .eq('user_id', user.id);
 
       if (error) throw error;
 
-      // Update username if changed
       if (usernameChanged && formData.username) {
         const success = await saveProfileId(`@${formData.username}`);
         if (!success) {
@@ -205,15 +225,18 @@ const ProfileModule: React.FC = () => {
 
   const handleCancel = () => {
     setIsEditing(false);
-    setFormData({ fullName: '', employeeId: '', mobileNumber: '', username: '' });
+    setFormData({ fullName: '', employeeId: '', mobileNumber: '', mobileCountryCode: DEFAULT_COUNTRY, username: '' });
     setErrors({});
     setUsernameAvailable(null);
   };
 
-  const getInitials = (name: string) =>
-    name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-
   const hasUsername = !!profileId;
+
+  /** Format stored mobile for display (e.g. "+91 9876543210") or show N/A */
+  const displayMobile = () => {
+    if (!profile?.mobile_number) return 'N/A';
+    return profile.mobile_number;
+  };
 
   return (
     <div className="h-full overflow-y-auto p-4 md:p-6 lg:p-8">
@@ -323,18 +346,29 @@ const ProfileModule: React.FC = () => {
                   {errors.employeeId && <p className="text-xs text-destructive">{errors.employeeId}</p>}
                 </div>
 
-                {/* Mobile Number */}
+                {/* Mobile Number with Country Code */}
                 <div className="space-y-2">
                   <Label htmlFor="edit-mobile">Mobile Number</Label>
-                  <Input
-                    id="edit-mobile"
-                    placeholder="9876543210"
-                    value={formData.mobileNumber}
-                    onChange={e => handleFieldChange('mobileNumber', e.target.value)}
-                    className={cn(errors.mobileNumber && 'border-destructive')}
-                    inputMode="numeric"
-                  />
+                  <div className="flex gap-2">
+                    <CountryCodeSelect
+                      value={formData.mobileCountryCode}
+                      onChange={handleCountryCodeChange}
+                    />
+                    <Input
+                      id="edit-mobile"
+                      placeholder="Enter mobile number"
+                      value={formData.mobileNumber}
+                      onChange={e => handleFieldChange('mobileNumber', e.target.value)}
+                      className={cn('flex-1', errors.mobileNumber && 'border-destructive')}
+                      inputMode="numeric"
+                    />
+                  </div>
                   {errors.mobileNumber && <p className="text-xs text-destructive">{errors.mobileNumber}</p>}
+                  {!errors.mobileNumber && formData.mobileNumber && (
+                    <p className="text-xs text-muted-foreground">
+                      {getCountryByCode(formData.mobileCountryCode)?.name} format: {getCountryByCode(formData.mobileCountryCode)?.example}
+                    </p>
+                  )}
                 </div>
 
                 {/* Email (read-only) */}
@@ -389,28 +423,28 @@ const ProfileModule: React.FC = () => {
                   <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div>
                     <p className="text-xs text-muted-foreground">Full Name</p>
-                    <p className="text-sm font-medium">{profile?.full_name || '—'}</p>
+                    <p className="text-sm font-medium">{profile?.full_name || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                   <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div>
                     <p className="text-xs text-muted-foreground">Email</p>
-                    <p className="text-sm font-medium">{profile?.email || '—'}</p>
+                    <p className="text-sm font-medium">{profile?.email || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                   <IdCard className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div>
                     <p className="text-xs text-muted-foreground">Employee ID</p>
-                    <p className="text-sm font-medium">{profile?.employee_id || '—'}</p>
+                    <p className="text-sm font-medium">{profile?.employee_id || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                   <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div>
                     <p className="text-xs text-muted-foreground">Mobile</p>
-                    <p className="text-sm font-medium">{profile?.mobile_number || '—'}</p>
+                    <p className="text-sm font-medium">{displayMobile()}</p>
                   </div>
                 </div>
                 {profile?.date_of_birth && (
