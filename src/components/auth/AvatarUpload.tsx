@@ -174,16 +174,25 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
 
         {/* Hover overlay */}
         {!showPreviewActions && !isUploading && (
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-          >
-            <span className="text-white text-xs font-medium flex flex-col items-center gap-1">
-              <Camera className="h-4 w-4" />
-              Change Photo
-            </span>
-          </button>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                >
+                  <span className="text-white text-xs font-medium flex flex-col items-center gap-1">
+                    <Camera className="h-4 w-4" />
+                    Change Photo
+                  </span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                JPG, PNG or WEBP · Max {MAX_SIZE_MB}MB
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
 
         {/* Loading overlay */}
