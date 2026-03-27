@@ -255,9 +255,6 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
         disabled={isUploading}
       />
 
-      <p className="text-xs text-muted-foreground text-center">
-        JPG, PNG or WEBP · Max {MAX_SIZE_MB}MB
-      </p>
     </div>
   );
 };
