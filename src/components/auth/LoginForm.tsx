@@ -11,10 +11,45 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
 import { lovable } from '@/integrations/lovable/index';
 import AuthLayout from './AuthLayout';
 import PasswordInput from './PasswordInput';
 import SocialLoginButtons from './SocialLoginButtons';
+
+const fireWelcomeConfetti = () => {
+  const duration = 1500;
+  const end = Date.now() + duration;
+
+  const frame = () => {
+    confetti({
+      particleCount: 4,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0, y: 0.7 },
+      colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#a855f7'],
+    });
+    confetti({
+      particleCount: 4,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1, y: 0.7 },
+      colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#a855f7'],
+    });
+    if (Date.now() < end) requestAnimationFrame(frame);
+  };
+
+  // Initial big burst from center
+  confetti({
+    particleCount: 80,
+    spread: 100,
+    origin: { x: 0.5, y: 0.5 },
+    colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#a855f7'],
+    startVelocity: 35,
+  });
+
+  frame();
+};
 
 const LoginForm: React.FC = () => {
   const navigate = useNavigate();
@@ -47,7 +82,8 @@ const LoginForm: React.FC = () => {
           toast.error(error.message || 'Login failed. Please try again.');
         }
       } else {
-        toast.success('Welcome back!');
+        toast.success('🎉 Welcome back!');
+        fireWelcomeConfetti();
         navigate('/');
       }
     } catch (error) {
