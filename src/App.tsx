@@ -96,6 +96,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <AppRoutes />
+            <HiveAIButton />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
