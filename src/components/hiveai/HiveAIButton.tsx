@@ -85,22 +85,26 @@ const HiveAIButton: React.FC = () => {
         }}
         className={`
           group h-14 w-14 rounded-full
-          bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400
-          shadow-lg shadow-teal-500/30
+          bg-gradient-to-br from-[#0a1628] via-[#0d3320] to-[#122a4e]
+          shadow-[0_0_18px_4px_rgba(34,197,94,0.35),0_0_40px_8px_rgba(14,50,100,0.3)]
           flex items-center justify-center
           text-white font-bold text-[11px] leading-none tracking-tight
-          transition-shadow duration-300
-          hover:shadow-xl hover:shadow-teal-400/40
+          transition-all duration-300
+          hover:shadow-[0_0_24px_8px_rgba(34,197,94,0.5),0_0_50px_12px_rgba(14,50,100,0.4)]
           active:scale-95
           select-none
           ${isDragging ? 'cursor-grabbing scale-95' : 'cursor-grab'}
         `}
       >
-        {/* Glow ring */}
-        <span className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-400/40 to-cyan-400/40 animate-pulse pointer-events-none" />
+        {/* Outer glow ring */}
+        <span className="absolute -inset-1 rounded-full bg-gradient-to-br from-green-500/30 via-emerald-400/20 to-blue-900/30 blur-md animate-pulse pointer-events-none" />
+        {/* Inner glow ring */}
+        <span className="absolute inset-0 rounded-full bg-gradient-to-br from-green-500/25 to-blue-800/20 animate-pulse pointer-events-none" />
+        {/* Leaf-green border accent */}
+        <span className="absolute inset-0 rounded-full border border-green-400/40 pointer-events-none" />
         <span className="relative z-10 flex flex-col items-center gap-0.5">
           <span className="text-[13px]">🐝</span>
-          <span className="text-[9px] font-semibold tracking-wider uppercase">Hive AI</span>
+          <span className="text-[9px] font-semibold tracking-wider uppercase text-green-300/90">Hive AI</span>
         </span>
       </button>
 
