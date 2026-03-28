@@ -82,7 +82,8 @@ const LoginForm: React.FC = () => {
           toast.error(error.message || 'Login failed. Please try again.');
         }
       } else {
-        toast.success('Welcome back!');
+        toast.success('🎉 Welcome back!');
+        fireWelcomeConfetti();
         navigate('/');
       }
     } catch (error) {
