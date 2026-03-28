@@ -1,0 +1,239 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Send, X, Bot, User, Minimize2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
+
+type Message = { role: 'user' | 'assistant'; content: string };
+
+const GREETING = "Hey there! 👋 I'm **Hive AI**, your smart assistant for the Test Zone platform.\n\nAsk me anything — general questions, technical help, grammar checks, translations, or platform guidance!";
+
+interface HiveAIChatModalProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+const HiveAIChatModal: React.FC<HiveAIChatModalProps> = ({ open, onClose }) => {
+  const [messages, setMessages] = useState<Message[]>([
+    { role: 'assistant', content: GREETING },
+  ]);
+  const [input, setInput] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const scrollToBottom = useCallback(() => {
+    setTimeout(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    }, 50);
+  }, []);
+
+  useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
+
+  useEffect(() => {
+    if (open) setTimeout(() => inputRef.current?.focus(), 200);
+  }, [open]);
+
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || isStreaming) return;
+
+    const userMsg: Message = { role: 'user', content: text.trim() };
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
+    setInput('');
+    setIsStreaming(true);
+
+    let assistantContent = '';
+
+    try {
+      const resp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hive-ai-chat`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
+          }),
+        }
+      );
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: 'Request failed' }));
+        if (resp.status === 429) toast.error('Rate limit exceeded. Please wait a moment.');
+        else if (resp.status === 402) toast.error('AI credits exhausted. Please add credits.');
+        else toast.error(err.error || 'Failed to get response');
+        setIsStreaming(false);
+        return;
+      }
+
+      if (!resp.body) throw new Error('No response body');
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      const upsertAssistant = (content: string) => {
+        setMessages(prev => {
+          const last = prev[prev.length - 1];
+          if (last?.role === 'assistant' && prev.length === updatedMessages.length + 1) {
+            return prev.map((m, i) => i === prev.length - 1 ? { ...m, content } : m);
+          }
+          return [...prev, { role: 'assistant', content }];
+        });
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+          let line = buffer.slice(0, newlineIndex);
+          buffer = buffer.slice(newlineIndex + 1);
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+          if (line.startsWith(':') || line.trim() === '') continue;
+          if (!line.startsWith('data: ')) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === '[DONE]') break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const delta = parsed.choices?.[0]?.delta?.content;
+            if (delta) {
+              assistantContent += delta;
+              upsertAssistant(assistantContent);
+            }
+          } catch {
+            buffer = line + '\n' + buffer;
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Hive AI error:', e);
+      toast.error('Failed to get AI response');
+    } finally {
+      setIsStreaming(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(input);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed bottom-24 right-6 z-[9998] w-[380px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-8rem)]
+        rounded-2xl border border-border bg-card shadow-2xl shadow-black/20
+        flex flex-col overflow-hidden
+        animate-in slide-in-from-bottom-4 fade-in-0 duration-300"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-white text-sm">
+            🐝
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Hive AI</h3>
+            <p className="text-[10px] text-muted-foreground">Your Test Zone Assistant</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
+            <Minimize2 className="h-3.5 w-3.5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3">
+        {messages.map((msg, i) => (
+          <div key={i} className={cn('flex gap-2.5', msg.role === 'user' && 'flex-row-reverse')}>
+            <div className={cn(
+              'flex-shrink-0 h-7 w-7 rounded-full flex items-center justify-center text-xs',
+              msg.role === 'assistant'
+                ? 'bg-gradient-to-br from-emerald-400/20 to-cyan-400/20'
+                : 'bg-muted'
+            )}>
+              {msg.role === 'assistant' ? <Bot className="h-3.5 w-3.5 text-teal-500" /> : <User className="h-3.5 w-3.5 text-muted-foreground" />}
+            </div>
+            <div className={cn(
+              'max-w-[80%] px-3 py-2 rounded-2xl text-sm',
+              msg.role === 'assistant'
+                ? 'bg-muted text-foreground rounded-bl-md'
+                : 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white rounded-br-md'
+            )}>
+              {msg.role === 'assistant' ? (
+                <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:m-0 [&>ul]:mt-1 [&>ol]:mt-1 text-[13px] leading-relaxed">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                </div>
+              ) : (
+                <p className="whitespace-pre-wrap text-[13px]">{msg.content}</p>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {isStreaming && messages[messages.length - 1]?.role !== 'assistant' && (
+          <div className="flex gap-2.5">
+            <div className="flex-shrink-0 h-7 w-7 rounded-full bg-gradient-to-br from-emerald-400/20 to-cyan-400/20 flex items-center justify-center">
+              <Bot className="h-3.5 w-3.5 text-teal-500" />
+            </div>
+            <div className="bg-muted px-3 py-2 rounded-2xl rounded-bl-md">
+              <div className="flex items-center gap-1">
+                <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:0ms]" />
+                <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:150ms]" />
+                <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:300ms]" />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Input */}
+      <div className="border-t border-border p-3">
+        <div className="flex items-end gap-2">
+          <Textarea
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask Hive AI anything..."
+            disabled={isStreaming}
+            rows={1}
+            className="flex-1 min-h-[40px] max-h-24 resize-none py-2.5 text-sm rounded-xl"
+          />
+          <Button
+            size="icon"
+            className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+            onClick={() => sendMessage(input)}
+            disabled={isStreaming || !input.trim()}
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default HiveAIChatModal;
