@@ -27,7 +27,10 @@ export function useJiraConnection() {
   const [loading, setLoading] = useState(true);
 
   const fetchConnection = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     try {
       const { data, error } = await supabase
         .from('jira_connections')
