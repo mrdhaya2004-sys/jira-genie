@@ -83,12 +83,14 @@ export function useJiraConnection() {
       }
 
       if (result?.connected) {
-        setState({
+        // Refetch from DB to ensure state is properly synced
+        await fetchConnection();
+        setState(prev => ({
+          ...prev,
           status: 'connected',
-          data,
           projectName: result.projectName,
           lastValidatedAt: new Date().toISOString(),
-        });
+        }));
         return { success: true, projectName: result.projectName };
       } else {
         setState(prev => ({ ...prev, status: 'not_connected' }));
