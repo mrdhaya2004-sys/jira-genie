@@ -283,6 +283,48 @@ export type Database = {
           },
         ]
       }
+      jira_connections: {
+        Row: {
+          connection_status: string
+          created_at: string
+          id: string
+          is_connected: boolean
+          jira_api_token: string
+          jira_domain: string
+          jira_email: string
+          jira_project_key: string
+          last_validated_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connection_status?: string
+          created_at?: string
+          id?: string
+          is_connected?: boolean
+          jira_api_token: string
+          jira_domain: string
+          jira_email: string
+          jira_project_key: string
+          last_validated_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connection_status?: string
+          created_at?: string
+          id?: string
+          is_connected?: boolean
+          jira_api_token?: string
+          jira_domain?: string
+          jira_email?: string
+          jira_project_key?: string
+          last_validated_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mentions: {
         Row: {
           content_snippet: string
