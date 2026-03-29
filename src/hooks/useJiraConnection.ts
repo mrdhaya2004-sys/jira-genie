@@ -27,7 +27,10 @@ export function useJiraConnection() {
   const [loading, setLoading] = useState(true);
 
   const fetchConnection = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     try {
       const { data, error } = await supabase
         .from('jira_connections')
@@ -80,12 +83,14 @@ export function useJiraConnection() {
       }
 
       if (result?.connected) {
-        setState({
+        // Refetch from DB to ensure state is properly synced
+        await fetchConnection();
+        setState(prev => ({
+          ...prev,
           status: 'connected',
-          data,
           projectName: result.projectName,
           lastValidatedAt: new Date().toISOString(),
-        });
+        }));
         return { success: true, projectName: result.projectName };
       } else {
         setState(prev => ({ ...prev, status: 'not_connected' }));
