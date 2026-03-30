@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, CheckCircle2, XCircle, Eye, EyeOff, Pencil, Shield } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Eye, EyeOff, Pencil, Shield, Unplug } from 'lucide-react';
 import { toast } from 'sonner';
 import { ConnectionStatus, JiraConnectionData, useJiraConnection } from '@/hooks/useJiraConnection';
 import { cn } from '@/lib/utils';
@@ -52,6 +52,7 @@ const JiraSettingsDialog: React.FC<JiraSettingsDialogProps> = ({ open, onOpenCha
   const [showToken, setShowToken] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
 
   useEffect(() => {
     if (open && connection.data) {
@@ -89,6 +90,20 @@ const JiraSettingsDialog: React.FC<JiraSettingsDialogProps> = ({ open, onOpenCha
   const handleCancel = () => {
     setFormData(connection.data);
     setIsEditing(false);
+  };
+
+  const handleDisconnect = async () => {
+    setIsDisconnecting(true);
+    try {
+      await connection.disconnect();
+      setFormData({ jiraDomain: '', jiraEmail: '', jiraApiToken: '', jiraProjectKey: '' });
+      setIsEditing(false);
+      toast.success('Jira disconnected successfully');
+    } catch {
+      toast.error('Failed to disconnect');
+    } finally {
+      setIsDisconnecting(false);
+    }
   };
 
   const maskedToken = formData.jiraApiToken
@@ -208,14 +223,29 @@ const JiraSettingsDialog: React.FC<JiraSettingsDialogProps> = ({ open, onOpenCha
           {/* Actions */}
           <div className="flex gap-2 pt-2">
             {connection.status === 'connected' && !isEditing ? (
-              <Button
-                onClick={handleEdit}
-                variant="outline"
-                className="flex-1 gap-2"
-              >
-                <Pencil className="h-4 w-4" />
-                Edit Credentials
-              </Button>
+              <>
+                <Button
+                  onClick={handleEdit}
+                  variant="outline"
+                  className="flex-1 gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit Credentials
+                </Button>
+                <Button
+                  onClick={handleDisconnect}
+                  disabled={isDisconnecting}
+                  variant="outline"
+                  className="flex-1 gap-2 border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  {isDisconnecting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Unplug className="h-4 w-4" />
+                  )}
+                  Disconnect
+                </Button>
+              </>
             ) : (
               <>
                 {connection.status === 'connected' && isEditing && (
