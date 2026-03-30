@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import JiraSettingsDialog from '@/components/jira/JiraSettingsDialog';
 import { useJiraConnection } from '@/hooks/useJiraConnection';
+import jiraLogo from '@/assets/jira-logo.png';
 
 const LiveStatusIndicator: React.FC = () => (
   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25">
