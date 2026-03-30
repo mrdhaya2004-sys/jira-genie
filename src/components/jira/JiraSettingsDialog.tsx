@@ -52,6 +52,7 @@ const JiraSettingsDialog: React.FC<JiraSettingsDialogProps> = ({ open, onOpenCha
   const [showToken, setShowToken] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
 
   useEffect(() => {
     if (open && connection.data) {
