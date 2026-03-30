@@ -118,9 +118,7 @@ const JiraSettingsDialog: React.FC<JiraSettingsDialogProps> = ({ open, onOpenCha
         <DialogHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <Shield className="h-5 w-5 text-white" />
-              </div>
+              <img src={jiraLogo} alt="Jira Configuration" className="h-10 w-10 rounded-xl object-contain" />
               <div>
                 <DialogTitle className="text-lg">Jira Configuration</DialogTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">Manage your Jira integration</p>
