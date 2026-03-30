@@ -92,6 +92,20 @@ const JiraSettingsDialog: React.FC<JiraSettingsDialogProps> = ({ open, onOpenCha
     setIsEditing(false);
   };
 
+  const handleDisconnect = async () => {
+    setIsDisconnecting(true);
+    try {
+      await connection.disconnect();
+      setFormData({ jiraDomain: '', jiraEmail: '', jiraApiToken: '', jiraProjectKey: '' });
+      setIsEditing(false);
+      toast.success('Jira disconnected successfully');
+    } catch {
+      toast.error('Failed to disconnect');
+    } finally {
+      setIsDisconnecting(false);
+    }
+  };
+
   const maskedToken = formData.jiraApiToken
     ? '•'.repeat(Math.min(formData.jiraApiToken.length, 32))
     : '';
