@@ -8,6 +8,7 @@ import { Loader2, CheckCircle2, XCircle, Eye, EyeOff, Pencil, Shield, Unplug } f
 import { toast } from 'sonner';
 import { ConnectionStatus, JiraConnectionData, useJiraConnection } from '@/hooks/useJiraConnection';
 import { cn } from '@/lib/utils';
+import jiraLogo from '@/assets/jira-logo.png';
 
 interface JiraSettingsDialogProps {
   open: boolean;
