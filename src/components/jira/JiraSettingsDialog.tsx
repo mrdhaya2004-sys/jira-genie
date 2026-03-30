@@ -223,14 +223,29 @@ const JiraSettingsDialog: React.FC<JiraSettingsDialogProps> = ({ open, onOpenCha
           {/* Actions */}
           <div className="flex gap-2 pt-2">
             {connection.status === 'connected' && !isEditing ? (
-              <Button
-                onClick={handleEdit}
-                variant="outline"
-                className="flex-1 gap-2"
-              >
-                <Pencil className="h-4 w-4" />
-                Edit Credentials
-              </Button>
+              <>
+                <Button
+                  onClick={handleEdit}
+                  variant="outline"
+                  className="flex-1 gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit Credentials
+                </Button>
+                <Button
+                  onClick={handleDisconnect}
+                  disabled={isDisconnecting}
+                  variant="outline"
+                  className="flex-1 gap-2 border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  {isDisconnecting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Unplug className="h-4 w-4" />
+                  )}
+                  Disconnect
+                </Button>
+              </>
             ) : (
               <>
                 {connection.status === 'connected' && isEditing && (
