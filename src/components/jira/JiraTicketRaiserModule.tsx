@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import JiraSettingsDialog from '@/components/jira/JiraSettingsDialog';
 import { useJiraConnection } from '@/hooks/useJiraConnection';
+import jiraLogo from '@/assets/jira-logo.png';
 
 const LiveStatusIndicator: React.FC = () => (
   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25">
@@ -27,9 +28,7 @@ const JiraTicketRaiserModule: React.FC = () => {
         <div className="border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <span className="text-xl">🎫</span>
-              </div>
+              <img src={jiraLogo} alt="Jira Ticket Raiser" className="h-10 w-10 rounded-lg object-contain" />
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-lg font-semibold">Jira Ticket Raiser</h1>
