@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import chatLogo from '@/assets/chat-logo.png';
 import { Search, Plus, Users, User, MoreVertical, Trash2, AtSign } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
