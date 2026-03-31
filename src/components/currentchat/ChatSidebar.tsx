@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import chatLogo from '@/assets/chat-logo.png';
 import { Search, Plus, Users, User, MoreVertical, Trash2, AtSign } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -63,7 +64,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Chats</h2>
+          <div className="flex items-center gap-2">
+            <img src={chatLogo} alt="Chats" className="h-8 w-8 rounded-lg object-contain" />
+            <h2 className="text-lg font-semibold">Chats</h2>
+          </div>
           <div className="flex gap-1">
             <Button variant="ghost" size="icon-sm" onClick={onOpenUserSearch} title="Search Users">
               <AtSign className="h-4 w-4" />
