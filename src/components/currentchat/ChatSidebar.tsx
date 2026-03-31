@@ -60,7 +60,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   return (
-    <div className="w-80 border-r border-border flex flex-col bg-card">
+    <div className="h-full border-r border-border flex flex-col bg-card">
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-4">
@@ -115,74 +115,91 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
             <p className="text-xs mt-1">Search users with @ or start a new chat</p>
           </div>
         ) : (
-          <div className="p-2">
-            {filteredConversations.map(conv => (
-              <div
-                key={conv.id}
-                className={cn(
-                  "flex items-center gap-3 p-3 rounded-lg cursor-pointer group transition-colors",
-                  selectedConversation?.id === conv.id ? "bg-accent" : "hover:bg-muted/50"
-                )}
-                onClick={() => onSelectConversation(conv)}
-              >
-                <div className="relative">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={conv.avatar_url || undefined} />
-                    <AvatarFallback className={conv.type === 'group' ? 'bg-primary/10 text-primary' : 'bg-accent'}>
-                      {conv.type === 'group' ? <Users className="h-4 w-4" /> : getInitials(conv.name || 'DC')}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className={cn("text-sm truncate", conv.unread_count ? "font-bold" : "font-medium")}>{conv.name || 'Direct Chat'}</span>
-                    <div className="flex items-center gap-1.5">
-                      {conv.last_message && (
-                        <span className="text-xs text-muted-foreground">{formatTime(conv.last_message.created_at)}</span>
+          <div className="p-2 space-y-0.5">
+            {filteredConversations.map(conv => {
+              const hasUnread = (conv.unread_count ?? 0) > 0;
+              return (
+                <div
+                  key={conv.id}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg cursor-pointer group transition-all duration-200",
+                    selectedConversation?.id === conv.id
+                      ? "bg-accent shadow-sm"
+                      : hasUnread
+                        ? "bg-primary/5 hover:bg-primary/10"
+                        : "hover:bg-muted/50"
+                  )}
+                  onClick={() => onSelectConversation(conv)}
+                >
+                  <div className="relative flex-shrink-0">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={conv.avatar_url || undefined} />
+                      <AvatarFallback className={conv.type === 'group' ? 'bg-primary/10 text-primary' : 'bg-accent'}>
+                        {conv.type === 'group' ? <Users className="h-4 w-4" /> : getInitials(conv.name || 'DC')}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={cn("text-sm truncate", hasUnread ? "font-bold text-foreground" : "font-medium")}>{conv.name || 'Direct Chat'}</span>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {conv.last_message && (
+                          <span className={cn("text-[11px]", hasUnread ? "text-primary font-medium" : "text-muted-foreground")}>
+                            {formatTime(conv.last_message.created_at)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mt-0.5">
+                      {conv.last_message ? (
+                        <p className={cn("text-xs truncate", hasUnread ? "text-foreground font-medium" : "text-muted-foreground")}>
+                          {conv.last_message.is_deleted ? 'Message deleted' : conv.last_message.content}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">No messages yet</p>
                       )}
-                      {(conv.unread_count ?? 0) > 0 && (
-                        <Badge className="h-5 min-w-5 flex items-center justify-center px-1.5 text-[10px] font-bold">
-                          {conv.unread_count! > 99 ? '99+' : conv.unread_count}
-                        </Badge>
-                      )}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {hasUnread && (
+                          <Badge className="h-5 min-w-5 flex items-center justify-center px-1.5 text-[10px] font-bold rounded-full">
+                            {conv.unread_count! > 99 ? '99+' : conv.unread_count}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  {conv.last_message && (
-                    <p className={cn("text-xs truncate mt-0.5", conv.unread_count ? "text-foreground font-medium" : "text-muted-foreground")}>
-                      {conv.last_message.is_deleted ? 'Message deleted' : conv.last_message.content}
-                    </p>
-                  )}
+
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreVertical className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={(e) => { e.stopPropagation(); onDeleteConversation(conv.id); }}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />Delete Chat
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {conv.is_teams_synced ? (
+                      <TeamsBadge />
+                    ) : conv.type === 'group' ? (
+                      <Badge variant="secondary" className="text-[10px] px-1.5">Group</Badge>
+                    ) : null}
+                  </div>
                 </div>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      className="text-destructive"
-                      onClick={(e) => { e.stopPropagation(); onDeleteConversation(conv.id); }}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />Delete Chat
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {conv.is_teams_synced ? (
-                  <TeamsBadge />
-                ) : conv.type === 'group' ? (
-                  <Badge variant="secondary" className="text-xs">Group</Badge>
-                ) : null}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </ScrollArea>
