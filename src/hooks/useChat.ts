@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -11,6 +11,15 @@ import {
 import { notifyChatMessage, notifyMention } from '@/lib/notificationService';
 import { toast } from 'sonner';
 
+// Helper: sort conversations by last message time DESC
+function sortConversations(convs: Conversation[]): Conversation[] {
+  return [...convs].sort((a, b) => {
+    const timeA = a.last_message?.created_at || a.updated_at;
+    const timeB = b.last_message?.created_at || b.updated_at;
+    return new Date(timeB).getTime() - new Date(timeA).getTime();
+  });
+}
+
 export function useChat() {
   const { user, profile } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -19,6 +28,12 @@ export function useChat() {
   const [participants, setParticipants] = useState<ConversationParticipant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const selectedConvRef = useRef<string | null>(null);
+
+  // Keep ref in sync
+  useEffect(() => {
+    selectedConvRef.current = selectedConversation?.id || null;
+  }, [selectedConversation]);
 
   // Fetch all conversations for the current user
   const fetchConversations = useCallback(async () => {
@@ -143,7 +158,7 @@ export function useChat() {
         deduped.push(conv);
       }
 
-      setConversations(deduped);
+      setConversations(sortConversations(deduped));
     } catch (error) {
       console.error('Error fetching conversations:', error);
       toast.error('Failed to load conversations');
@@ -234,7 +249,6 @@ export function useChat() {
       if (data.type === 'direct' && data.participant_ids.length === 1) {
         const otherUserId = data.participant_ids[0];
 
-        // Find conversations where both users are participants
         const { data: myConvs } = await supabase
           .from('conversation_participants')
           .select('conversation_id')
@@ -250,7 +264,6 @@ export function useChat() {
             .in('conversation_id', myConvIds);
 
           if (sharedConvs && sharedConvs.length > 0) {
-            // Check if any of these shared conversations are direct type
             const { data: directConvs } = await supabase
               .from('conversations')
               .select('*')
@@ -260,7 +273,6 @@ export function useChat() {
               .maybeSingle();
 
             if (directConvs) {
-              // Return existing conversation instead of creating duplicate
               toast.info('Opening existing conversation');
               await fetchConversations();
               return directConvs as Conversation;
@@ -269,7 +281,6 @@ export function useChat() {
         }
       }
 
-      // Create the conversation
       const { data: newConv, error: convError } = await supabase
         .from('conversations')
         .insert({
@@ -282,14 +293,12 @@ export function useChat() {
 
       if (convError) throw convError;
 
-      // Add creator as admin first (must be committed before adding others for RLS)
       const { error: adminError } = await supabase
         .from('conversation_participants')
         .insert({ conversation_id: newConv.id, user_id: user.id, is_admin: true });
 
       if (adminError) throw adminError;
 
-      // Then add other participants
       if (data.participant_ids.length > 0) {
         const otherParticipants = data.participant_ids.map(userId => ({
           conversation_id: newConv.id,
@@ -331,29 +340,50 @@ export function useChat() {
 
       if (error) throw error;
 
+      const now = new Date().toISOString();
+
       // Update conversation updated_at and mark as read for sender
       await Promise.all([
         supabase
           .from('conversations')
-          .update({ updated_at: new Date().toISOString() })
+          .update({ updated_at: now })
           .eq('id', data.conversation_id),
         supabase
           .from('conversation_participants')
-          .update({ last_read_at: new Date().toISOString() })
+          .update({ last_read_at: now })
           .eq('conversation_id', data.conversation_id)
           .eq('user_id', user.id),
       ]);
 
-      // Clear unread count locally for the sent conversation
-      setConversations(prev => prev.map(c =>
-        c.id === data.conversation_id ? { ...c, unread_count: 0 } : c
-      ));
+      // Optimistically move conversation to top with updated last message
+      setConversations(prev => {
+        const updated = prev.map(c =>
+          c.id === data.conversation_id
+            ? {
+                ...c,
+                unread_count: 0,
+                updated_at: now,
+                last_message: {
+                  id: 'optimistic-' + Date.now(),
+                  conversation_id: data.conversation_id,
+                  sender_id: user.id,
+                  content: data.content,
+                  message_type: (data.message_type || 'text') as 'text' | 'image' | 'file' | 'system',
+                  metadata: {},
+                  is_deleted: false,
+                  created_at: now,
+                  updated_at: now,
+                } as ChatMessageData,
+              }
+            : c
+        );
+        return sortConversations(updated);
+      });
 
       // Notify other participants
       const senderName = profile?.full_name || 'Someone';
       const otherParticipants = participants.filter(p => p.user_id !== user.id);
 
-      // Check for @username mentions
       const mentionRegex = /@(\w+)/g;
       const mentionedUsernames = [...data.content.matchAll(mentionRegex)].map(m => m[1]);
       const isEveryoneMention = mentionedUsernames.includes('everyone');
@@ -544,27 +574,55 @@ export function useChat() {
         async (payload) => {
           const newMessage = payload.new as ChatMessageData;
           
-          // Refresh conversation list to show latest messages
-          fetchConversations();
+          // Optimistically update conversation list order and last message
+          setConversations(prev => {
+            const updated = prev.map(c => {
+              if (c.id === newMessage.conversation_id) {
+                const isActiveConv = selectedConvRef.current === c.id;
+                return {
+                  ...c,
+                  last_message: newMessage,
+                  updated_at: newMessage.created_at,
+                  // Only increment unread if not viewing this conversation and not own message
+                  unread_count: (!isActiveConv && newMessage.sender_id !== user.id)
+                    ? (c.unread_count || 0) + 1
+                    : c.unread_count || 0,
+                };
+              }
+              return c;
+            });
+            return sortConversations(updated);
+          });
 
           // If this message is for the currently selected conversation, add it to messages
-          setSelectedConversation(prev => {
-            if (prev && newMessage.conversation_id === prev.id) {
-              // Fetch sender profile and add message
-              supabase
-                .from('profiles')
-                .select('user_id, full_name, email, avatar_url')
-                .eq('user_id', newMessage.sender_id)
-                .maybeSingle()
-                .then(({ data: profile }) => {
-                  setMessages(prevMsgs => {
-                    if (prevMsgs.some(m => m.id === newMessage.id)) return prevMsgs;
-                    return [...prevMsgs, { ...newMessage, sender: profile || undefined }];
-                  });
-                });
+          if (selectedConvRef.current === newMessage.conversation_id) {
+            const { data: senderProfile } = await supabase
+              .from('profiles')
+              .select('user_id, full_name, email, avatar_url')
+              .eq('user_id', newMessage.sender_id)
+              .maybeSingle();
+
+            setMessages(prevMsgs => {
+              if (prevMsgs.some(m => m.id === newMessage.id)) return prevMsgs;
+              return [...prevMsgs, { ...newMessage, sender: senderProfile || undefined }];
+            });
+
+            // Mark as read since user is viewing
+            if (newMessage.sender_id !== user.id) {
+              await supabase
+                .from('conversation_participants')
+                .update({ last_read_at: new Date().toISOString() })
+                .eq('conversation_id', newMessage.conversation_id)
+                .eq('user_id', user.id);
+
+              setConversations(prev => prev.map(c =>
+                c.id === newMessage.conversation_id ? { ...c, unread_count: 0 } : c
+              ));
             }
-            return prev;
-          });
+          }
+
+          // Background refresh for accurate data (debounced effect)
+          fetchConversations();
         }
       )
       .on(
@@ -591,42 +649,6 @@ export function useChat() {
 
     const channel = supabase
       .channel(`chat-${selectedConversation.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `conversation_id=eq.${selectedConversation.id}`
-        },
-        async (payload) => {
-          const newMessage = payload.new as ChatMessageData;
-          
-          // Fetch sender profile
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('user_id, full_name, email, avatar_url')
-            .eq('user_id', newMessage.sender_id)
-            .maybeSingle();
-
-          setMessages(prev => {
-            if (prev.some(m => m.id === newMessage.id)) return prev;
-            return [...prev, { ...newMessage, sender: profile || undefined }];
-          });
-
-          // Mark as read immediately since user is viewing this conversation
-          await supabase
-            .from('conversation_participants')
-            .update({ last_read_at: new Date().toISOString() })
-            .eq('conversation_id', selectedConversation.id)
-            .eq('user_id', user.id);
-
-          // Keep local unread count at 0 for the active conversation
-          setConversations(prev => prev.map(c =>
-            c.id === selectedConversation.id ? { ...c, unread_count: 0 } : c
-          ));
-        }
-      )
       .on(
         'postgres_changes',
         {

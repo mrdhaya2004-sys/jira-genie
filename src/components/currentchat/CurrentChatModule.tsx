@@ -87,7 +87,6 @@ const CurrentChatModule: React.FC = () => {
   // Prompt for profile ID creation if not set
   useEffect(() => {
     if (user && profileId === null && !profileSetupOpen) {
-      // Small delay to not be intrusive
       const timer = setTimeout(() => setProfileSetupOpen(true), 2000);
       return () => clearTimeout(timer);
     }
@@ -106,7 +105,6 @@ const CurrentChatModule: React.FC = () => {
     if (isTestConversation(activeConversation.id)) return;
     await sendMessage({ conversation_id: activeConversation.id, content });
 
-    // Check for @HiveMind mention
     if (isHiveMindMention(content)) {
       const query = extractHiveMindQuery(content);
       if (query) {
@@ -116,7 +114,6 @@ const CurrentChatModule: React.FC = () => {
   };
 
   const handleStartChatFromSearch = async (userId: string, userName: string) => {
-    // Check if a direct conversation already exists
     const existing = conversations.find(c => 
       c.type === 'direct' && 
       c.participants?.some(p => p.user_id === userId)
@@ -188,9 +185,9 @@ const CurrentChatModule: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex">
-      {/* Sidebar */}
-      <div className="relative">
+    <div className="h-full flex overflow-hidden">
+      {/* Sidebar - fixed width, never collapses */}
+      <div className="relative flex-shrink-0 w-80 min-w-[280px] shadow-sm z-10">
         <ChatSidebar
           conversations={allConversations}
           selectedConversation={activeConversation}
@@ -210,8 +207,8 @@ const CurrentChatModule: React.FC = () => {
         />
       </div>
 
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-background">
+      {/* Main Chat Area - fills remaining space */}
+      <div className="flex-1 flex flex-col min-w-0 bg-background border-l border-border">
         {activeConversation ? (
           <>
             <ChatHeader

@@ -26,7 +26,6 @@ interface ChatMessageAreaProps {
   onToggleReaction?: (messageId: string, emoji: string) => void;
 }
 
-// Parse message content for code blocks
 function parseMessageContent(content: string): Array<{ type: 'text' | 'code'; content: string; language?: string }> {
   const parts: Array<{ type: 'text' | 'code'; content: string; language?: string }> = [];
   const codeBlockRegex = /```(\w*)\n?([\s\S]*?)```/g;
@@ -56,14 +55,28 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
   onToggleReaction,
 }) => {
   const { user } = useAuth();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const prevMessageCount = useRef(messages.length);
 
+  // Auto-scroll to bottom on new messages
   useEffect(() => {
-    // Use requestAnimationFrame to ensure DOM has updated before scrolling
-    requestAnimationFrame(() => {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    });
+    if (messages.length >= prevMessageCount.current) {
+      requestAnimationFrame(() => {
+        bottomRef.current?.scrollIntoView({ behavior: messages.length === prevMessageCount.current ? 'smooth' : 'auto' });
+      });
+    }
+    prevMessageCount.current = messages.length;
   }, [messages]);
+
+  // Scroll to bottom on initial load
+  useEffect(() => {
+    if (!isLoading && messages.length > 0) {
+      requestAnimationFrame(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'auto' });
+      });
+    }
+  }, [isLoading]);
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -104,7 +117,7 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
   }
 
   return (
-    <ScrollArea className="flex-1 p-4">
+    <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
       <div className="space-y-6">
         {Object.entries(groupedMessages).map(([date, dateMessages]) => (
           <div key={date}>
@@ -155,7 +168,7 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
                           </div>
                         )}
                         <div className={cn(
-                          "px-4 py-2 rounded-2xl text-sm",
+                          "px-4 py-2 rounded-2xl text-sm transition-colors",
                           isOwn ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted rounded-bl-md",
                           message.is_deleted && "italic opacity-60"
                         )}>
@@ -187,7 +200,6 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
                           </div>
                         )}
                       </div>
-                      {/* Reactions */}
                       {msgReactions.length > 0 && onToggleReaction && (
                         <MessageReactions
                           reactions={msgReactions}
