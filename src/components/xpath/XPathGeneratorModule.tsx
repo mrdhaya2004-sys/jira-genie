@@ -67,9 +67,7 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
       {/* Header */}
       <div className="border-b bg-card px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <FileCode2 className="h-5 w-5 text-primary" />
-          </div>
+          <img src={xpathLogo} alt="XPath Generator" className="h-10 w-10 rounded-lg object-contain" />
           <div>
             <h2 className="font-semibold flex items-center gap-2">
               🧬 XPath Generator
