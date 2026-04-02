@@ -56,24 +56,30 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
 }) => {
   const { user } = useAuth();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  
   const prevMessageCount = useRef(messages.length);
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to top on new messages (newest first layout)
   useEffect(() => {
     if (messages.length >= prevMessageCount.current) {
       requestAnimationFrame(() => {
-        bottomRef.current?.scrollIntoView({ behavior: messages.length === prevMessageCount.current ? 'smooth' : 'auto' });
+        if (scrollAreaRef.current) {
+          const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+          if (viewport) viewport.scrollTop = 0;
+        }
       });
     }
     prevMessageCount.current = messages.length;
   }, [messages]);
 
-  // Scroll to bottom on initial load
+  // Scroll to top on initial load
   useEffect(() => {
     if (!isLoading && messages.length > 0) {
       requestAnimationFrame(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'auto' });
+        if (scrollAreaRef.current) {
+          const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+          if (viewport) viewport.scrollTop = 0;
+        }
       });
     }
   }, [isLoading]);
@@ -215,7 +221,6 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
           </div>
         ))}
       </div>
-      <div ref={bottomRef} />
     </ScrollArea>
   );
 };

@@ -175,7 +175,7 @@ export function useChat() {
         .from('chat_messages')
         .select('*')
         .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
@@ -604,7 +604,7 @@ export function useChat() {
 
             setMessages(prevMsgs => {
               if (prevMsgs.some(m => m.id === newMessage.id)) return prevMsgs;
-              return [...prevMsgs, { ...newMessage, sender: senderProfile || undefined }];
+              return [{ ...newMessage, sender: senderProfile || undefined }, ...prevMsgs];
             });
 
             // Mark as read since user is viewing
