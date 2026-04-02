@@ -78,6 +78,7 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
                   !isBot && "text-primary-foreground prose-invert"
                 )}
                 dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
+                /* Content is sanitized via DOMPurify in formatContent */
               />
             </CardContent>
           </Card>
