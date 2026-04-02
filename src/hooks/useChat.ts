@@ -175,7 +175,7 @@ export function useChat() {
         .from('chat_messages')
         .select('*')
         .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
