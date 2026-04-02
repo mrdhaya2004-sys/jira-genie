@@ -1,4 +1,5 @@
 import React from 'react';
+import DOMPurify from 'dompurify';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -34,11 +35,16 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
 }) => {
   const isBot = message.role === 'assistant';
 
+  const sanitizeConfig = {
+    ALLOWED_TAGS: ['strong', 'br', 'em'],
+    ALLOWED_ATTR: [],
+  };
+
   const formatContent = (content: string) => {
-    // Parse markdown-like syntax
-    return content
+    const html = content
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br />');
+    return DOMPurify.sanitize(html, sanitizeConfig);
   };
 
   return (
@@ -72,6 +78,7 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
                   !isBot && "text-primary-foreground prose-invert"
                 )}
                 dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
+                /* Content is sanitized via DOMPurify in formatContent */
               />
             </CardContent>
           </Card>

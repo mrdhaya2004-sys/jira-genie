@@ -1,4 +1,5 @@
 import React from 'react';
+import DOMPurify from 'dompurify';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -51,10 +52,16 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
     }
   };
 
+  const sanitizeConfig = {
+    ALLOWED_TAGS: ['strong', 'br', 'em'],
+    ALLOWED_ATTR: [],
+  };
+
   const formatContent = (content: string) => {
-    return content
+    const html = content
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br />');
+    return DOMPurify.sanitize(html, sanitizeConfig);
   };
 
   // Parse XPaths from content
