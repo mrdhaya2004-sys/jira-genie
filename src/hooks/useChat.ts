@@ -604,7 +604,7 @@ export function useChat() {
 
             setMessages(prevMsgs => {
               if (prevMsgs.some(m => m.id === newMessage.id)) return prevMsgs;
-              return [...prevMsgs, { ...newMessage, sender: senderProfile || undefined }];
+              return [{ ...newMessage, sender: senderProfile || undefined }, ...prevMsgs];
             });
 
             // Mark as read since user is viewing
