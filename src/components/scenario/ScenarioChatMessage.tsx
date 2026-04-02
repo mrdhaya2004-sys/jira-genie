@@ -35,11 +35,16 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
 }) => {
   const isBot = message.role === 'assistant';
 
+  const sanitizeConfig = {
+    ALLOWED_TAGS: ['strong', 'br', 'em'],
+    ALLOWED_ATTR: [],
+  };
+
   const formatContent = (content: string) => {
-    // Parse markdown-like syntax
-    return content
+    const html = content
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br />');
+    return DOMPurify.sanitize(html, sanitizeConfig);
   };
 
   return (
