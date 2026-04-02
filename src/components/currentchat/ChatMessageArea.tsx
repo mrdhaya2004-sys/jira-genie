@@ -56,7 +56,7 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
 }) => {
   const { user } = useAuth();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  
   const prevMessageCount = useRef(messages.length);
 
   // Auto-scroll to top on new messages (newest first layout)
