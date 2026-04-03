@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import HiveAIDisableDialog from '@/components/hiveai/HiveAIDisableDialog';
 import { useAIConfig } from '@/hooks/useAIConfig';
 import { useHiveAISettings } from '@/hooks/useHiveAISettings';
 import { AI_PROVIDERS, type AIProvider } from '@/types/aiConfig';
@@ -25,7 +26,8 @@ import {
 
 const AIConfigurationModule: React.FC = () => {
   const { config, isLoading, isTesting, saveConfig, testConnection, removeConfig } = useAIConfig();
-  const { hiveEnabled, toggleHive } = useHiveAISettings();
+  const { hiveEnabled, setHiveEnabled } = useHiveAISettings();
+  const [showDisableDialog, setShowDisableDialog] = useState(false);
 
   const [provider, setProvider] = useState<AIProvider>('openai');
   const [apiKey, setApiKey] = useState('');
@@ -130,10 +132,22 @@ const AIConfigurationModule: React.FC = () => {
                 </p>
               </div>
             </div>
-            <Switch checked={hiveEnabled} onCheckedChange={toggleHive} />
+            <Switch
+              checked={hiveEnabled}
+              onCheckedChange={(checked) => {
+                if (!checked) setShowDisableDialog(true);
+                else setHiveEnabled(true);
+              }}
+            />
           </div>
         </CardContent>
       </Card>
+
+      <HiveAIDisableDialog
+        open={showDisableDialog}
+        onConfirm={() => { setShowDisableDialog(false); setHiveEnabled(false); }}
+        onCancel={() => setShowDisableDialog(false)}
+      />
 
       {/* Current Status */}
       {config &&

@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import HiveAIDisableDialog from '@/components/hiveai/HiveAIDisableDialog';
 import AvatarUpload from '@/components/auth/AvatarUpload';
 import CountryCodeSelect from '@/components/profile/CountryCodeSelect';
 import {
@@ -60,7 +61,8 @@ interface FormErrors {
 const ProfileModule: React.FC = () => {
   const { profile, user, refreshProfile } = useAuth();
   const { profileId, checkAvailability, saveProfileId, isChecking, isSaving: isSavingUsername } = useProfileId();
-  const { hiveEnabled, toggleHive } = useHiveAISettings();
+  const { hiveEnabled, setHiveEnabled } = useHiveAISettings();
+  const [showDisableDialog, setShowDisableDialog] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -483,10 +485,22 @@ const ProfileModule: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <Switch checked={hiveEnabled} onCheckedChange={toggleHive} />
+              <Switch
+                checked={hiveEnabled}
+                onCheckedChange={(checked) => {
+                  if (!checked) setShowDisableDialog(true);
+                  else setHiveEnabled(true);
+                }}
+              />
             </div>
           </CardContent>
         </Card>
+
+        <HiveAIDisableDialog
+          open={showDisableDialog}
+          onConfirm={() => { setShowDisableDialog(false); setHiveEnabled(false); }}
+          onCancel={() => setShowDisableDialog(false)}
+        />
       </div>
     </div>
   );
