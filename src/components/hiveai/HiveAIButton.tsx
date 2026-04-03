@@ -69,7 +69,7 @@ const HiveAIButton: React.FC = () => {
     if (!hasDragged.current) setChatOpen(prev => !prev);
   }, []);
 
-  if (!isAuthenticated) return null;
+  if (!isAuthenticated || settingsLoading || !hiveEnabled) return null;
 
   return (
     <>
