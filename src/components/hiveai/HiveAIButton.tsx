@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useHiveAISettings } from '@/hooks/useHiveAISettings';
 import HiveAIChatModal from './HiveAIChatModal';
 
 const STORAGE_KEY = 'hive-ai-position';
@@ -7,6 +8,7 @@ const DEFAULT_POS = { x: -24, y: -24 };
 
 const HiveAIButton: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { hiveEnabled, isLoading: settingsLoading } = useHiveAISettings();
   const [chatOpen, setChatOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const posRef = useRef(DEFAULT_POS);
@@ -67,7 +69,7 @@ const HiveAIButton: React.FC = () => {
     if (!hasDragged.current) setChatOpen(prev => !prev);
   }, []);
 
-  if (!isAuthenticated) return null;
+  if (!isAuthenticated || settingsLoading || !hiveEnabled) return null;
 
   return (
     <>

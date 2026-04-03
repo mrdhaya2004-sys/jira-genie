@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { useAIConfig } from '@/hooks/useAIConfig';
+import { useHiveAISettings } from '@/hooks/useHiveAISettings';
 import { AI_PROVIDERS, type AIProvider } from '@/types/aiConfig';
 import {
   Brain,
@@ -23,6 +25,7 @@ import {
 
 const AIConfigurationModule: React.FC = () => {
   const { config, isLoading, isTesting, saveConfig, testConnection, removeConfig } = useAIConfig();
+  const { hiveEnabled, toggleHive } = useHiveAISettings();
 
   const [provider, setProvider] = useState<AIProvider>('openai');
   const [apiKey, setApiKey] = useState('');
@@ -110,6 +113,24 @@ const AIConfigurationModule: React.FC = () => {
                 )}
               </div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Hive AI Toggle */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-lg">🐝</span>
+              <div>
+                <h3 className="font-medium text-foreground">Hive AI Chat</h3>
+                <p className="text-sm text-muted-foreground">
+                  {hiveEnabled ? 'Floating assistant is visible on all pages' : 'Floating assistant is hidden'}
+                </p>
+              </div>
+            </div>
+            <Switch checked={hiveEnabled} onCheckedChange={toggleHive} />
           </div>
         </CardContent>
       </Card>

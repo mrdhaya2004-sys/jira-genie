@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfileId } from '@/hooks/useProfileId';
+import { useHiveAISettings } from '@/hooks/useHiveAISettings';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import AvatarUpload from '@/components/auth/AvatarUpload';
 import CountryCodeSelect from '@/components/profile/CountryCodeSelect';
 import {
@@ -58,6 +60,7 @@ interface FormErrors {
 const ProfileModule: React.FC = () => {
   const { profile, user, refreshProfile } = useAuth();
   const { profileId, checkAvailability, saveProfileId, isChecking, isSaving: isSavingUsername } = useProfileId();
+  const { hiveEnabled, toggleHive } = useHiveAISettings();
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -458,6 +461,30 @@ const ProfileModule: React.FC = () => {
                 )}
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Preferences */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <span className="text-lg">⚙️</span>
+              Preferences
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-3">
+                <span className="text-lg">🐝</span>
+                <div>
+                  <p className="text-sm font-medium">Hive AI Chat</p>
+                  <p className="text-xs text-muted-foreground">
+                    {hiveEnabled ? 'Floating assistant is visible' : 'Floating assistant is hidden'}
+                  </p>
+                </div>
+              </div>
+              <Switch checked={hiveEnabled} onCheckedChange={toggleHive} />
+            </div>
           </CardContent>
         </Card>
       </div>
