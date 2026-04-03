@@ -25,6 +25,7 @@ import {
 
 const AIConfigurationModule: React.FC = () => {
   const { config, isLoading, isTesting, saveConfig, testConnection, removeConfig } = useAIConfig();
+  const { hiveEnabled, toggleHive } = useHiveAISettings();
 
   const [provider, setProvider] = useState<AIProvider>('openai');
   const [apiKey, setApiKey] = useState('');
