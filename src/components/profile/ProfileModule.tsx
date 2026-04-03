@@ -61,7 +61,8 @@ interface FormErrors {
 const ProfileModule: React.FC = () => {
   const { profile, user, refreshProfile } = useAuth();
   const { profileId, checkAvailability, saveProfileId, isChecking, isSaving: isSavingUsername } = useProfileId();
-  const { hiveEnabled, toggleHive } = useHiveAISettings();
+  const { hiveEnabled, setHiveEnabled } = useHiveAISettings();
+  const [showDisableDialog, setShowDisableDialog] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
