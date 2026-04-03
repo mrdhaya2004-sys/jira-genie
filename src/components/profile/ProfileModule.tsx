@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfileId } from '@/hooks/useProfileId';
+import { useHiveAISettings } from '@/hooks/useHiveAISettings';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import AvatarUpload from '@/components/auth/AvatarUpload';
 import CountryCodeSelect from '@/components/profile/CountryCodeSelect';
 import {
