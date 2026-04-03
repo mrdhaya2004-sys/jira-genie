@@ -463,6 +463,30 @@ const ProfileModule: React.FC = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Preferences */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <span className="text-lg">⚙️</span>
+              Preferences
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-3">
+                <span className="text-lg">🐝</span>
+                <div>
+                  <p className="text-sm font-medium">Hive AI Chat</p>
+                  <p className="text-xs text-muted-foreground">
+                    {hiveEnabled ? 'Floating assistant is visible' : 'Floating assistant is hidden'}
+                  </p>
+                </div>
+              </div>
+              <Switch checked={hiveEnabled} onCheckedChange={toggleHive} />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
