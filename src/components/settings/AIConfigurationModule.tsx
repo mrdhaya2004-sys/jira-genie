@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -136,7 +137,7 @@ const AIConfigurationModule: React.FC = () => {
               checked={hiveEnabled}
               onCheckedChange={(checked) => {
                 if (!checked) setShowDisableDialog(true);
-                else setHiveEnabled(true);
+                else { setHiveEnabled(true); toast("🐝 Hive AI Chat is back!", { description: "The floating assistant is now visible on all pages." }); }
               }}
             />
           </div>
