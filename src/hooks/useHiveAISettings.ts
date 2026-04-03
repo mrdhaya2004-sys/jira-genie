@@ -42,11 +42,9 @@ export function useHiveAISettings() {
     fetch();
   }, [user]);
 
-  const toggle = useCallback(async () => {
+  const setHiveEnabled = useCallback(async (newVal: boolean) => {
     if (!user) return;
-    const newVal = !enabled;
 
-    // Optimistic update + sync all hooks
     setEnabled(newVal);
     notifyAll(newVal);
 
@@ -56,7 +54,7 @@ export function useHiveAISettings() {
         { user_id: user.id, hive_chat_enabled: newVal },
         { onConflict: 'user_id' }
       );
-  }, [user, enabled]);
+  }, [user]);
 
-  return { hiveEnabled: enabled, isLoading, toggleHive: toggle };
+  return { hiveEnabled: enabled, isLoading, setHiveEnabled };
 }
