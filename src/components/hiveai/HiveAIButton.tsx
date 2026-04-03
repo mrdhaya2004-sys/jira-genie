@@ -8,6 +8,7 @@ const DEFAULT_POS = { x: -24, y: -24 };
 
 const HiveAIButton: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { hiveEnabled, isLoading: settingsLoading } = useHiveAISettings();
   const [chatOpen, setChatOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const posRef = useRef(DEFAULT_POS);
