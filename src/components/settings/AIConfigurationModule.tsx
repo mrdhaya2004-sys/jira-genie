@@ -117,6 +117,24 @@ const AIConfigurationModule: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Hive AI Toggle */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-lg">🐝</span>
+              <div>
+                <h3 className="font-medium text-foreground">Hive AI Chat</h3>
+                <p className="text-sm text-muted-foreground">
+                  {hiveEnabled ? 'Floating assistant is visible on all pages' : 'Floating assistant is hidden'}
+                </p>
+              </div>
+            </div>
+            <Switch checked={hiveEnabled} onCheckedChange={toggleHive} />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Current Status */}
       {config &&
       <Card>
