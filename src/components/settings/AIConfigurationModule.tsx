@@ -132,10 +132,22 @@ const AIConfigurationModule: React.FC = () => {
                 </p>
               </div>
             </div>
-            <Switch checked={hiveEnabled} onCheckedChange={toggleHive} />
+            <Switch
+              checked={hiveEnabled}
+              onCheckedChange={(checked) => {
+                if (!checked) setShowDisableDialog(true);
+                else setHiveEnabled(true);
+              }}
+            />
           </div>
         </CardContent>
       </Card>
+
+      <HiveAIDisableDialog
+        open={showDisableDialog}
+        onConfirm={() => { setShowDisableDialog(false); setHiveEnabled(false); }}
+        onCancel={() => setShowDisableDialog(false)}
+      />
 
       {/* Current Status */}
       {config &&
