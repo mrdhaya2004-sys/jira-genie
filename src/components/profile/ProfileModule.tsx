@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import HiveAIDisableDialog from '@/components/hiveai/HiveAIDisableDialog';
 import AvatarUpload from '@/components/auth/AvatarUpload';
 import CountryCodeSelect from '@/components/profile/CountryCodeSelect';
 import {
