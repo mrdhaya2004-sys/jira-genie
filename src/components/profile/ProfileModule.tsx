@@ -19,6 +19,7 @@ import {
   getCountryByCode,
   DEFAULT_COUNTRY,
 } from '@/lib/countryCodes';
+import ChangePasswordDialog from '@/components/profile/ChangePasswordDialog';
 import {
   AtSign,
   CheckCircle,
@@ -33,6 +34,7 @@ import {
   IdCard,
   Save,
   X,
+  Lock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
