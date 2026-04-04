@@ -469,6 +469,30 @@ const ProfileModule: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Security */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Lock className="h-5 w-5 text-primary" />
+              Security
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Lock className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Password</p>
+                  <p className="text-xs text-muted-foreground">Update your account password</p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setShowChangePassword(true)} className="gap-2">
+                Change Password
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Preferences */}
         <Card>
           <CardHeader>
