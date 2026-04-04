@@ -185,9 +185,9 @@ const CurrentChatModule: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex overflow-hidden">
+    <div className="h-full flex overflow-hidden bg-background">
       {/* Sidebar - fixed width, never collapses */}
-      <div className="relative flex-shrink-0 w-80 min-w-[280px] shadow-sm z-10">
+      <div className="relative flex-shrink-0 w-80 min-w-[280px]">
         <ChatSidebar
           conversations={allConversations}
           selectedConversation={activeConversation}
@@ -208,7 +208,7 @@ const CurrentChatModule: React.FC = () => {
       </div>
 
       {/* Main Chat Area - fills remaining space */}
-      <div className="flex-1 flex flex-col min-w-0 bg-background border-l border-border">
+      <div className="flex-1 flex flex-col min-w-0 bg-background">
         {activeConversation ? (
           <>
             <ChatHeader
