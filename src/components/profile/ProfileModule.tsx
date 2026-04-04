@@ -19,6 +19,7 @@ import {
   getCountryByCode,
   DEFAULT_COUNTRY,
 } from '@/lib/countryCodes';
+import ChangePasswordDialog from '@/components/profile/ChangePasswordDialog';
 import {
   AtSign,
   CheckCircle,
@@ -33,6 +34,7 @@ import {
   IdCard,
   Save,
   X,
+  Lock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -63,6 +65,7 @@ const ProfileModule: React.FC = () => {
   const { profileId, checkAvailability, saveProfileId, isChecking, isSaving: isSavingUsername } = useProfileId();
   const { hiveEnabled, setHiveEnabled } = useHiveAISettings();
   const [showDisableDialog, setShowDisableDialog] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -466,6 +469,30 @@ const ProfileModule: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Security */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Lock className="h-5 w-5 text-primary" />
+              Security
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Lock className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Password</p>
+                  <p className="text-xs text-muted-foreground">Update your account password</p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setShowChangePassword(true)} className="gap-2">
+                Change Password
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Preferences */}
         <Card>
           <CardHeader>
@@ -495,6 +522,8 @@ const ProfileModule: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+
+        <ChangePasswordDialog open={showChangePassword} onOpenChange={setShowChangePassword} />
 
         <HiveAIDisableDialog
           open={showDisableDialog}
