@@ -751,6 +751,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_notification: {
+        Args: {
+          _message: string
+          _reference_id?: string
+          _reference_type?: string
+          _target_user_id: string
+          _title: string
+          _type: string
+        }
+        Returns: undefined
+      }
       is_conversation_member: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
