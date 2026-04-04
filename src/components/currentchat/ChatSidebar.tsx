@@ -60,7 +60,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   return (
-    <div className="h-full border-r border-border flex flex-col bg-card">
+    <div className="h-full w-full border-r border-border flex flex-col bg-card">
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-4">

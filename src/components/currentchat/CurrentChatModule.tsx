@@ -208,7 +208,7 @@ const CurrentChatModule: React.FC = () => {
       </div>
 
       {/* Main Chat Area - fills remaining space */}
-      <div className="flex-1 flex flex-col min-w-0 bg-background">
+      <div className="flex-1 flex flex-col min-w-0 h-full bg-background">
         {activeConversation ? (
           <>
             <ChatHeader
