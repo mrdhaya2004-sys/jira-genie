@@ -65,6 +65,7 @@ const ProfileModule: React.FC = () => {
   const { profileId, checkAvailability, saveProfileId, isChecking, isSaving: isSavingUsername } = useProfileId();
   const { hiveEnabled, setHiveEnabled } = useHiveAISettings();
   const [showDisableDialog, setShowDisableDialog] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
