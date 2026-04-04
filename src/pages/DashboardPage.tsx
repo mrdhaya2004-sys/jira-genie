@@ -57,7 +57,7 @@ const DashboardPage: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         <DashboardHeader activeModule={activeModule} onModuleChange={setActiveModule} />
-        <main className="flex-1 overflow-hidden bg-muted/30">
+        <main className="flex-1 overflow-hidden">
           {activeModule === 'mentions' && <MentionsPanel />}
           {activeModule === 'chat' && <CurrentChatModule />}
           {activeModule === 'tickets' && <MyTicketsModule />}
