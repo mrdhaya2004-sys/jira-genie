@@ -523,6 +523,8 @@ const ProfileModule: React.FC = () => {
           </CardContent>
         </Card>
 
+        <ChangePasswordDialog open={showChangePassword} onOpenChange={setShowChangePassword} />
+
         <HiveAIDisableDialog
           open={showDisableDialog}
           onConfirm={() => { setShowDisableDialog(false); setHiveEnabled(false); }}
