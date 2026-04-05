@@ -494,6 +494,9 @@ const ProfileModule: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Two-Factor Authentication */}
+        <TwoFactorSection />
+
         {/* Preferences */}
         <Card>
           <CardHeader>
