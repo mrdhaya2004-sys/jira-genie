@@ -20,6 +20,7 @@ import {
   DEFAULT_COUNTRY,
 } from '@/lib/countryCodes';
 import ChangePasswordDialog from '@/components/profile/ChangePasswordDialog';
+import TwoFactorSection from '@/components/profile/TwoFactorSection';
 import {
   AtSign,
   CheckCircle,
