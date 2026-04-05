@@ -16,6 +16,7 @@ import { lovable } from '@/integrations/lovable/index';
 import AuthLayout from './AuthLayout';
 import PasswordInput from './PasswordInput';
 import SocialLoginButtons from './SocialLoginButtons';
+import OtpVerificationScreen from './OtpVerificationScreen';
 
 const fireWelcomeConfetti = () => {
   const duration = 1500;
