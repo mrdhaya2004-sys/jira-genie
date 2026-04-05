@@ -13,6 +13,7 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { lovable } from '@/integrations/lovable/index';
+import { supabase } from '@/integrations/supabase/client';
 import AuthLayout from './AuthLayout';
 import PasswordInput from './PasswordInput';
 import SocialLoginButtons from './SocialLoginButtons';
