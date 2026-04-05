@@ -156,11 +156,11 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
               <Key className="mr-2 h-4 w-4" />
               Change Password
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onClick={() => onModuleChange('profile')}>
               <Settings className="mr-2 h-4 w-4" />
               Account Settings
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onClick={() => onModuleChange('profile')}>
               <Sliders className="mr-2 h-4 w-4" />
               Preferences
             </DropdownMenuItem>
