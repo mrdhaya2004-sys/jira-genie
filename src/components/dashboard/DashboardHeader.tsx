@@ -31,7 +31,7 @@ import { ActiveModule } from '@/pages/DashboardPage';
 import testzoneLogo from '@/assets/testzone-logo.png';
 import { useNotifications } from '@/hooks/useNotifications';
 import NotificationPanel from '@/components/notifications/NotificationPanel';
-
+import ChangePasswordDialog from '@/components/profile/ChangePasswordDialog';
 interface DashboardHeaderProps {
   activeModule: ActiveModule;
   onModuleChange: (module: ActiveModule) => void;
