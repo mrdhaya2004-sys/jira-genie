@@ -13,9 +13,11 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { lovable } from '@/integrations/lovable/index';
+import { supabase } from '@/integrations/supabase/client';
 import AuthLayout from './AuthLayout';
 import PasswordInput from './PasswordInput';
 import SocialLoginButtons from './SocialLoginButtons';
+import OtpVerificationScreen from './OtpVerificationScreen';
 
 const fireWelcomeConfetti = () => {
   const duration = 1500;
@@ -55,6 +57,8 @@ const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { signIn, signInWithGoogle, isLoading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [show2FA, setShow2FA] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -68,10 +72,14 @@ const LoginForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      // First check if 2FA is enabled for this user
+      const { data: totpData } = await supabase.functions.invoke('totp-check', {
+        body: { email: data.email },
+      });
+
       const { error } = await signIn(data.email, data.password);
       
       if (error) {
-        // Handle specific error cases
         if (error.message.includes('Invalid login credentials')) {
           toast.error('Invalid email or password');
         } else if (error.message.includes('Email not confirmed')) {
@@ -81,6 +89,11 @@ const LoginForm: React.FC = () => {
         } else {
           toast.error(error.message || 'Login failed. Please try again.');
         }
+      } else if (totpData?.enabled) {
+        // 2FA is enabled - sign out and show OTP screen
+        await supabase.auth.signOut();
+        setPendingEmail(data.email);
+        setShow2FA(true);
       } else {
         toast.success('🎉 Welcome back!');
         fireWelcomeConfetti();
@@ -91,6 +104,25 @@ const LoginForm: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handle2FAVerified = async () => {
+    // Re-sign in after OTP verification
+    const formValues = form.getValues();
+    const { error } = await signIn(formValues.email, formValues.password);
+    if (!error) {
+      toast.success('🎉 Welcome back!');
+      fireWelcomeConfetti();
+      navigate('/');
+    } else {
+      toast.error('Login failed after verification. Please try again.');
+      setShow2FA(false);
+    }
+  };
+
+  const handleBack2FA = () => {
+    setShow2FA(false);
+    setPendingEmail('');
   };
 
   const handleGoogleLogin = async () => {
@@ -133,6 +165,18 @@ const LoginForm: React.FC = () => {
   };
 
   const isFormLoading = isLoading || isSubmitting;
+
+  if (show2FA) {
+    return (
+      <AuthLayout title="Test Zone" subtitle="Two-factor verification required.">
+        <OtpVerificationScreen
+          email={pendingEmail}
+          onVerified={handle2FAVerified}
+          onBack={handleBack2FA}
+        />
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout 

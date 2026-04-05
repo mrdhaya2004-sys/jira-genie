@@ -20,6 +20,7 @@ import {
   DEFAULT_COUNTRY,
 } from '@/lib/countryCodes';
 import ChangePasswordDialog from '@/components/profile/ChangePasswordDialog';
+import TwoFactorSection from '@/components/profile/TwoFactorSection';
 import {
   AtSign,
   CheckCircle,
@@ -492,6 +493,9 @@ const ProfileModule: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Two-Factor Authentication */}
+        <TwoFactorSection />
 
         {/* Preferences */}
         <Card>
