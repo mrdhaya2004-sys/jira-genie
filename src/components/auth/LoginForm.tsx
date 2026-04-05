@@ -166,6 +166,18 @@ const LoginForm: React.FC = () => {
 
   const isFormLoading = isLoading || isSubmitting;
 
+  if (show2FA) {
+    return (
+      <AuthLayout title="Test Zone" subtitle="Two-factor verification required.">
+        <OtpVerificationScreen
+          email={pendingEmail}
+          onVerified={handle2FAVerified}
+          onBack={handleBack2FA}
+        />
+      </AuthLayout>
+    );
+  }
+
   return (
     <AuthLayout 
       title="Test Zone" 
