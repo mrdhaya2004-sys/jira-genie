@@ -56,6 +56,8 @@ const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { signIn, signInWithGoogle, isLoading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [show2FA, setShow2FA] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
