@@ -152,7 +152,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
               <User className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onClick={() => setChangePasswordOpen(true)}>
               <Key className="mr-2 h-4 w-4" />
               Change Password
             </DropdownMenuItem>
