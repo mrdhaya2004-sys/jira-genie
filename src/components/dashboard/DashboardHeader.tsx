@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -31,7 +31,7 @@ import { ActiveModule } from '@/pages/DashboardPage';
 import testzoneLogo from '@/assets/testzone-logo.png';
 import { useNotifications } from '@/hooks/useNotifications';
 import NotificationPanel from '@/components/notifications/NotificationPanel';
-
+import ChangePasswordDialog from '@/components/profile/ChangePasswordDialog';
 interface DashboardHeaderProps {
   activeModule: ActiveModule;
   onModuleChange: (module: ActiveModule) => void;
@@ -39,6 +39,7 @@ interface DashboardHeaderProps {
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModuleChange }) => {
   const { profile, signOut } = useAuth();
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const {
     notifications,
     isLoading,
@@ -151,7 +152,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
               <User className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onClick={() => setChangePasswordOpen(true)}>
               <Key className="mr-2 h-4 w-4" />
               Change Password
             </DropdownMenuItem>
@@ -176,6 +177,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
     </header>
   );
 };
