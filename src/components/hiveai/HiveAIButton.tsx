@@ -95,7 +95,7 @@ const HiveAIButton: React.FC = () => {
           text-white font-bold text-[11px] leading-none tracking-tight
           hover:shadow-[0_0_24px_8px_rgba(34,197,94,0.5),0_0_50px_12px_rgba(14,50,100,0.4)]
           active:scale-95
-          select-none
+          select-none bg-blue-400
           ${isDragging ? 'cursor-grabbing scale-95' : 'cursor-grab'}
         `}
       >
