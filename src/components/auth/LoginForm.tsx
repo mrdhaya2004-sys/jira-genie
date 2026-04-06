@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -59,6 +59,7 @@ const LoginForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [show2FA, setShow2FA] = useState(false);
   const [pendingEmail, setPendingEmail] = useState('');
+  const pendingPasswordRef = useRef('');
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -72,11 +73,20 @@ const LoginForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // First check if 2FA is enabled for this user
+      // Check if 2FA is enabled BEFORE signing in
       const { data: totpData } = await supabase.functions.invoke('totp-check', {
         body: { email: data.email },
       });
 
+      if (totpData?.enabled) {
+        // 2FA is enabled — do NOT sign in yet, show OTP screen first
+        pendingPasswordRef.current = data.password;
+        setPendingEmail(data.email);
+        setShow2FA(true);
+        return;
+      }
+
+      // No 2FA — sign in directly
       const { error } = await signIn(data.email, data.password);
       
       if (error) {
@@ -89,11 +99,6 @@ const LoginForm: React.FC = () => {
         } else {
           toast.error(error.message || 'Login failed. Please try again.');
         }
-      } else if (totpData?.enabled) {
-        // 2FA is enabled - sign out and show OTP screen
-        await supabase.auth.signOut();
-        setPendingEmail(data.email);
-        setShow2FA(true);
       } else {
         toast.success('🎉 Welcome back!');
         fireWelcomeConfetti();
@@ -107,9 +112,9 @@ const LoginForm: React.FC = () => {
   };
 
   const handle2FAVerified = async () => {
-    // Re-sign in after OTP verification
-    const formValues = form.getValues();
-    const { error } = await signIn(formValues.email, formValues.password);
+    // OTP verified — now sign in with stored credentials
+    const { error } = await signIn(pendingEmail, pendingPasswordRef.current);
+    pendingPasswordRef.current = '';
     if (!error) {
       toast.success('🎉 Welcome back!');
       fireWelcomeConfetti();
