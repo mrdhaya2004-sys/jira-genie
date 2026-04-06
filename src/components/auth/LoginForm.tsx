@@ -112,9 +112,9 @@ const LoginForm: React.FC = () => {
   };
 
   const handle2FAVerified = async () => {
-    // Re-sign in after OTP verification
-    const formValues = form.getValues();
-    const { error } = await signIn(formValues.email, formValues.password);
+    // OTP verified — now sign in with stored credentials
+    const { error } = await signIn(pendingEmail, pendingPasswordRef.current);
+    pendingPasswordRef.current = '';
     if (!error) {
       toast.success('🎉 Welcome back!');
       fireWelcomeConfetti();
