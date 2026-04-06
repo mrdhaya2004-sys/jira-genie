@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
-import { encode as base32Encode } from "https://deno.land/std@0.208.0/encoding/base32.ts";
+import { encodeBase32 } from "https://deno.land/std@0.224.0/encoding/base32.ts";
 
 function generateSecret(): string {
   const bytes = new Uint8Array(20);
