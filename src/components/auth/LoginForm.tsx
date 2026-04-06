@@ -59,6 +59,7 @@ const LoginForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [show2FA, setShow2FA] = useState(false);
   const [pendingEmail, setPendingEmail] = useState('');
+  const pendingPasswordRef = useRef('');
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
