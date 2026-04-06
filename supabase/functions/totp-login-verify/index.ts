@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
-import { decode as base32Decode } from "https://deno.land/std@0.208.0/encoding/base32.ts";
+import { decodeBase32 } from "https://deno.land/std@0.224.0/encoding/base32.ts";
 
 async function generateTOTP(secret: string, timeStep: number = 0): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
