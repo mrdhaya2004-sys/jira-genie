@@ -13,7 +13,7 @@ async function generateTOTP(secret: string, timeStep: number = 0): Promise<strin
     tmp = Math.floor(tmp / 256);
   }
 
-  const keyBytes = base32Decode(secret);
+  const keyBytes = decodeBase32(secret);
   const key = await crypto.subtle.importKey(
     "raw", keyBytes, { name: "HMAC", hash: "SHA-1" }, false, ["sign"]
   );

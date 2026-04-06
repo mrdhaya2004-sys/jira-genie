@@ -5,7 +5,7 @@ import { encodeBase32 } from "https://deno.land/std@0.224.0/encoding/base32.ts";
 function generateSecret(): string {
   const bytes = new Uint8Array(20);
   crypto.getRandomValues(bytes);
-  return base32Encode(bytes);
+  return encodeBase32(bytes);
 }
 
 function buildOtpAuthUrl(secret: string, email: string): string {
