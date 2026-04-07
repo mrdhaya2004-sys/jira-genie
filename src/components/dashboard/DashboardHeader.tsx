@@ -180,6 +180,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
         </DropdownMenu>
       </div>
       <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
+      <HelpChatDialog open={helpChatOpen} onOpenChange={setHelpChatOpen} />
     </header>
   );
 };
