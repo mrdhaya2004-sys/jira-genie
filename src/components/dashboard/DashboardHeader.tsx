@@ -32,6 +32,7 @@ import testzoneLogo from '@/assets/testzone-logo.png';
 import { useNotifications } from '@/hooks/useNotifications';
 import NotificationPanel from '@/components/notifications/NotificationPanel';
 import ChangePasswordDialog from '@/components/profile/ChangePasswordDialog';
+import HelpChatDialog from '@/components/help/HelpChatDialog';
 interface DashboardHeaderProps {
   activeModule: ActiveModule;
   onModuleChange: (module: ActiveModule) => void;
@@ -40,6 +41,7 @@ interface DashboardHeaderProps {
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModuleChange }) => {
   const { profile, signOut } = useAuth();
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [helpChatOpen, setHelpChatOpen] = useState(false);
   const {
     notifications,
     isLoading,
@@ -165,7 +167,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
               Preferences
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onClick={() => setHelpChatOpen(true)}>
               <HelpCircle className="mr-2 h-4 w-4" />
               Help
             </DropdownMenuItem>
@@ -178,6 +180,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
         </DropdownMenu>
       </div>
       <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
+      <HelpChatDialog open={helpChatOpen} onOpenChange={setHelpChatOpen} />
     </header>
   );
 };
