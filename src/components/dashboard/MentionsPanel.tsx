@@ -69,8 +69,8 @@ const MentionsPanel: React.FC = () => {
 
       {/* Content */}
       <ScrollArea className="flex-1">
-        <div className="p-6 pt-4">
-          <div className="max-w-4xl mx-auto">
+        <div className="px-6 py-4">
+          <div className="max-w-5xl mx-auto">
             {mentions.length === 0 ? (
               <Card className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-12">

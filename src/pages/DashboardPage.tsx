@@ -44,9 +44,9 @@ const DashboardPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-muted/30">
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex w-64 flex-shrink-0 border-r border-sidebar-border">
+      <div className="hidden lg:flex w-[260px] flex-shrink-0 border-r border-sidebar-border">
         <DashboardSidebar 
           activeModule={activeModule} 
           onModuleChange={setActiveModule}
@@ -57,7 +57,7 @@ const DashboardPage: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         <DashboardHeader activeModule={activeModule} onModuleChange={setActiveModule} />
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 overflow-hidden bg-background/60">
           {activeModule === 'mentions' && <MentionsPanel />}
           {activeModule === 'chat' && <CurrentChatModule />}
           {activeModule === 'tickets' && <MyTicketsModule />}
