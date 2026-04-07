@@ -74,7 +74,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
   };
 
   return (
-    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 lg:px-6">
+    <header className="h-12 border-b border-border bg-card/80 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6">
       {/* Left side - Logo & Mobile Menu */}
       <div className="flex items-center gap-3">
         {/* Mobile Menu */}
