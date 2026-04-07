@@ -45,6 +45,19 @@ const TwoFactorSection: React.FC = () => {
           <CardTitle className="flex items-center gap-2 text-lg">
             <Shield className="h-5 w-5 text-primary" />
             Two-Factor Authentication
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    <Info className="h-4 w-4" />
+                    <span className="sr-only">2FA Info</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-[240px] text-xs">
+                  Two-Factor Authentication can only be enabled using Google Authenticator.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </CardTitle>
         </CardHeader>
         <CardContent>
