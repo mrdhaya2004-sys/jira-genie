@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Shield, ShieldCheck, ShieldOff, Loader2 } from 'lucide-react';
+import { Shield, ShieldCheck, ShieldOff, Loader2, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import TwoFactorSetupDialog from './TwoFactorSetupDialog';
@@ -44,6 +45,19 @@ const TwoFactorSection: React.FC = () => {
           <CardTitle className="flex items-center gap-2 text-lg">
             <Shield className="h-5 w-5 text-primary" />
             Two-Factor Authentication
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    <Info className="h-4 w-4" />
+                    <span className="sr-only">2FA Info</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-[240px] text-xs">
+                  Two-Factor Authentication can only be enabled using Google Authenticator.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </CardTitle>
         </CardHeader>
         <CardContent>
