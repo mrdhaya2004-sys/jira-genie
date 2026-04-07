@@ -85,18 +85,18 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       <Separator className="bg-sidebar-border" />
 
       {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
         {menuItems.map((item) =>
         <button
           key={item.label}
           onClick={() => onModuleChange(item.module)}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+            "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-colors",
             activeModule === item.module ?
             "bg-sidebar-accent text-sidebar-accent-foreground" :
             "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
           )}>
-          
+
             <item.icon className="h-4 w-4" />
             <span className="flex-1 text-left">{item.label}</span>
             {item.badge &&
