@@ -74,11 +74,11 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       className
     )}>
       {/* Header */}
-      <div className="p-4 flex items-center gap-3">
-        <img src={testzoneLogo} alt="Test Zone" className="h-10 w-10 rounded-lg object-contain" />
+      <div className="px-4 py-3 flex items-center gap-3">
+        <img src={testzoneLogo} alt="Test Zone" className="h-9 w-9 rounded-lg object-contain" />
         <div>
-          <h1 className="font-semibold text-sidebar-foreground">Test Zone</h1>
-          <p className="text-xs text-sidebar-foreground/60">Dashboard</p>
+          <h1 className="font-semibold text-sm text-sidebar-foreground tracking-tight">Test Zone</h1>
+          <p className="text-[11px] text-sidebar-foreground/50">Dashboard</p>
         </div>
       </div>
 
