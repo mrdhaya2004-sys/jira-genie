@@ -38,16 +38,16 @@ const MentionsPanel: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-6 pb-4 border-b border-border bg-background">
-        <div className="max-w-4xl mx-auto">
+      <div className="px-6 py-4 border-b border-border bg-card/50">
+        <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <AtSign className="h-5 w-5 text-primary" />
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <AtSign className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold">Mentioned on you</h1>
-                <p className="text-sm text-muted-foreground">
+                <h1 className="text-lg font-semibold tracking-tight">Mentioned on you</h1>
+                <p className="text-xs text-muted-foreground">
                   You have {unreadCount} unread mention{unreadCount !== 1 ? 's' : ''}
                 </p>
               </div>
