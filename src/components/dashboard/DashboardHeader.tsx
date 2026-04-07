@@ -41,6 +41,7 @@ interface DashboardHeaderProps {
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModuleChange }) => {
   const { profile, signOut } = useAuth();
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [helpChatOpen, setHelpChatOpen] = useState(false);
   const {
     notifications,
     isLoading,
