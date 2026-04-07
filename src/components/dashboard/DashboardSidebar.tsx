@@ -108,15 +108,15 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         )}
 
         {/* Automation Tools Section */}
-        <div className="pt-4 mt-4 border-t border-sidebar-border">
-          <p className="px-3 py-2 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
+        <div className="pt-3 mt-3 border-t border-sidebar-border">
+          <p className="px-3 py-1.5 text-[10px] font-semibold text-sidebar-foreground/40 uppercase tracking-widest">
             Automation Tools
           </p>
           {automationItems.map((item) =>
           <button
             key={item.label}
             onClick={() => onModuleChange(item.module)}
-            className={cn("w-full gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-start",
+            className={cn("w-full gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-colors flex items-center justify-start",
 
             activeModule === item.module ?
             "bg-sidebar-accent text-sidebar-accent-foreground" :
