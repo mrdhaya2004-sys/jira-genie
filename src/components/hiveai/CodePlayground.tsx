@@ -2,9 +2,10 @@ import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, Play, Copy, Check, Maximize2, Minimize2 } from 'lucide-react';
+import { X, Play, Copy, Check, Maximize2, Minimize2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CodePlaygroundProps {
   initialCode: string;
@@ -38,7 +39,6 @@ const detectLanguage = (lang?: string): string => {
   return 'javascript';
 };
 
-// Simple simulated execution for JS
 const simulateRun = (code: string, language: string): string => {
   if (language === 'javascript' || language === 'typescript') {
     try {
@@ -65,6 +65,7 @@ const CodePlayground: React.FC<CodePlaygroundProps> = ({ initialCode, initialLan
   const [output, setOutput] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
 
   const handleCopy = useCallback(async () => {
     await navigator.clipboard.writeText(code);
@@ -75,6 +76,39 @@ const CodePlayground: React.FC<CodePlaygroundProps> = ({ initialCode, initialLan
 
   const handleRun = useCallback(() => {
     setOutput(simulateRun(code, language));
+  }, [code, language]);
+
+  const handleLanguageChange = useCallback(async (newLang: string) => {
+    if (newLang === language) return;
+
+    const oldLang = language;
+    setLanguage(newLang);
+    setIsConverting(true);
+    setOutput(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('code-convert', {
+        body: {
+          code,
+          fromLanguage: LANGUAGES.find(l => l.value === oldLang)?.label || oldLang,
+          toLanguage: LANGUAGES.find(l => l.value === newLang)?.label || newLang,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.convertedCode) {
+        setCode(data.convertedCode);
+        toast.success(`Code converted to ${LANGUAGES.find(l => l.value === newLang)?.label}`);
+      } else {
+        throw new Error('No converted code returned');
+      }
+    } catch (err) {
+      toast.error('Conversion failed. You can edit the code manually.');
+      setLanguage(oldLang);
+    } finally {
+      setIsConverting(false);
+    }
   }, [code, language]);
 
   return (
@@ -95,8 +129,8 @@ const CodePlayground: React.FC<CodePlaygroundProps> = ({ initialCode, initialLan
           <span className="text-xs font-medium text-muted-foreground ml-1">Code Playground</span>
         </div>
         <div className="flex items-center gap-1">
-          <Select value={language} onValueChange={setLanguage}>
-            <SelectTrigger className="h-7 w-[130px] text-xs border-border/50">
+          <Select value={language} onValueChange={handleLanguageChange}>
+            <SelectTrigger className="h-7 w-[130px] text-xs border-border/50" disabled={isConverting}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -114,6 +148,16 @@ const CodePlayground: React.FC<CodePlaygroundProps> = ({ initialCode, initialLan
         </div>
       </div>
 
+      {/* Converting overlay */}
+      {isConverting && (
+        <div className="absolute inset-0 z-10 bg-background/80 backdrop-blur-sm flex items-center justify-center rounded-2xl">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <span className="text-sm font-medium text-muted-foreground">Converting code...</span>
+          </div>
+        </div>
+      )}
+
       {/* Editor */}
       <div className="flex-1 min-h-0 flex flex-col">
         <div className="flex-1 min-h-0 relative">
@@ -123,6 +167,7 @@ const CodePlayground: React.FC<CodePlaygroundProps> = ({ initialCode, initialLan
             spellCheck={false}
             className="absolute inset-0 w-full h-full p-4 bg-sidebar text-sidebar-foreground font-mono text-xs leading-relaxed resize-none border-0 focus:outline-none focus:ring-0 tab-size-2"
             style={{ tabSize: 2 }}
+            disabled={isConverting}
           />
         </div>
 
@@ -133,6 +178,7 @@ const CodePlayground: React.FC<CodePlaygroundProps> = ({ initialCode, initialLan
               size="sm"
               className="h-7 gap-1.5 text-xs bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
               onClick={handleRun}
+              disabled={isConverting}
             >
               <Play className="h-3 w-3" />
               Run
@@ -142,6 +188,7 @@ const CodePlayground: React.FC<CodePlaygroundProps> = ({ initialCode, initialLan
               size="sm"
               className="h-7 gap-1.5 text-xs"
               onClick={handleCopy}
+              disabled={isConverting}
             >
               {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
               {copied ? 'Copied' : 'Copy'}
