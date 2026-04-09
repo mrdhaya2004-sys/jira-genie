@@ -71,7 +71,7 @@ const HistoryModule: React.FC<HistoryModuleProps> = ({ onResumeAction }) => {
               </Badge>
             </h2>
             <p className="text-xs text-muted-foreground">
-              Complete audit trail — click <strong>View</strong> to inspect or <strong>Continue</strong> to resume
+              Complete audit trail - click <strong>View</strong> to inspect or <strong>Continue</strong> to resume
             </p>
           </div>
         </div>
