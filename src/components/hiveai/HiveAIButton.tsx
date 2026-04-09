@@ -11,6 +11,7 @@ const HiveAIButton: React.FC = () => {
   const { hiveEnabled, isLoading: settingsLoading } = useHiveAISettings();
   const [chatOpen, setChatOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [ripple, setRipple] = useState(false);
   const posRef = useRef(DEFAULT_POS);
   const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
   const hasDragged = useRef(false);
@@ -66,7 +67,11 @@ const HiveAIButton: React.FC = () => {
   }, []);
 
   const handleClick = useCallback(() => {
-    if (!hasDragged.current) setChatOpen(prev => !prev);
+    if (!hasDragged.current) {
+      setRipple(true);
+      setTimeout(() => setRipple(false), 600);
+      setChatOpen(prev => !prev);
+    }
   }, []);
 
   if (!isAuthenticated || settingsLoading || !hiveEnabled) return null;
@@ -74,37 +79,58 @@ const HiveAIButton: React.FC = () => {
   return (
     <>
       <style>{`
-        @keyframes hive-glow-pulse {
-          0%, 100% { opacity: 0.5; transform: scale(1); }
-          50% { opacity: 0.85; transform: scale(1.08); }
+        @keyframes hive-glow-breathe {
+          0%, 100% { opacity: 0.55; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.12); }
         }
-        @keyframes hive-ring-pulse {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 0.55; transform: scale(1.15); }
+        @keyframes hive-ring-breathe {
+          0%, 100% { opacity: 0.35; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(1.22); }
         }
-        .hive-btn-glow {
-          animation: hive-glow-pulse 3s ease-in-out infinite;
+        @keyframes hive-outer-breathe {
+          0%, 100% { opacity: 0.2; transform: scale(1); }
+          50% { opacity: 0.45; transform: scale(1.3); }
         }
-        .hive-btn-ring {
-          animation: hive-ring-pulse 3s ease-in-out infinite 0.5s;
+        @keyframes hive-ripple {
+          0% { opacity: 0.6; transform: scale(1); }
+          100% { opacity: 0; transform: scale(2.2); }
         }
-        .hive-btn-container:hover .hive-btn-glow {
-          opacity: 0.95 !important;
-          transform: scale(1.12) !important;
+        .hive-glow-inner {
+          animation: hive-glow-breathe 2.8s ease-in-out infinite;
         }
-        .hive-btn-container:hover .hive-btn-ring {
-          opacity: 0.7 !important;
-          transform: scale(1.2) !important;
+        .hive-glow-mid {
+          animation: hive-ring-breathe 2.8s ease-in-out infinite 0.3s;
         }
-        .hive-btn-container.chat-open .hive-btn-glow {
-          animation: none;
-          opacity: 0.3;
-          transform: scale(1);
+        .hive-glow-outer {
+          animation: hive-outer-breathe 2.8s ease-in-out infinite 0.6s;
         }
-        .hive-btn-container.chat-open .hive-btn-ring {
-          animation: none;
-          opacity: 0.15;
-          transform: scale(1);
+        .hive-container:hover .hive-glow-inner {
+          opacity: 1 !important;
+          transform: scale(1.15) !important;
+          filter: blur(8px) brightness(1.2);
+        }
+        .hive-container:hover .hive-glow-mid {
+          opacity: 0.8 !important;
+          transform: scale(1.28) !important;
+        }
+        .hive-container:hover .hive-glow-outer {
+          opacity: 0.55 !important;
+          transform: scale(1.38) !important;
+        }
+        .hive-container.is-open .hive-glow-inner {
+          animation-play-state: running;
+          opacity: 0.35;
+        }
+        .hive-container.is-open .hive-glow-mid {
+          animation-play-state: running;
+          opacity: 0.2;
+        }
+        .hive-container.is-open .hive-glow-outer {
+          animation-play-state: running;
+          opacity: 0.1;
+        }
+        .hive-ripple-ring {
+          animation: hive-ripple 0.6s ease-out forwards;
         }
       `}</style>
       <button
@@ -122,56 +148,78 @@ const HiveAIButton: React.FC = () => {
           willChange: 'right, bottom',
         }}
         className={`
-          hive-btn-container group
+          hive-container group
           h-14 w-14 rounded-full relative
           flex items-center justify-center
           select-none
           transition-transform duration-200
           active:scale-95
-          ${chatOpen ? 'chat-open' : ''}
+          ${chatOpen ? 'is-open' : ''}
           ${isDragging ? 'cursor-grabbing scale-95' : 'cursor-grab'}
         `}
       >
-        {/* Outer glow ring */}
+        {/* Layer 1: Outer wide glow */}
         <span
-          className="hive-btn-ring absolute -inset-2 rounded-full pointer-events-none"
+          className="hive-glow-outer absolute rounded-full pointer-events-none"
           style={{
-            background: 'radial-gradient(circle, rgba(56,189,248,0.25) 0%, rgba(52,211,153,0.15) 50%, transparent 70%)',
+            inset: '-12px',
+            background: 'radial-gradient(circle, rgba(0,198,255,0.2) 0%, rgba(0,255,179,0.12) 45%, transparent 70%)',
+            filter: 'blur(10px)',
           }}
         />
-        {/* Inner glow */}
+        {/* Layer 2: Mid glow ring */}
         <span
-          className="hive-btn-glow absolute -inset-1 rounded-full pointer-events-none"
+          className="hive-glow-mid absolute rounded-full pointer-events-none"
           style={{
-            background: 'radial-gradient(circle, rgba(56,189,248,0.35) 0%, rgba(52,211,153,0.2) 60%, transparent 75%)',
+            inset: '-8px',
+            background: 'radial-gradient(circle, rgba(0,198,255,0.3) 0%, rgba(0,255,179,0.2) 50%, transparent 72%)',
             filter: 'blur(6px)',
           }}
         />
+        {/* Layer 3: Inner intense glow */}
+        <span
+          className="hive-glow-inner absolute rounded-full pointer-events-none"
+          style={{
+            inset: '-4px',
+            background: 'radial-gradient(circle, rgba(0,198,255,0.45) 0%, rgba(0,255,179,0.3) 55%, transparent 75%)',
+            filter: 'blur(5px)',
+          }}
+        />
+        {/* Ripple effect on click */}
+        {ripple && (
+          <span
+            className="hive-ripple-ring absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              border: '2px solid rgba(0,198,255,0.5)',
+            }}
+          />
+        )}
         {/* Button surface */}
         <span
           className="absolute inset-0 rounded-full"
           style={{
-            background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 40%, #34d399 100%)',
-            boxShadow: '0 2px 12px rgba(14,165,233,0.3), 0 1px 4px rgba(0,0,0,0.15)',
+            background: 'linear-gradient(135deg, #00C6FF 0%, #00e0c0 50%, #00FFB3 100%)',
+            boxShadow: '0 4px 20px rgba(0,198,255,0.4), 0 2px 8px rgba(0,255,179,0.3), inset 0 1px 1px rgba(255,255,255,0.25)',
           }}
         />
-        {/* Subtle inner highlight */}
+        {/* Inner highlight */}
         <span
           className="absolute inset-[1px] rounded-full pointer-events-none"
           style={{
-            background: 'linear-gradient(160deg, rgba(255,255,255,0.2) 0%, transparent 50%)',
+            background: 'linear-gradient(160deg, rgba(255,255,255,0.25) 0%, transparent 45%)',
           }}
         />
         {/* Border */}
         <span
           className="absolute inset-0 rounded-full pointer-events-none"
-          style={{
-            border: '1px solid rgba(255,255,255,0.2)',
-          }}
+          style={{ border: '1px solid rgba(255,255,255,0.3)' }}
         />
         {/* Text */}
         <span className="relative z-10 flex flex-col items-center leading-none">
-          <span className="text-[11px] font-bold tracking-wide text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
+          <span
+            className="text-[11px] font-bold tracking-wider text-white"
+            style={{ textShadow: '0 1px 3px rgba(0,0,0,0.25)' }}
+          >
             HIVE AI
           </span>
         </span>
