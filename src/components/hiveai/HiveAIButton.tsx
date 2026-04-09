@@ -73,6 +73,40 @@ const HiveAIButton: React.FC = () => {
 
   return (
     <>
+      <style>{`
+        @keyframes hive-glow-pulse {
+          0%, 100% { opacity: 0.5; transform: scale(1); }
+          50% { opacity: 0.85; transform: scale(1.08); }
+        }
+        @keyframes hive-ring-pulse {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.55; transform: scale(1.15); }
+        }
+        .hive-btn-glow {
+          animation: hive-glow-pulse 3s ease-in-out infinite;
+        }
+        .hive-btn-ring {
+          animation: hive-ring-pulse 3s ease-in-out infinite 0.5s;
+        }
+        .hive-btn-container:hover .hive-btn-glow {
+          opacity: 0.95 !important;
+          transform: scale(1.12) !important;
+        }
+        .hive-btn-container:hover .hive-btn-ring {
+          opacity: 0.7 !important;
+          transform: scale(1.2) !important;
+        }
+        .hive-btn-container.chat-open .hive-btn-glow {
+          animation: none;
+          opacity: 0.3;
+          transform: scale(1);
+        }
+        .hive-btn-container.chat-open .hive-btn-ring {
+          animation: none;
+          opacity: 0.15;
+          transform: scale(1);
+        }
+      `}</style>
       <button
         ref={buttonRef}
         onClick={handleClick}
@@ -88,23 +122,58 @@ const HiveAIButton: React.FC = () => {
           willChange: 'right, bottom',
         }}
         className={`
-          group h-14 w-14 rounded-full
-          bg-gradient-to-br from-[#0a1628] via-[#0d3320] to-[#122a4e]
-          shadow-[0_0_18px_4px_rgba(34,197,94,0.35),0_0_40px_8px_rgba(14,50,100,0.3)]
+          hive-btn-container group
+          h-14 w-14 rounded-full relative
           flex items-center justify-center
-          text-white font-bold text-[11px] leading-none tracking-tight
-          hover:shadow-[0_0_24px_8px_rgba(34,197,94,0.5),0_0_50px_12px_rgba(14,50,100,0.4)]
+          select-none
+          transition-transform duration-200
           active:scale-95
-          select-none bg-blue-400
+          ${chatOpen ? 'chat-open' : ''}
           ${isDragging ? 'cursor-grabbing scale-95' : 'cursor-grab'}
         `}
       >
-        <span className="absolute -inset-1 rounded-full bg-gradient-to-br from-green-500/30 via-emerald-400/20 to-blue-900/30 blur-md animate-pulse pointer-events-none" />
-        <span className="absolute inset-0 rounded-full bg-gradient-to-br from-green-500/25 to-blue-800/20 animate-pulse pointer-events-none" />
-        <span className="absolute inset-0 rounded-full border border-green-400/40 pointer-events-none" />
-        <span className="relative z-10 flex flex-col items-center gap-0.5">
-          <span className="text-[13px]">🐝</span>
-          <span className="text-[9px] font-semibold tracking-wider uppercase text-green-300/90">Hive AI</span>
+        {/* Outer glow ring */}
+        <span
+          className="hive-btn-ring absolute -inset-2 rounded-full pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle, rgba(56,189,248,0.25) 0%, rgba(52,211,153,0.15) 50%, transparent 70%)',
+          }}
+        />
+        {/* Inner glow */}
+        <span
+          className="hive-btn-glow absolute -inset-1 rounded-full pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle, rgba(56,189,248,0.35) 0%, rgba(52,211,153,0.2) 60%, transparent 75%)',
+            filter: 'blur(6px)',
+          }}
+        />
+        {/* Button surface */}
+        <span
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 40%, #34d399 100%)',
+            boxShadow: '0 2px 12px rgba(14,165,233,0.3), 0 1px 4px rgba(0,0,0,0.15)',
+          }}
+        />
+        {/* Subtle inner highlight */}
+        <span
+          className="absolute inset-[1px] rounded-full pointer-events-none"
+          style={{
+            background: 'linear-gradient(160deg, rgba(255,255,255,0.2) 0%, transparent 50%)',
+          }}
+        />
+        {/* Border */}
+        <span
+          className="absolute inset-0 rounded-full pointer-events-none"
+          style={{
+            border: '1px solid rgba(255,255,255,0.2)',
+          }}
+        />
+        {/* Text */}
+        <span className="relative z-10 flex flex-col items-center leading-none">
+          <span className="text-[11px] font-bold tracking-wide text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
+            HIVE AI
+          </span>
         </span>
       </button>
 
