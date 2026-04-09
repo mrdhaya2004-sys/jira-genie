@@ -67,7 +67,7 @@ const TeamsConnectionPanel: React.FC = () => {
               </>
             ) : (
               <>
-                <TeamsIcon className="h-4 w-4 mr-2" />
+                <TeamsIcon className="h-4 w-4 mr-2 text-primary-foreground" />
                 Connect Teams
               </>
             )}
