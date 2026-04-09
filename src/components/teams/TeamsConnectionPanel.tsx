@@ -30,7 +30,7 @@ const TeamsConnectionPanel: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Card className="p-6">
+      <Card className="p-6 opacity-95">
         <div className="flex items-center gap-3 animate-pulse">
           <div className="h-10 w-10 rounded-lg bg-muted" />
           <div className="space-y-2 flex-1">
