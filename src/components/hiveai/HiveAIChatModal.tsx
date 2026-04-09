@@ -9,7 +9,7 @@ import CodePlayground from './CodePlayground';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 
-const GREETING = "Hey there! 👋 I'm **Hive AI**, your smart assistant for the Test Zone platform.\n\nAsk me anything — general questions, technical help, grammar checks, translations, or platform guidance!";
+const GREETING = "Hey there! 👋 I'm **Hive AI**, your smart assistant for the Test Zone platform.\n\nAsk me anything  general questions, technical help, grammar checks, translations, or platform guidance!";
 
 interface HiveAIChatModalProps {
   open: boolean;
