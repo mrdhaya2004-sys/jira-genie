@@ -44,10 +44,10 @@ const TeamsConnectionPanel: React.FC = () => {
 
   if (!connection || !connection.is_connected) {
     return (
-      <Card className="p-6">
+      <Card className="p-6 opacity-95">
         <div className="flex items-center gap-4">
           <div className="h-12 w-12 rounded-xl bg-[#5B5FC7]/10 flex items-center justify-center">
-            <TeamsIcon className="h-7 w-7" />
+            <TeamsIcon className="h-7 w-7 rounded-sm object-cover" />
           </div>
           <div className="flex-1">
             <h3 className="font-semibold text-sm">Microsoft Teams</h3>
@@ -78,11 +78,11 @@ const TeamsConnectionPanel: React.FC = () => {
   }
 
   return (
-    <Card className="p-6 space-y-4">
+    <Card className="p-6 space-y-4 opacity-95">
       {/* Header */}
       <div className="flex items-center gap-4">
         <div className="h-12 w-12 rounded-xl bg-[#5B5FC7]/10 flex items-center justify-center">
-          <TeamsIcon className="h-7 w-7" />
+          <TeamsIcon className="h-7 w-7 rounded-sm object-cover" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
