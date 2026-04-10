@@ -154,12 +154,12 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           Help & Support
         </button>
         <button
-          onClick={() => onModuleChange('profile')}
+          onClick={() => onModuleChange('account-settings')}
           className={cn(
             "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-colors",
-            activeModule === 'profile' ?
-            "bg-sidebar-accent text-sidebar-accent-foreground" :
-            "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+            activeModule === 'account-settings'
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
           )}>
           <Settings className="h-4 w-4" />
           Settings

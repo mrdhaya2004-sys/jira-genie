@@ -70,6 +70,7 @@ const DashboardPage: React.FC = () => {
           {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
           {activeModule === 'ai-settings' && <AIConfigurationModule />}
           {activeModule === 'profile' && <ProfileModule />}
+          {activeModule === 'account-settings' && <AccountSettingsModule />}
         </main>
       </div>
     </div>
