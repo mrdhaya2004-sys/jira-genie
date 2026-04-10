@@ -14,7 +14,7 @@ import AIConfigurationModule from '@/components/settings/AIConfigurationModule';
 import ProfileModule from '@/components/profile/ProfileModule';
 import AccountSettingsModule from '@/components/settings/AccountSettingsModule';
 
-export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'ai-settings' | 'profile';
+export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'ai-settings' | 'profile' | 'account-settings';
 
 const MODULE_MAP: Record<string, ActiveModule> = {
   'test-case-generator': 'test-case-generator',
