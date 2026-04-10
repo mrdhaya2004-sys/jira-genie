@@ -12,8 +12,9 @@ import HistoryModule from '@/components/automation/HistoryModule';
 import CurrentChatModule from '@/components/currentchat/CurrentChatModule';
 import AIConfigurationModule from '@/components/settings/AIConfigurationModule';
 import ProfileModule from '@/components/profile/ProfileModule';
+import AccountSettingsModule from '@/components/settings/AccountSettingsModule';
 
-export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'ai-settings' | 'profile';
+export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'ai-settings' | 'profile' | 'account-settings';
 
 const MODULE_MAP: Record<string, ActiveModule> = {
   'test-case-generator': 'test-case-generator',
@@ -69,6 +70,7 @@ const DashboardPage: React.FC = () => {
           {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
           {activeModule === 'ai-settings' && <AIConfigurationModule />}
           {activeModule === 'profile' && <ProfileModule />}
+          {activeModule === 'account-settings' && <AccountSettingsModule />}
         </main>
       </div>
     </div>
