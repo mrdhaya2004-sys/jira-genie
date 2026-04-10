@@ -615,23 +615,74 @@ export type Database = {
       }
       user_settings: {
         Row: {
+          auto_code_playground: boolean | null
+          auto_run_tests: boolean | null
+          compact_ui: boolean | null
           created_at: string
+          default_device: string | null
+          default_test_mode: string | null
+          hive_auto_open: boolean | null
+          hive_button_behavior: string | null
           hive_chat_enabled: boolean
           id: string
+          module_suggestions: boolean | null
+          notify_email: boolean | null
+          notify_inapp: boolean | null
+          notify_jira: boolean | null
+          notify_mentions: boolean | null
+          notify_tests: boolean | null
+          preferred_language: string | null
+          response_style: string | null
+          screenshot_on_failure: boolean | null
+          theme: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          auto_code_playground?: boolean | null
+          auto_run_tests?: boolean | null
+          compact_ui?: boolean | null
           created_at?: string
+          default_device?: string | null
+          default_test_mode?: string | null
+          hive_auto_open?: boolean | null
+          hive_button_behavior?: string | null
           hive_chat_enabled?: boolean
           id?: string
+          module_suggestions?: boolean | null
+          notify_email?: boolean | null
+          notify_inapp?: boolean | null
+          notify_jira?: boolean | null
+          notify_mentions?: boolean | null
+          notify_tests?: boolean | null
+          preferred_language?: string | null
+          response_style?: string | null
+          screenshot_on_failure?: boolean | null
+          theme?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          auto_code_playground?: boolean | null
+          auto_run_tests?: boolean | null
+          compact_ui?: boolean | null
           created_at?: string
+          default_device?: string | null
+          default_test_mode?: string | null
+          hive_auto_open?: boolean | null
+          hive_button_behavior?: string | null
           hive_chat_enabled?: boolean
           id?: string
+          module_suggestions?: boolean | null
+          notify_email?: boolean | null
+          notify_inapp?: boolean | null
+          notify_jira?: boolean | null
+          notify_mentions?: boolean | null
+          notify_tests?: boolean | null
+          preferred_language?: string | null
+          response_style?: string | null
+          screenshot_on_failure?: boolean | null
+          theme?: string | null
           updated_at?: string
           user_id?: string
         }
