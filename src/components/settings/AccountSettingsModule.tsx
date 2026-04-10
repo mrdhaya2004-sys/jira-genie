@@ -387,18 +387,18 @@ const AccountSettingsModule: React.FC = () => {
             <div>
               <p className="text-sm font-medium">Jira</p>
               <p className="text-xs text-muted-foreground">
-                {jiraConnection?.is_connected ? `Connected to ${jiraConnection.jira_domain}` : 'Not connected'}
+                {jiraState.status === 'connected' ? `Connected to ${jiraState.data.jiraDomain}` : 'Not connected'}
               </p>
             </div>
           </div>
           <Badge
-            variant={jiraConnection?.is_connected ? 'default' : 'destructive'}
-            className={jiraConnection?.is_connected
+            variant={jiraState.status === 'connected' ? 'default' : 'destructive'}
+            className={jiraState.status === 'connected'
               ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100'
               : ''
             }
           >
-            {jiraConnection?.is_connected ? '● Connected' : 'Disconnected'}
+            {jiraState.status === 'connected' ? '● Connected' : 'Disconnected'}
           </Badge>
         </div>
 
