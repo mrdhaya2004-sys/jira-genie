@@ -41,7 +41,7 @@ const AccountSettingsModule: React.FC = () => {
   const { profile, user, refreshProfile } = useAuth();
   const { preferences, isLoading, isSaving, savePreferences } = useUserPreferences();
   const { hiveEnabled, setHiveEnabled } = useHiveAISettings();
-  const { connection: jiraConnection } = useJiraConnection();
+  const jiraState = useJiraConnection();
   const [activeSection, setActiveSection] = useState<SectionId>('profile');
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showDisableHive, setShowDisableHive] = useState(false);
