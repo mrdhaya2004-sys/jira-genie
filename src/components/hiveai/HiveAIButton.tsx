@@ -159,7 +159,7 @@ const HiveAIButton: React.FC = () => {
           transition-transform duration-200
           active:scale-95
           ${chatOpen ? 'is-open' : ''}
-          ${isDragging ? 'cursor-grabbing scale-95' : 'cursor-grab'}
+          ${isDragging ? 'cursor-grabbing scale-95' : isFixed ? 'cursor-pointer' : 'cursor-grab'}
         `}
       >
         {/* Layer 1: Outer wide glow */}
