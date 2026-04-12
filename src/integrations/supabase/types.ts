@@ -826,7 +826,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          full_name: string | null
+          profile_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          full_name?: string | null
+          profile_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          full_name?: string | null
+          profile_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       create_notification: {
@@ -839,6 +859,15 @@ export type Database = {
           _type: string
         }
         Returns: undefined
+      }
+      get_public_profile: {
+        Args: { _target_user_id: string }
+        Returns: {
+          avatar_url: string
+          full_name: string
+          profile_id: string
+          user_id: string
+        }[]
       }
       is_conversation_member: {
         Args: { _conversation_id: string; _user_id: string }
