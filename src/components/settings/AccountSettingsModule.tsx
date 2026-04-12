@@ -230,7 +230,7 @@ const AccountSettingsModule: React.FC = () => {
           onChange={(checked) => {
             if (!checked) setShowDisableHive(true);
             else {
-              setHiveEnabled(true);
+              savePreferences({ hive_chat_enabled: true });
               toast("🐝 Hive AI Chat is back!", { description: "The floating assistant is now visible." });
             }
           }}
