@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
 import {
   AtSign,
   MessageSquare,
@@ -73,8 +72,11 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       "flex flex-col h-full bg-sidebar text-sidebar-foreground",
       className
     )}>
+      {/* Subtle top gradient overlay */}
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-sidebar-primary/5 to-transparent pointer-events-none z-0" />
+      
       {/* Header */}
-      <div className="px-4 py-3 flex items-center gap-3">
+      <div className="px-4 py-3 flex items-center gap-3 relative z-10">
         <img src={testzoneLogo} alt="Test Zone" className="h-9 w-9 rounded-lg object-contain" />
         <div>
           <h1 className="font-semibold text-sm text-sidebar-foreground tracking-tight">Test Zone</h1>
@@ -82,25 +84,25 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         </div>
       </div>
 
-      <Separator className="bg-sidebar-border" />
+      <div className="mx-3 h-px bg-sidebar-border/60" />
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-3 py-2.5 space-y-0.5 overflow-y-auto scrollbar-thin relative z-10">
         {menuItems.map((item) =>
         <button
           key={item.label}
           onClick={() => onModuleChange(item.module)}
           className={cn(
-            "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-colors",
-            activeModule === item.module ?
-            "bg-sidebar-accent text-sidebar-accent-foreground" :
-            "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+            "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150",
+            activeModule === item.module
+            ? "bg-sidebar-accent text-sidebar-accent-foreground sidebar-active-indicator"
+            : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5"
           )}>
 
-            <item.icon className="h-4 w-4" />
+            <item.icon className="h-4 w-4 flex-shrink-0" />
             <span className="flex-1 text-left">{item.label}</span>
             {item.badge &&
-          <span className="h-5 min-w-[20px] px-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center justify-center">
+          <span className="h-5 min-w-[20px] px-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center justify-center animate-pulse-dot">
                 {item.badge > 99 ? '99+' : item.badge}
               </span>
           }
@@ -108,39 +110,41 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         )}
 
         {/* Automation Tools Section */}
-        <div className="pt-3 mt-3 border-t border-sidebar-border">
-          <p className="px-3 py-1.5 text-[10px] font-semibold text-sidebar-foreground/40 uppercase tracking-widest">
-            Automation Tools
-          </p>
+        <div className="pt-3 mt-3 border-t border-sidebar-border/40">
+          <div className="px-3 py-1.5 mb-0.5">
+            <span className="text-[10px] font-semibold text-sidebar-foreground/35 uppercase tracking-[0.15em]">
+              Automation Tools
+            </span>
+          </div>
           {automationItems.map((item) =>
           <button
             key={item.label}
             onClick={() => onModuleChange(item.module)}
-            className={cn("w-full gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-colors flex items-center justify-start",
+            className={cn("w-full gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150 flex items-center justify-start",
 
-            activeModule === item.module ?
-            "bg-sidebar-accent text-sidebar-accent-foreground" :
-            "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+            activeModule === item.module
+            ? "bg-sidebar-accent text-sidebar-accent-foreground sidebar-active-indicator"
+            : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5"
             )}>
             
-              <item.icon className="h-4 w-4" />
+              <item.icon className="h-4 w-4 flex-shrink-0" />
               <span className="flex-1 text-left">{item.label}</span>
             </button>
           )}
         </div>
       </nav>
 
-      <Separator className="bg-sidebar-border" />
+      <div className="mx-3 h-px bg-sidebar-border/60" />
 
       {/* Bottom Section */}
-      <div className="px-3 py-2 space-y-0.5">
+      <div className="px-3 py-2 space-y-0.5 relative z-10">
         <button
           onClick={() => onModuleChange('ai-settings')}
           className={cn(
-            "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-colors",
-            activeModule === 'ai-settings' ?
-            "bg-sidebar-accent text-sidebar-accent-foreground" :
-            "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+            "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150",
+            activeModule === 'ai-settings'
+            ? "bg-sidebar-accent text-sidebar-accent-foreground sidebar-active-indicator"
+            : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5"
           )}>
           
           <Brain className="h-4 w-4" />
@@ -148,7 +152,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         </button>
         <button
           onClick={() => setHelpChatOpen(true)}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5 transition-all duration-150"
         >
           <HelpCircle className="h-4 w-4" />
           Help & Support
@@ -156,37 +160,40 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         <button
           onClick={() => onModuleChange('account-settings')}
           className={cn(
-            "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-colors",
+            "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150",
             activeModule === 'account-settings'
-              ? "bg-sidebar-accent text-sidebar-accent-foreground"
-              : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+              ? "bg-sidebar-accent text-sidebar-accent-foreground sidebar-active-indicator"
+              : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5"
           )}>
           <Settings className="h-4 w-4" />
           Settings
         </button>
       </div>
 
-      <Separator className="bg-sidebar-border" />
+      <div className="mx-3 h-px bg-sidebar-border/60" />
 
       {/* User Profile */}
-      <div className="p-3">
-        <div className="flex items-center gap-3 p-2 rounded-lg bg-sidebar-accent/50">
+      <div className="p-3 relative z-10">
+        <div className="flex items-center gap-3 p-2.5 rounded-lg border border-sidebar-border/40 bg-sidebar-accent/30 transition-colors hover:bg-sidebar-accent/50">
           <button onClick={() => onModuleChange('profile')} className="flex items-center gap-3 flex-1 min-w-0">
-            <Avatar className="h-9 w-9">
-              <AvatarImage src={profile?.avatar_url || undefined} />
-              <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-sm">
-                {profile?.full_name ? getInitials(profile.full_name) : 'U'}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="h-9 w-9 ring-2 ring-sidebar-primary/20">
+                <AvatarImage src={profile?.avatar_url || undefined} />
+                <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-sm">
+                  {profile?.full_name ? getInitials(profile.full_name) : 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-sidebar" />
+            </div>
             <div className="flex-1 min-w-0 text-left">
               <p className="text-sm font-medium truncate">{profile?.full_name}</p>
-              <p className="text-xs text-sidebar-foreground/60 truncate">{profile?.employee_id}</p>
+              <p className="text-[11px] text-sidebar-foreground/50 truncate">{profile?.employee_id}</p>
             </div>
           </button>
           <Button
             variant="ghost"
             size="icon"
-            className="text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent h-8 w-8"
+            className="text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent h-8 w-8"
             onClick={signOut}>
             
             <LogOut className="h-4 w-4" />

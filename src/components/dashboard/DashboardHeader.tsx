@@ -11,6 +11,7 @@ import {
   Key,
   HelpCircle,
   Sliders,
+  ChevronRight,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -33,6 +34,22 @@ import { useNotifications } from '@/hooks/useNotifications';
 import NotificationPanel from '@/components/notifications/NotificationPanel';
 import ChangePasswordDialog from '@/components/profile/ChangePasswordDialog';
 import HelpChatDialog from '@/components/help/HelpChatDialog';
+
+const MODULE_LABELS: Record<ActiveModule, string> = {
+  'mentions': 'Mentions',
+  'chat': 'Chat',
+  'tickets': 'My Tickets',
+  'history': 'History',
+  'agentic-ai': 'Hive AI',
+  'jira-ticket-raiser': 'Jira Ticket Raiser',
+  'logic-scenario-creator': 'Scenario Creator',
+  'test-case-generator': 'Test Case Generator',
+  'xpath-generator': 'XPath Generator',
+  'ai-settings': 'AI Configuration',
+  'profile': 'Profile',
+  'account-settings': 'Account Settings',
+};
+
 interface DashboardHeaderProps {
   activeModule: ActiveModule;
   onModuleChange: (module: ActiveModule) => void;
@@ -74,8 +91,11 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
   };
 
   return (
-    <header className="h-12 border-b border-border bg-card/80 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6">
-      {/* Left side - Logo & Mobile Menu */}
+    <header className="h-12 border-b border-border/60 bg-card/80 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6 relative">
+      {/* Subtle bottom gradient accent */}
+      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+      
+      {/* Left side - Logo & Mobile Menu & Breadcrumb */}
       <div className="flex items-center gap-3">
         {/* Mobile Menu */}
         <div className="lg:hidden">
@@ -94,25 +114,26 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
           </Sheet>
         </div>
 
-        {/* Logo & Title */}
+        {/* Logo & Breadcrumb */}
         <div className="flex items-center gap-2">
-          <img src={testzoneLogo} alt="Test Zone" className="h-8 w-8 rounded-lg object-contain" />
-          <span className="font-semibold text-foreground hidden sm:inline">Test Zone</span>
+          <img src={testzoneLogo} alt="Test Zone" className="h-7 w-7 rounded-md object-contain lg:hidden" />
+          <span className="text-muted-foreground/60 hidden lg:inline">
+            <ChevronRight className="h-3.5 w-3.5" />
+          </span>
+          <span className="text-sm font-medium text-foreground/80 hidden lg:inline">
+            {MODULE_LABELS[activeModule]}
+          </span>
+          <span className="font-semibold text-foreground sm:inline lg:hidden">Test Zone</span>
         </div>
       </div>
 
       {/* Right side - Actions & Profile */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         {/* Notifications Bell */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative h-9 w-9">
-              <Bell className="h-5 w-5" />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 h-4 min-w-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
+            <Button variant="ghost" size="icon" className={`relative h-9 w-9 ${unreadCount > 0 ? 'notification-pulse' : ''}`}>
+              <Bell className="h-[18px] w-[18px]" />
             </Button>
           </PopoverTrigger>
           <PopoverContent align="end" className="p-0 w-auto" sideOffset={8}>
@@ -132,8 +153,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
         {/* Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2 h-9 px-2">
-              <Avatar className="h-7 w-7">
+            <Button variant="ghost" className="flex items-center gap-2 h-9 px-2 hover:bg-accent/60">
+              <Avatar className="h-7 w-7 ring-1 ring-border/50">
                 <AvatarImage src={profile?.avatar_url || undefined} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                   {profile?.full_name ? getInitials(profile.full_name) : 'U'}
@@ -150,30 +171,30 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer" onClick={() => onModuleChange('profile')}>
-              <User className="mr-2 h-4 w-4" />
+            <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => onModuleChange('profile')}>
+              <User className="h-4 w-4" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={() => setChangePasswordOpen(true)}>
-              <Key className="mr-2 h-4 w-4" />
+            <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setChangePasswordOpen(true)}>
+              <Key className="h-4 w-4" />
               Change Password
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={() => onModuleChange('account-settings')}>
-              <Settings className="mr-2 h-4 w-4" />
+            <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => onModuleChange('account-settings')}>
+              <Settings className="h-4 w-4" />
               Account Settings
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={() => onModuleChange('account-settings')}>
-              <Sliders className="mr-2 h-4 w-4" />
+            <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => onModuleChange('account-settings')}>
+              <Sliders className="h-4 w-4" />
               Preferences
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer" onClick={() => setHelpChatOpen(true)}>
-              <HelpCircle className="mr-2 h-4 w-4" />
+            <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setHelpChatOpen(true)}>
+              <HelpCircle className="h-4 w-4" />
               Help
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer text-destructive" onClick={signOut}>
-              <LogOut className="mr-2 h-4 w-4" />
+            <DropdownMenuItem className="cursor-pointer text-destructive gap-2" onClick={signOut}>
+              <LogOut className="h-4 w-4" />
               Logout
             </DropdownMenuItem>
           </DropdownMenuContent>

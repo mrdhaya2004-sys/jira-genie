@@ -3,7 +3,7 @@ import { useMentions, Mention } from '@/hooks/useMentions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -27,9 +27,9 @@ const MentionsPanel: React.FC = () => {
       <div className="h-full p-6">
         <div className="max-w-4xl mx-auto space-y-4">
           <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
         </div>
       </div>
     );
@@ -38,12 +38,12 @@ const MentionsPanel: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-border bg-card/50">
+      <div className="px-6 py-4 border-b border-border/60 bg-card/50 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                <AtSign className="h-4 w-4 text-primary" />
+              <div className="h-10 w-10 rounded-xl module-icon-gradient flex items-center justify-center">
+                <AtSign className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <h1 className="text-lg font-semibold tracking-tight">Mentioned on you</h1>
@@ -72,10 +72,10 @@ const MentionsPanel: React.FC = () => {
         <div className="px-6 py-4">
           <div className="max-w-5xl mx-auto">
             {mentions.length === 0 ? (
-              <Card className="border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                    <AtSign className="h-8 w-8 text-muted-foreground" />
+              <Card className="border-dashed border-border/60">
+                <CardContent className="flex flex-col items-center justify-center py-16">
+                  <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+                    <AtSign className="h-8 w-8 text-muted-foreground/60" />
                   </div>
                   <h3 className="text-lg font-medium mb-1">No mentions yet</h3>
                   <p className="text-sm text-muted-foreground text-center max-w-sm">
@@ -85,11 +85,12 @@ const MentionsPanel: React.FC = () => {
               </Card>
             ) : (
               <div className="space-y-3">
-                {mentions.map((mention) => (
+                {mentions.map((mention, index) => (
                   <MentionCard 
                     key={mention.id} 
                     mention={mention} 
                     onMarkAsRead={markAsRead}
+                    index={index}
                   />
                 ))}
               </div>
@@ -104,9 +105,10 @@ const MentionsPanel: React.FC = () => {
 interface MentionCardProps {
   mention: Mention;
   onMarkAsRead: (id: string) => void;
+  index: number;
 }
 
-const MentionCard: React.FC<MentionCardProps> = ({ mention, onMarkAsRead }) => {
+const MentionCard: React.FC<MentionCardProps> = ({ mention, onMarkAsRead, index }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const getSourceIcon = () => {
@@ -149,15 +151,16 @@ const MentionCard: React.FC<MentionCardProps> = ({ mention, onMarkAsRead }) => {
   return (
     <Card 
       className={cn(
-        "transition-all duration-200 cursor-pointer hover:shadow-md",
-        !mention.is_read && "border-l-4 border-l-primary bg-primary/5"
+        "card-hover cursor-pointer border-border/60",
+        !mention.is_read && "bg-primary/[0.03] border-l-[3px] border-l-primary"
       )}
+      style={{ animationDelay: `${index * 50}ms` }}
       onClick={() => setIsExpanded(!isExpanded)}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
           {/* Avatar */}
-          <Avatar className="h-10 w-10 flex-shrink-0">
+          <Avatar className="h-10 w-10 flex-shrink-0 ring-1 ring-border/30">
             <AvatarImage src={mention.mentioned_by?.avatar_url || undefined} />
             <AvatarFallback className="bg-secondary text-secondary-foreground text-sm">
               {mention.mentioned_by?.full_name 
@@ -197,7 +200,7 @@ const MentionCard: React.FC<MentionCardProps> = ({ mention, onMarkAsRead }) => {
 
             {/* Content snippet */}
             <div className={cn(
-              "text-sm text-foreground/80 bg-muted/50 rounded-lg p-3",
+              "text-sm text-foreground/80 bg-muted/30 rounded-lg p-3 border border-border/30",
               !isExpanded && "line-clamp-2"
             )}>
               <HighlightedContent content={mention.content_snippet} />
@@ -237,7 +240,7 @@ const MentionCard: React.FC<MentionCardProps> = ({ mention, onMarkAsRead }) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
+                className="h-8 w-8 hover:bg-primary/10"
                 onClick={(e) => {
                   e.stopPropagation();
                   onMarkAsRead(mention.id);
