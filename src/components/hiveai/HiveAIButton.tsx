@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHiveAISettings } from '@/hooks/useHiveAISettings';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
 import HiveAIChatModal from './HiveAIChatModal';
 
 const STORAGE_KEY = 'hive-ai-position';
