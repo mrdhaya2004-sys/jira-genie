@@ -10,6 +10,8 @@ const DEFAULT_POS = { x: -24, y: -24 };
 const HiveAIButton: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { hiveEnabled, isLoading: settingsLoading } = useHiveAISettings();
+  const { preferences } = useUserPreferences();
+  const isFixed = preferences.hive_button_behavior === 'fixed';
   const [chatOpen, setChatOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [ripple, setRipple] = useState(false);
