@@ -40,6 +40,7 @@ type SectionId = typeof SECTIONS[number]['id'];
 const AccountSettingsModule: React.FC = () => {
   const { profile, user, refreshProfile } = useAuth();
   const { preferences, isLoading, isSaving, savePreferences } = useUserPreferences();
+  const hiveEnabled = preferences.hive_chat_enabled;
   const { hiveEnabled, setHiveEnabled } = useHiveAISettings();
   const jiraState = useJiraConnection();
   const [activeSection, setActiveSection] = useState<SectionId>('profile');
