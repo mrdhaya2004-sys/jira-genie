@@ -2,28 +2,25 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+const USER_PREFERENCES_UPDATED_EVENT = 'user-preferences-updated';
+
 export interface UserPreferences {
-  // AI Preferences
   preferred_language: string;
   response_style: string;
   auto_code_playground: boolean;
   module_suggestions: boolean;
-  // Hive AI Settings
   hive_chat_enabled: boolean;
   hive_auto_open: boolean;
   hive_button_behavior: string;
-  // Notification Settings
   notify_mentions: boolean;
   notify_jira: boolean;
   notify_tests: boolean;
   notify_email: boolean;
   notify_inapp: boolean;
-  // Testing Preferences
   default_device: string;
   default_test_mode: string;
   auto_run_tests: boolean;
   screenshot_on_failure: boolean;
-  // Appearance
   theme: string;
   compact_ui: boolean;
 }
@@ -49,6 +46,27 @@ const DEFAULT_PREFS: UserPreferences = {
   compact_ui: false,
 };
 
+const mapPreferences = (data: Partial<Record<keyof UserPreferences, unknown>> | null | undefined): UserPreferences => ({
+  preferred_language: (data?.preferred_language as string) ?? DEFAULT_PREFS.preferred_language,
+  response_style: (data?.response_style as string) ?? DEFAULT_PREFS.response_style,
+  auto_code_playground: (data?.auto_code_playground as boolean) ?? DEFAULT_PREFS.auto_code_playground,
+  module_suggestions: (data?.module_suggestions as boolean) ?? DEFAULT_PREFS.module_suggestions,
+  hive_chat_enabled: (data?.hive_chat_enabled as boolean) ?? DEFAULT_PREFS.hive_chat_enabled,
+  hive_auto_open: (data?.hive_auto_open as boolean) ?? DEFAULT_PREFS.hive_auto_open,
+  hive_button_behavior: (data?.hive_button_behavior as string) ?? DEFAULT_PREFS.hive_button_behavior,
+  notify_mentions: (data?.notify_mentions as boolean) ?? DEFAULT_PREFS.notify_mentions,
+  notify_jira: (data?.notify_jira as boolean) ?? DEFAULT_PREFS.notify_jira,
+  notify_tests: (data?.notify_tests as boolean) ?? DEFAULT_PREFS.notify_tests,
+  notify_email: (data?.notify_email as boolean) ?? DEFAULT_PREFS.notify_email,
+  notify_inapp: (data?.notify_inapp as boolean) ?? DEFAULT_PREFS.notify_inapp,
+  default_device: (data?.default_device as string) ?? DEFAULT_PREFS.default_device,
+  default_test_mode: (data?.default_test_mode as string) ?? DEFAULT_PREFS.default_test_mode,
+  auto_run_tests: (data?.auto_run_tests as boolean) ?? DEFAULT_PREFS.auto_run_tests,
+  screenshot_on_failure: (data?.screenshot_on_failure as boolean) ?? DEFAULT_PREFS.screenshot_on_failure,
+  theme: (data?.theme as string) ?? DEFAULT_PREFS.theme,
+  compact_ui: (data?.compact_ui as boolean) ?? DEFAULT_PREFS.compact_ui,
+});
+
 export function useUserPreferences() {
   const { user } = useAuth();
   const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFS);
@@ -56,7 +74,23 @@ export function useUserPreferences() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!user) { setIsLoading(false); return; }
+    const handlePreferencesUpdated = (event: Event) => {
+      const customEvent = event as CustomEvent<UserPreferences>;
+      if (customEvent.detail) {
+        setPreferences(customEvent.detail);
+      }
+    };
+
+    window.addEventListener(USER_PREFERENCES_UPDATED_EVENT, handlePreferencesUpdated);
+    return () => window.removeEventListener(USER_PREFERENCES_UPDATED_EVENT, handlePreferencesUpdated);
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setPreferences(DEFAULT_PREFS);
+      setIsLoading(false);
+      return;
+    }
 
     const fetchPrefs = async () => {
       setIsLoading(true);
@@ -66,38 +100,20 @@ export function useUserPreferences() {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (data) {
-        setPreferences({
-          preferred_language: data.preferred_language ?? DEFAULT_PREFS.preferred_language,
-          response_style: data.response_style ?? DEFAULT_PREFS.response_style,
-          auto_code_playground: data.auto_code_playground ?? DEFAULT_PREFS.auto_code_playground,
-          module_suggestions: data.module_suggestions ?? DEFAULT_PREFS.module_suggestions,
-          hive_chat_enabled: data.hive_chat_enabled ?? DEFAULT_PREFS.hive_chat_enabled,
-          hive_auto_open: data.hive_auto_open ?? DEFAULT_PREFS.hive_auto_open,
-          hive_button_behavior: data.hive_button_behavior ?? DEFAULT_PREFS.hive_button_behavior,
-          notify_mentions: data.notify_mentions ?? DEFAULT_PREFS.notify_mentions,
-          notify_jira: data.notify_jira ?? DEFAULT_PREFS.notify_jira,
-          notify_tests: data.notify_tests ?? DEFAULT_PREFS.notify_tests,
-          notify_email: data.notify_email ?? DEFAULT_PREFS.notify_email,
-          notify_inapp: data.notify_inapp ?? DEFAULT_PREFS.notify_inapp,
-          default_device: data.default_device ?? DEFAULT_PREFS.default_device,
-          default_test_mode: data.default_test_mode ?? DEFAULT_PREFS.default_test_mode,
-          auto_run_tests: data.auto_run_tests ?? DEFAULT_PREFS.auto_run_tests,
-          screenshot_on_failure: data.screenshot_on_failure ?? DEFAULT_PREFS.screenshot_on_failure,
-          theme: data.theme ?? DEFAULT_PREFS.theme,
-          compact_ui: data.compact_ui ?? DEFAULT_PREFS.compact_ui,
-        });
-      }
+      setPreferences(mapPreferences(data));
       setIsLoading(false);
     };
+
     fetchPrefs();
   }, [user]);
 
   const savePreferences = useCallback(async (updates: Partial<UserPreferences>) => {
     if (!user) return;
+
     setIsSaving(true);
     const merged = { ...preferences, ...updates };
     setPreferences(merged);
+    window.dispatchEvent(new CustomEvent<UserPreferences>(USER_PREFERENCES_UPDATED_EVENT, { detail: merged }));
 
     await (supabase as any)
       .from('user_settings')
@@ -105,6 +121,7 @@ export function useUserPreferences() {
         { user_id: user.id, ...merged },
         { onConflict: 'user_id' }
       );
+
     setIsSaving(false);
   }, [user, preferences]);
 
