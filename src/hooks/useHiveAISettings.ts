@@ -2,24 +2,21 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-let globalListeners: Array<(enabled: boolean) => void> = [];
-
-function notifyAll(enabled: boolean) {
-  globalListeners.forEach(fn => fn(enabled));
-}
-
 export function useHiveAISettings() {
   const { user } = useAuth();
   const [enabled, setEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Subscribe to cross-component sync
+  // Listen for cross-component preference updates
   useEffect(() => {
-    const handler = (val: boolean) => setEnabled(val);
-    globalListeners.push(handler);
-    return () => {
-      globalListeners = globalListeners.filter(fn => fn !== handler);
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail && typeof detail.hive_chat_enabled === 'boolean') {
+        setEnabled(detail.hive_chat_enabled);
+      }
     };
+    window.addEventListener('user-preferences-updated', handler);
+    return () => window.removeEventListener('user-preferences-updated', handler);
   }, []);
 
   // Fetch on mount
@@ -46,7 +43,7 @@ export function useHiveAISettings() {
     if (!user) return;
 
     setEnabled(newVal);
-    notifyAll(newVal);
+    window.dispatchEvent(new CustomEvent('user-preferences-updated', { detail: { hive_chat_enabled: newVal } }));
 
     await (supabase as any)
       .from('user_settings')

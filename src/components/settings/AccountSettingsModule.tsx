@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { useHiveAISettings } from '@/hooks/useHiveAISettings';
+
 import { useJiraConnection } from '@/hooks/useJiraConnection';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -40,7 +40,8 @@ type SectionId = typeof SECTIONS[number]['id'];
 const AccountSettingsModule: React.FC = () => {
   const { profile, user, refreshProfile } = useAuth();
   const { preferences, isLoading, isSaving, savePreferences } = useUserPreferences();
-  const { hiveEnabled, setHiveEnabled } = useHiveAISettings();
+  const hiveEnabled = preferences.hive_chat_enabled;
+  
   const jiraState = useJiraConnection();
   const [activeSection, setActiveSection] = useState<SectionId>('profile');
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -229,7 +230,7 @@ const AccountSettingsModule: React.FC = () => {
           onChange={(checked) => {
             if (!checked) setShowDisableHive(true);
             else {
-              setHiveEnabled(true);
+              savePreferences({ hive_chat_enabled: true });
               toast("🐝 Hive AI Chat is back!", { description: "The floating assistant is now visible." });
             }
           }}
@@ -567,7 +568,7 @@ const AccountSettingsModule: React.FC = () => {
       <ChangePasswordDialog open={showChangePassword} onOpenChange={setShowChangePassword} />
       <HiveAIDisableDialog
         open={showDisableHive}
-        onConfirm={() => { setShowDisableHive(false); setHiveEnabled(false); }}
+        onConfirm={() => { setShowDisableHive(false); savePreferences({ hive_chat_enabled: false }); }}
         onCancel={() => setShowDisableHive(false)}
       />
     </div>
