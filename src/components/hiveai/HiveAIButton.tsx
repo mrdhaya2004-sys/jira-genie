@@ -44,11 +44,12 @@ const HiveAIButton: React.FC = () => {
   };
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    if (isFixed) return;
     hasDragged.current = false;
     dragRef.current = { startX: e.clientX, startY: e.clientY, origX: posRef.current.x, origY: posRef.current.y };
     setIsDragging(true);
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  }, []);
+  }, [isFixed]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragRef.current) return;
