@@ -25,16 +25,18 @@ const JiraTicketRaiserModule: React.FC = () => {
   return (
     <ChatProvider>
       <div className="h-full flex flex-col bg-background">
-        <div className="border-b border-border px-6 py-4">
+        <div className="border-b border-border/60 px-6 py-4 bg-card/50 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src={jiraLogo} alt="Jira Ticket Raiser" className="h-10 w-10 rounded-lg object-contain" />
+              <div className="h-10 w-10 rounded-xl module-icon-gradient flex items-center justify-center p-1">
+                <img src={jiraLogo} alt="Jira Ticket Raiser" className="h-8 w-8 rounded-lg object-contain" />
+              </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-lg font-semibold">Jira Ticket Raiser</h1>
+                  <h1 className="text-lg font-semibold tracking-tight">Jira Ticket Raiser</h1>
                   {connection.status === 'connected' && <LiveStatusIndicator />}
                 </div>
-                <p className="text-sm text-muted-foreground">AI-powered ticket creation assistant</p>
+                <p className="text-xs text-muted-foreground">AI-powered ticket creation assistant</p>
               </div>
             </div>
             <Tooltip>

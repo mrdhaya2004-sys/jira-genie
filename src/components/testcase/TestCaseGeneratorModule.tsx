@@ -66,14 +66,14 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
   return (
     <div className="h-full flex flex-col bg-background">
       {/* Header */}
-      <div className="border-b bg-card px-4 py-3 flex items-center justify-between">
+      <div className="border-b border-border/60 bg-card/50 backdrop-blur-sm px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+          <div className="h-10 w-10 rounded-xl module-icon-gradient flex items-center justify-center">
             <ClipboardList className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h2 className="font-semibold flex items-center gap-2">
-              📋 Test Case Generator
+            <h2 className="font-semibold tracking-tight flex items-center gap-2">
+              Test Case Generator
               <Badge variant="secondary" className="text-xs">AI-Powered</Badge>
             </h2>
             <p className="text-xs text-muted-foreground">
