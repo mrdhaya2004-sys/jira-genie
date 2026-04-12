@@ -505,7 +505,7 @@ const AccountSettingsModule: React.FC = () => {
   return (
     <div className="h-full flex">
       {/* Left: Section Nav */}
-      <div className="w-56 flex-shrink-0 border-r border-border bg-muted/20 hidden md:block">
+      <div className="w-56 flex-shrink-0 border-r border-border/60 bg-card/30 hidden md:block">
         <div className="p-4">
           <h2 className="text-sm font-semibold text-foreground mb-1">Account Settings</h2>
           <p className="text-xs text-muted-foreground">Manage your account</p>
@@ -516,10 +516,10 @@ const AccountSettingsModule: React.FC = () => {
               key={section.id}
               onClick={() => setActiveSection(section.id)}
               className={cn(
-                "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-colors",
+                "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150",
                 activeSection === section.id
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  ? "nav-pill-active"
+                  : "text-muted-foreground hover:bg-muted/30 hover:text-foreground hover:translate-x-0.5"
               )}
             >
               <section.icon className="h-4 w-4" />
@@ -531,7 +531,7 @@ const AccountSettingsModule: React.FC = () => {
 
       {/* Mobile section selector */}
       <div className="md:hidden w-full">
-        <div className="border-b border-border px-4 py-3">
+        <div className="border-b border-border/60 px-4 py-3">
           <Select value={activeSection} onValueChange={(v) => setActiveSection(v as SectionId)}>
             <SelectTrigger className="w-full">
               <SelectValue />
@@ -553,7 +553,7 @@ const AccountSettingsModule: React.FC = () => {
       {/* Right: Content */}
       <div className="flex-1 hidden md:block">
         <ScrollArea className="h-full">
-          <div className="p-6 lg:p-8 max-w-2xl">
+          <div className="p-6 lg:p-8 max-w-2xl animate-fade-in-page">
             <div className="mb-6">
               <h1 className="text-xl font-bold text-foreground">
                 {SECTIONS.find(s => s.id === activeSection)?.label}
