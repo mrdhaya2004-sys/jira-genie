@@ -29,12 +29,12 @@ const HiveAIButton: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || isFixed) {
       localStorage.removeItem(STORAGE_KEY);
       posRef.current = DEFAULT_POS;
       applyPosition(DEFAULT_POS);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isFixed]);
 
   const applyPosition = (pos: { x: number; y: number }) => {
     if (buttonRef.current) {
