@@ -568,7 +568,7 @@ const AccountSettingsModule: React.FC = () => {
       <ChangePasswordDialog open={showChangePassword} onOpenChange={setShowChangePassword} />
       <HiveAIDisableDialog
         open={showDisableHive}
-        onConfirm={() => { setShowDisableHive(false); setHiveEnabled(false); }}
+        onConfirm={() => { setShowDisableHive(false); savePreferences({ hive_chat_enabled: false }); }}
         onCancel={() => setShowDisableHive(false)}
       />
     </div>
