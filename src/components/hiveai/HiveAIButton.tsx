@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHiveAISettings } from '@/hooks/useHiveAISettings';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
 import HiveAIChatModal from './HiveAIChatModal';
 
 const STORAGE_KEY = 'hive-ai-position';
@@ -9,6 +10,8 @@ const DEFAULT_POS = { x: -24, y: -24 };
 const HiveAIButton: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { hiveEnabled, isLoading: settingsLoading } = useHiveAISettings();
+  const { preferences } = useUserPreferences();
+  const isFixed = preferences.hive_button_behavior === 'fixed';
   const [chatOpen, setChatOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [ripple, setRipple] = useState(false);
@@ -26,12 +29,12 @@ const HiveAIButton: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || isFixed) {
       localStorage.removeItem(STORAGE_KEY);
       posRef.current = DEFAULT_POS;
       applyPosition(DEFAULT_POS);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isFixed]);
 
   const applyPosition = (pos: { x: number; y: number }) => {
     if (buttonRef.current) {
@@ -41,11 +44,12 @@ const HiveAIButton: React.FC = () => {
   };
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    if (isFixed) return;
     hasDragged.current = false;
     dragRef.current = { startX: e.clientX, startY: e.clientY, origX: posRef.current.x, origY: posRef.current.y };
     setIsDragging(true);
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  }, []);
+  }, [isFixed]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragRef.current) return;
@@ -155,7 +159,7 @@ const HiveAIButton: React.FC = () => {
           transition-transform duration-200
           active:scale-95
           ${chatOpen ? 'is-open' : ''}
-          ${isDragging ? 'cursor-grabbing scale-95' : 'cursor-grab'}
+          ${isDragging ? 'cursor-grabbing scale-95' : isFixed ? 'cursor-pointer' : 'cursor-grab'}
         `}
       >
         {/* Layer 1: Outer wide glow */}
