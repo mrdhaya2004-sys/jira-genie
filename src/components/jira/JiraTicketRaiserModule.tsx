@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ChatProvider } from '@/contexts/ChatContext';
 import ChatContainer from '@/components/chat/ChatContainer';
 import { Settings } from 'lucide-react';
@@ -20,9 +19,13 @@ const LiveStatusIndicator: React.FC = () => (
   </div>
 );
 
-const JiraTicketRaiserModule: React.FC = () => {
+interface JiraTicketRaiserModuleProps {
+  onNavigateBack?: () => void;
+}
+
+const JiraTicketRaiserModule: React.FC<JiraTicketRaiserModuleProps> = ({ onNavigateBack }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const navigate = useNavigate();
+  const [gateDismissed, setGateDismissed] = useState(false);
   const connection = useJiraConnection();
 
   const handleGateConnect = () => {
@@ -30,8 +33,14 @@ const JiraTicketRaiserModule: React.FC = () => {
   };
 
   const handleGateCancel = () => {
-    navigate('/dashboard');
+    if (onNavigateBack) {
+      onNavigateBack();
+    } else {
+      setGateDismissed(true);
+    }
   };
+
+  const showGate = !connection.loading && connection.status !== 'connected' && !settingsOpen && !gateDismissed;
 
   return (
     <ChatProvider>
@@ -73,8 +82,7 @@ const JiraTicketRaiserModule: React.FC = () => {
         </div>
       </div>
 
-      {/* Connection gate - shown when not connected */}
-      {!connection.loading && connection.status !== 'connected' && !settingsOpen && (
+      {showGate && (
         <JiraConnectionGate
           status={connection.status}
           loading={connection.loading}
