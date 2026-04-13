@@ -119,7 +119,47 @@ export const useScenarioCreator = ({ workspaces, isLoadingWorkspaces = false }: 
         });
       }
     }, 500);
-  }, [workspaces, addMessage]);
+  }, [workspaces, isLoadingWorkspaces, addMessage]);
+
+  // Reactively update when workspaces finish loading and user is in workspace_selection phase
+  useEffect(() => {
+    if (isLoadingWorkspaces || phase !== 'workspace_selection') return;
+    
+    const hasStaleMsg = messages.some(m => 
+      m.role === 'assistant' && (
+        m.content.includes('Loading workspaces') || 
+        m.content.includes('No workspaces found')
+      )
+    );
+    if (!hasStaleMsg) return;
+
+    setMessages(prev => prev.filter(m => 
+      !(m.role === 'assistant' && (
+        m.content.includes('Loading workspaces') ||
+        m.content.includes('No workspaces found')
+      ))
+    ));
+
+    if (workspaces.length === 0) {
+      addMessage({
+        role: 'assistant',
+        content: "⚠️ **No workspaces found.** Please create a workspace in the **Hive AI – Core Workspace** module first to upload your user stories and app files.",
+        type: 'text',
+      });
+    } else {
+      addMessage({
+        role: 'assistant',
+        content: "Great choice! 🎯\n\n**Please select a workspace to load the Brain data:**\n\nI'll use the user stories, application flow, and test cases from the workspace to generate accurate scenarios.",
+        type: 'workspace_select',
+        options: workspaces.map(w => ({
+          id: w.id,
+          label: w.name,
+          value: w.id,
+          description: w.description || undefined,
+        })),
+      });
+    }
+  }, [workspaces, isLoadingWorkspaces, phase]);
 
   const handleWorkspaceSelect = useCallback(async (workspaceId: string, workspaceName: string) => {
     const workspace = workspaces.find(w => w.id === workspaceId);
