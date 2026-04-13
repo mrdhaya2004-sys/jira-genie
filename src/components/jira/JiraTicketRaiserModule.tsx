@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChatProvider } from '@/contexts/ChatContext';
 import ChatContainer from '@/components/chat/ChatContainer';
 import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import JiraSettingsDialog from '@/components/jira/JiraSettingsDialog';
+import JiraConnectionGate from '@/components/jira/JiraConnectionGate';
 import { useJiraConnection } from '@/hooks/useJiraConnection';
 import jiraLogo from '@/assets/jira-logo.png';
 
@@ -20,7 +22,16 @@ const LiveStatusIndicator: React.FC = () => (
 
 const JiraTicketRaiserModule: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const navigate = useNavigate();
   const connection = useJiraConnection();
+
+  const handleGateConnect = () => {
+    setSettingsOpen(true);
+  };
+
+  const handleGateCancel = () => {
+    navigate('/dashboard');
+  };
 
   return (
     <ChatProvider>
@@ -61,6 +72,17 @@ const JiraTicketRaiserModule: React.FC = () => {
           <ChatContainer />
         </div>
       </div>
+
+      {/* Connection gate - shown when not connected */}
+      {!connection.loading && connection.status !== 'connected' && !settingsOpen && (
+        <JiraConnectionGate
+          status={connection.status}
+          loading={connection.loading}
+          onConnect={handleGateConnect}
+          onCancel={handleGateCancel}
+        />
+      )}
+
       <JiraSettingsDialog
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
