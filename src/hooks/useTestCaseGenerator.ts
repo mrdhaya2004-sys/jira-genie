@@ -16,9 +16,10 @@ import type {
 
 interface UseTestCaseGeneratorOptions {
   workspaces: Workspace[];
+  isLoadingWorkspaces?: boolean;
 }
 
-export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions) => {
+export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }: UseTestCaseGeneratorOptions) => {
   const { toast } = useToast();
   const { addLog } = useHistoryLogs();
   const { saveEpisodePair, loadEpisodes, buildConversationContext, getNextTurnIndex } = useEpisodicMemory();
@@ -112,7 +113,7 @@ export const useTestCaseGenerator = ({ workspaces }: UseTestCaseGeneratorOptions
         type: 'text',
       });
     }
-  }, [workspaces, addMessage]);
+  }, [workspaces, isLoadingWorkspaces, addMessage]);
 
   const handleWorkspaceSelect = useCallback(async (workspaceId: string, workspaceName: string) => {
     const workspace = workspaces.find(w => w.id === workspaceId);
