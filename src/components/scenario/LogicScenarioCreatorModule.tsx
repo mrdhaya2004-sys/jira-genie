@@ -35,7 +35,7 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
     handleCodeAction,
     resetFlow,
     resumeFromHistory,
-  } = useScenarioCreator({ workspaces });
+  } = useScenarioCreator({ workspaces, isLoadingWorkspaces: workspacesLoading });
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);

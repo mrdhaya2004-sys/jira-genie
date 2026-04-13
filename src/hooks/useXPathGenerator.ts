@@ -52,7 +52,7 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
     if (workspaces.length === 0) {
       addMessage({
         role: 'assistant',
-        content: "Hi! 🧬 I can generate XPaths for your application.\n\n⚠️ **No workspaces found.** Please create a workspace in the **Agentic AI – Core Workspace** module first.",
+        content: "Hi! 🧬 I can generate XPaths for your application.\n\n⚠️ **No workspaces found.** Please create a workspace in the **Hive AI – Core Workspace** module first.",
         type: 'text',
       });
     } else {
@@ -406,7 +406,7 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
       if (workspaces.length === 0) {
         addMessage({
           role: 'assistant',
-          content: "Hi! 🧬 I can generate XPaths for your application.\n\n⚠️ **No workspaces found.** Please create a workspace in the **Agentic AI – Core Workspace** module first.",
+          content: "Hi! 🧬 I can generate XPaths for your application.\n\n⚠️ **No workspaces found.** Please create a workspace in the **Hive AI – Core Workspace** module first.",
           type: 'text',
         });
       } else {

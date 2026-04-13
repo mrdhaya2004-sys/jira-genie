@@ -31,7 +31,7 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
     generateExcelDownload,
     resetFlow,
     resumeFromHistory,
-  } = useTestCaseGenerator({ workspaces });
+  } = useTestCaseGenerator({ workspaces, isLoadingWorkspaces: workspacesLoading });
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
