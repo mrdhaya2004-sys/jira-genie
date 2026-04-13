@@ -22,7 +22,16 @@ const LiveStatusIndicator: React.FC = () => (
 
 const JiraTicketRaiserModule: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const navigate = useNavigate();
   const connection = useJiraConnection();
+
+  const handleGateConnect = () => {
+    setSettingsOpen(true);
+  };
+
+  const handleGateCancel = () => {
+    navigate('/dashboard');
+  };
 
   return (
     <ChatProvider>
@@ -63,6 +72,17 @@ const JiraTicketRaiserModule: React.FC = () => {
           <ChatContainer />
         </div>
       </div>
+
+      {/* Connection gate - shown when not connected */}
+      {!connection.loading && connection.status !== 'connected' && !settingsOpen && (
+        <JiraConnectionGate
+          status={connection.status}
+          loading={connection.loading}
+          onConnect={handleGateConnect}
+          onCancel={handleGateCancel}
+        />
+      )}
+
       <JiraSettingsDialog
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
