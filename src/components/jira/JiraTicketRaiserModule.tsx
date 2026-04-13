@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChatProvider } from '@/contexts/ChatContext';
 import ChatContainer from '@/components/chat/ChatContainer';
 import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import JiraSettingsDialog from '@/components/jira/JiraSettingsDialog';
+import JiraConnectionGate from '@/components/jira/JiraConnectionGate';
 import { useJiraConnection } from '@/hooks/useJiraConnection';
 import jiraLogo from '@/assets/jira-logo.png';
 
