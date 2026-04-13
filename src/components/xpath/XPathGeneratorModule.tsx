@@ -32,7 +32,7 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
     handleUserQuery,
     resetFlow,
     resumeFromHistory,
-  } = useXPathGenerator({ workspaces });
+  } = useXPathGenerator({ workspaces, isLoadingWorkspaces: workspacesLoading });
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
