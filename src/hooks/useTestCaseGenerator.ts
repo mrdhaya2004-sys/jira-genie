@@ -50,6 +50,48 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
     }
   }, []);
 
+  // Reactively update workspace list when loading completes and user is in workspace_selection phase
+  useEffect(() => {
+    if (isLoadingWorkspaces || phase !== 'workspace_selection') return;
+    
+    // Check if there's a "Loading workspaces" or "No workspaces found" message that needs updating
+    const hasStaleMsg = messages.some(m => 
+      m.role === 'assistant' && (
+        m.content.includes('Loading workspaces') || 
+        m.content.includes('No workspaces found')
+      )
+    );
+    if (!hasStaleMsg) return;
+
+    // Remove stale messages
+    setMessages(prev => prev.filter(m => 
+      !(m.role === 'assistant' && (
+        m.content.includes('Loading workspaces') ||
+        m.content.includes('No workspaces found')
+      ))
+    ));
+
+    if (workspaces.length === 0) {
+      addMessage({
+        role: 'assistant',
+        content: "⚠️ **No workspaces found.** Please create a workspace in the **Hive AI – Core Workspace** module first, or switch to Manual Mode.",
+        type: 'text',
+      });
+    } else {
+      addMessage({
+        role: 'assistant',
+        content: "Please select a workspace to continue.",
+        type: 'workspace_select',
+        options: workspaces.map(w => ({
+          id: w.id,
+          label: w.name,
+          value: w.id,
+          icon: '📁',
+        })),
+      });
+    }
+  }, [workspaces, isLoadingWorkspaces, phase]);
+
   const addMessage = useCallback((msg: Omit<TestCaseChatMessage, 'id' | 'timestamp'>) => {
     const newMessage: TestCaseChatMessage = {
       ...msg,
