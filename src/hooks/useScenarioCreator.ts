@@ -16,9 +16,10 @@ import type { Workspace, WorkspaceFile } from '@/types/workspace';
 
 interface UseScenarioCreatorOptions {
   workspaces: Workspace[];
+  isLoadingWorkspaces?: boolean;
 }
 
-export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) => {
+export const useScenarioCreator = ({ workspaces, isLoadingWorkspaces = false }: UseScenarioCreatorOptions) => {
   const [messages, setMessages] = useState<ScenarioChatMessage[]>([]);
   const [phase, setPhase] = useState<ScenarioFlowPhase>('framework_selection');
   const [selectedFramework, setSelectedFramework] = useState<AutomationFramework | null>(null);
@@ -89,10 +90,19 @@ export const useScenarioCreator = ({ workspaces }: UseScenarioCreatorOptions) =>
     setTimeout(() => {
       setPhase('workspace_selection');
       
+      if (isLoadingWorkspaces) {
+        addMessage({
+          role: 'assistant',
+          content: "⏳ Loading workspaces, please wait...",
+          type: 'text',
+        });
+        return;
+      }
+
       if (workspaces.length === 0) {
         addMessage({
           role: 'assistant',
-          content: "⚠️ No workspaces found. Please create a workspace in the **Agentic AI – Core Workspace** module first to upload your user stories and app files.",
+          content: "⚠️ **No workspaces found.** Please create a workspace in the **Hive AI – Core Workspace** module first to upload your user stories and app files.",
           type: 'text',
         });
       } else {

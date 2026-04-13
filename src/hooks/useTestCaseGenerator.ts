@@ -85,10 +85,19 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
     if (mode === 'workspace') {
       setPhase('workspace_selection');
       
+      if (isLoadingWorkspaces) {
+        addMessage({
+          role: 'assistant',
+          content: "⏳ Loading workspaces, please wait...",
+          type: 'text',
+        });
+        return;
+      }
+
       if (workspaces.length === 0) {
         addMessage({
           role: 'assistant',
-          content: "No workspaces found. Please create a workspace in the **Agentic AI – Core Workspace** first, or switch to Manual Mode.",
+          content: "⚠️ **No workspaces found.** Please create a workspace in the **Hive AI – Core Workspace** module first, or switch to Manual Mode.",
           type: 'text',
         });
         return;
