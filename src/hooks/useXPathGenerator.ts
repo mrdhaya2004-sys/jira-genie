@@ -14,9 +14,10 @@ import type { Workspace, WorkspaceFile } from '@/types/workspace';
 
 interface UseXPathGeneratorOptions {
   workspaces: Workspace[];
+  isLoadingWorkspaces?: boolean;
 }
 
-export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
+export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: UseXPathGeneratorOptions) => {
   const [messages, setMessages] = useState<XPathChatMessage[]>([]);
   const [phase, setPhase] = useState<XPathFlowPhase>('workspace_selection');
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
@@ -31,22 +32,22 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
   const { addLog } = useHistoryLogs();
   const { saveEpisodePair, loadEpisodes, buildConversationContext, getNextTurnIndex } = useEpisodicMemory();
 
-  // Initial greeting — re-run when workspaces load so options appear
+  // Initial greeting — wait for workspaces to finish loading before deciding
   useEffect(() => {
+    // Don't render anything while workspaces are still loading
+    if (isLoadingWorkspaces) return;
+
     // If we already have workspace_select messages with options, skip
     const hasWorkspaceOptions = messages.some(
       m => m.type === 'workspace_select' && m.options && m.options.length > 0
     );
     if (hasWorkspaceOptions) return;
 
-    // Also skip if we already show a "no workspaces" message
-    const hasNoWorkspaceMsg = messages.some(
-      m => m.role === 'assistant' && m.content.includes('No workspaces found')
-    );
-    if (hasNoWorkspaceMsg) return;
-
-    // Remove any stale initial message (empty options) and add fresh one
-    setMessages(prev => prev.filter(m => m.type !== 'workspace_select'));
+    // Remove any stale initial/no-workspace messages and rebuild
+    setMessages(prev => prev.filter(m => 
+      m.type !== 'workspace_select' && 
+      !(m.role === 'assistant' && m.content.includes('No workspaces found'))
+    ));
 
     if (workspaces.length === 0) {
       addMessage({
@@ -67,7 +68,7 @@ export const useXPathGenerator = ({ workspaces }: UseXPathGeneratorOptions) => {
         })),
       });
     }
-  }, [workspaces]);
+  }, [workspaces, isLoadingWorkspaces]);
 
   const addMessage = useCallback((message: Omit<XPathChatMessage, 'id' | 'timestamp'>) => {
     const newMessage: XPathChatMessage = {
