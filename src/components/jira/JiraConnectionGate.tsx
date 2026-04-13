@@ -20,7 +20,7 @@ const JiraConnectionGate: React.FC<JiraConnectionGateProps> = ({
 }) => {
   if (loading || status === 'connected') return null;
 
-  const isExpired = status === 'not_connected'; // treat unvalidated/expired same as not connected
+  const isExpired = false; // only true when we detect an actual expired connection
 
   return (
     <Dialog open={true} onOpenChange={(open) => { if (!open) onCancel(); }}>
