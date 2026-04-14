@@ -28,7 +28,7 @@ const JiraConnectionGate: React.FC<JiraConnectionGateProps> = ({
         {/* Header gradient */}
         <div className="bg-gradient-to-br from-blue-600/10 via-blue-500/5 to-transparent px-8 pt-8 pb-6 text-center">
           <div className="mx-auto mb-4 h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/25">
-            <img src={jiraLogo} alt="Jira" className="h-10 w-10 object-contain" />
+            <img src={jiraLogo} alt="Jira" className="h-10 w-10 object-contain rounded-none shadow-none border-0 border-none text-sm font-thin" />
           </div>
           <h2 className="text-xl font-semibold tracking-tight">
             {isExpired ? 'Reconnect to Jira' : 'Connect to Jira'}
