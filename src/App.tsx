@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,16 +7,28 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import DashboardPage from "./pages/DashboardPage";
-import ChatPage from "./pages/ChatPage";
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import NotFound from "./pages/NotFound";
 import HiveAIButton from "./components/hiveai/HiveAIButton";
+import testzoneLogo from "@/assets/testzone-logo.png";
+
+// Lazy-loaded pages
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const ChatPage = lazy(() => import("./pages/ChatPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const SignupPage = lazy(() => import("./pages/SignupPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="flex flex-col items-center gap-3 animate-pulse">
+      <img src={testzoneLogo} alt="Test Zone" className="h-12 w-12 rounded-xl" />
+      <p className="text-sm text-muted-foreground">Loading…</p>
+    </div>
+  </div>
+);
 
 // Redirect authenticated users away from auth pages
 const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -33,58 +46,60 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 const AppRoutes = () => (
-  <Routes>
-    {/* Protected Routes */}
-    <Route 
-      path="/" 
-      element={
-        <ProtectedRoute>
-          <DashboardPage />
-        </ProtectedRoute>
-      } 
-    />
-    <Route 
-      path="/chat" 
-      element={
-        <ProtectedRoute>
-          <ChatPage />
-        </ProtectedRoute>
-      } 
-    />
+  <Suspense fallback={<PageLoader />}>
+    <Routes>
+      {/* Protected Routes */}
+      <Route 
+        path="/" 
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/chat" 
+        element={
+          <ProtectedRoute>
+            <ChatPage />
+          </ProtectedRoute>
+        } 
+      />
 
-    {/* Auth Routes */}
-    <Route 
-      path="/auth/login" 
-      element={
-        <AuthRoute>
-          <LoginPage />
-        </AuthRoute>
-      } 
-    />
-    <Route 
-      path="/auth/signup" 
-      element={
-        <AuthRoute>
-          <SignupPage />
-        </AuthRoute>
-      } 
-    />
-    <Route 
-      path="/auth/forgot-password" 
-      element={
-        <AuthRoute>
-          <ForgotPasswordPage />
-        </AuthRoute>
-      } 
-    />
-    <Route 
-      path="/auth/reset-password" 
-      element={<ResetPasswordPage />} 
-    />
+      {/* Auth Routes */}
+      <Route 
+        path="/auth/login" 
+        element={
+          <AuthRoute>
+            <LoginPage />
+          </AuthRoute>
+        } 
+      />
+      <Route 
+        path="/auth/signup" 
+        element={
+          <AuthRoute>
+            <SignupPage />
+          </AuthRoute>
+        } 
+      />
+      <Route 
+        path="/auth/forgot-password" 
+        element={
+          <AuthRoute>
+            <ForgotPasswordPage />
+          </AuthRoute>
+        } 
+      />
+      <Route 
+        path="/auth/reset-password" 
+        element={<ResetPasswordPage />} 
+      />
 
-    {/* Catch-all */}
-    <Route path="*" element={<NotFound />} />
-  </Routes>
+      {/* Catch-all */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </Suspense>
 );
 
 const App = () => (
