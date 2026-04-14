@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2 } from 'lucide-react';
+import testzoneLogo from '@/assets/testzone-logo.png';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
