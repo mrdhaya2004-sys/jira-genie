@@ -21,6 +21,7 @@ import { ActiveModule } from '@/pages/DashboardPage';
 import testzoneLogo from '@/assets/testzone-logo.png';
 import { useMentions } from '@/hooks/useMentions';
 import HelpChatDialog from '@/components/help/HelpChatDialog';
+import LogoutConfirmDialog from '@/components/auth/LogoutConfirmDialog';
 
 interface DashboardSidebarProps {
   className?: string;
@@ -36,6 +37,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   const { profile, signOut } = useAuth();
   const { unreadCount } = useMentions();
   const [helpChatOpen, setHelpChatOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   const getInitials = (name: string) => {
     return name.
@@ -194,7 +196,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             variant="ghost"
             size="icon"
             className="text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent h-8 w-8"
-            onClick={signOut}>
+            onClick={() => setLogoutOpen(true)}>
             
             <LogOut className="h-4 w-4" />
           </Button>
@@ -202,6 +204,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       </div>
     </aside>
     <HelpChatDialog open={helpChatOpen} onOpenChange={setHelpChatOpen} />
+    <LogoutConfirmDialog open={logoutOpen} onOpenChange={setLogoutOpen} onConfirm={signOut} />
     </>);
 };
 

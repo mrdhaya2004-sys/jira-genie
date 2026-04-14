@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import testzoneLogo from '@/assets/testzone-logo.png';
+import LogoutConfirmDialog from '@/components/auth/LogoutConfirmDialog';
+import { useState } from 'react';
 
 interface SidebarProps {
   className?: string;
@@ -24,6 +26,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const { profile, signOut } = useAuth();
   const { startNewTicket, resetChat } = useChat();
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   const handleNewTicket = () => {
     resetChat();
@@ -124,12 +127,13 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
             variant="ghost" 
             size="icon-sm"
             className="text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-            onClick={signOut}
+            onClick={() => setLogoutOpen(true)}
           >
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </div>
+      <LogoutConfirmDialog open={logoutOpen} onOpenChange={setLogoutOpen} onConfirm={signOut} />
     </aside>
   );
 };

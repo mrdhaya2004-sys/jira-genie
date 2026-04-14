@@ -34,6 +34,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import NotificationPanel from '@/components/notifications/NotificationPanel';
 import ChangePasswordDialog from '@/components/profile/ChangePasswordDialog';
 import HelpChatDialog from '@/components/help/HelpChatDialog';
+import LogoutConfirmDialog from '@/components/auth/LogoutConfirmDialog';
 
 const MODULE_LABELS: Record<ActiveModule, string> = {
   'mentions': 'Mentions',
@@ -59,6 +60,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
   const { profile, signOut } = useAuth();
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [helpChatOpen, setHelpChatOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const {
     notifications,
     isLoading,
@@ -193,7 +195,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
               Help
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer text-destructive gap-2" onClick={signOut}>
+            <DropdownMenuItem className="cursor-pointer text-destructive gap-2" onClick={() => setLogoutOpen(true)}>
               <LogOut className="h-4 w-4" />
               Logout
             </DropdownMenuItem>
@@ -202,6 +204,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
       </div>
       <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
       <HelpChatDialog open={helpChatOpen} onOpenChange={setHelpChatOpen} />
+      <LogoutConfirmDialog open={logoutOpen} onOpenChange={setLogoutOpen} onConfirm={signOut} />
     </header>
   );
 };
