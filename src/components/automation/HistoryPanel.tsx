@@ -86,9 +86,18 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
     loadHistory();
   };
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
+    // Clear local storage history
     automationHistoryService.clearHistory(toolType);
     loadHistory();
+
+    // Clear persistent DB logs for this module
+    if (filteredLogs.length > 0) {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const idsToDelete = filteredLogs.map(l => l.id);
+      await supabase.from('history_logs').delete().in('id', idsToDelete);
+      fetchLogs();
+    }
   };
 
   const handleResume = (module: string, prompt: string, historyLogId: string) => {
