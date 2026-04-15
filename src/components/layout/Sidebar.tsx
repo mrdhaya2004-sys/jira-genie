@@ -11,11 +11,12 @@ import {
   History, 
   Settings, 
   LogOut,
-  HelpCircle,
+  
   Ticket
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import testzoneLogo from '@/assets/testzone-logo.png';
+import helpSupportLogo from '@/assets/help-support-logo.png';
 import LogoutConfirmDialog from '@/components/auth/LogoutConfirmDialog';
 import { useState } from 'react';
 
@@ -99,7 +100,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       {/* Bottom Section */}
       <div className="p-3 space-y-1">
         <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors">
-          <HelpCircle className="h-4 w-4" />
+          <img src={helpSupportLogo} alt="Help" className="h-4 w-4 object-contain" />
           Help & Support
         </button>
         <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors">

@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User, Sparkles } from 'lucide-react';
+import { Send, Bot, User } from 'lucide-react';
+import helpSupportLogo from '@/assets/help-support-logo.png';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
@@ -150,8 +151,8 @@ const HelpChatDialog: React.FC<HelpChatDialogProps> = ({ open, onOpenChange }) =
       <DialogContent className="max-w-2xl h-[70vh] flex flex-col p-0 gap-0">
         <DialogHeader className="px-5 py-4 border-b border-border flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-primary" />
+            <div className="h-8 w-8 rounded-lg flex items-center justify-center">
+              <img src={helpSupportLogo} alt="Help & Support" className="h-7 w-7 object-contain" />
             </div>
             Help & Support
           </DialogTitle>
