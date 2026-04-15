@@ -8,7 +8,7 @@ import {
   History,
   Settings,
   LogOut,
-  
+  HelpCircle,
   Ticket,
   LayoutDashboard,
   Code2,
@@ -18,7 +18,6 @@ import {
 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
-import helpSupportLogo from '@/assets/help-support-logo.png';
 import testzoneLogo from '@/assets/testzone-logo.png';
 import { useMentions } from '@/hooks/useMentions';
 import HelpChatDialog from '@/components/help/HelpChatDialog';
@@ -157,7 +156,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           onClick={() => setHelpChatOpen(true)}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5 transition-all duration-150"
         >
-          <img src={helpSupportLogo} alt="Help" className="h-4 w-4 object-contain" />
+          <HelpCircle className="h-4 w-4" />
           Help & Support
         </button>
         <button
