@@ -192,7 +192,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setHelpChatOpen(true)}>
-              <img src={helpSupportLogo} alt="Help" className="h-4 w-4 object-contain" />
+              <HelpCircle className="h-4 w-4" />
               Help
             </DropdownMenuItem>
             <DropdownMenuSeparator />
