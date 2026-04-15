@@ -9,10 +9,11 @@ import {
   LogOut, 
   User, 
   Key,
-  HelpCircle,
+  
   Sliders,
   ChevronRight,
 } from 'lucide-react';
+import helpSupportLogo from '@/assets/help-support-logo.png';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -191,7 +192,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setHelpChatOpen(true)}>
-              <HelpCircle className="h-4 w-4" />
+              <img src={helpSupportLogo} alt="Help" className="h-4 w-4 object-contain" />
               Help
             </DropdownMenuItem>
             <DropdownMenuSeparator />
