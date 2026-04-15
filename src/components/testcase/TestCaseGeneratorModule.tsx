@@ -2,8 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, RotateCcw, FileSpreadsheet } from 'lucide-react';
-import testcaseLogo from '@/assets/testcase-logo.png';
+import { Loader2, RotateCcw, ClipboardList, FileSpreadsheet } from 'lucide-react';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useTestCaseGenerator } from '@/hooks/useTestCaseGenerator';
 import TestCaseChatMessage from './TestCaseChatMessage';
@@ -69,7 +68,9 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
       {/* Header */}
       <div className="border-b border-border/60 bg-card/50 backdrop-blur-sm px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src={testcaseLogo} alt="Test Case Generator" className="h-10 w-10 object-contain rounded-none shadow-none border-0 border-none" />
+          <div className="h-10 w-10 rounded-xl module-icon-gradient flex items-center justify-center">
+            <ClipboardList className="h-5 w-5 text-primary" />
+          </div>
           <div>
             <h2 className="font-semibold tracking-tight flex items-center gap-2">
               Test Case Generator
