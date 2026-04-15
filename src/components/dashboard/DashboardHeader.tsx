@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Menu, 
-  Bell, 
-  Settings, 
-  LogOut, 
-  User, 
+import {
+  Menu,
+  Bell,
+  Settings,
+  LogOut,
+  User,
   Key,
   HelpCircle,
   Sliders,
