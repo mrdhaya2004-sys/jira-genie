@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import aiConfigLogo from '@/assets/ai-config-logo.png';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -85,9 +86,7 @@ const AIConfigurationModule: React.FC = () => {
     <div className="p-6 max-w-4xl mx-auto space-y-6 overflow-y-auto h-full">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Brain className="h-5 w-5 text-primary" />
-        </div>
+        <img src={aiConfigLogo} alt="AI Configuration" className="h-10 w-10 object-contain rounded-none shadow-none border-0 border-none" />
         <div>
           <h2 className="text-xl font-semibold text-foreground">AI Configuration</h2>
           <p className="text-sm text-muted-foreground">
