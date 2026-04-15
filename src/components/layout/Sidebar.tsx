@@ -11,7 +11,7 @@ import {
   History, 
   Settings, 
   LogOut,
-  HelpCircle,
+  
   Ticket
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
