@@ -9,11 +9,10 @@ import {
   LogOut, 
   User, 
   Key,
-  
+  HelpCircle,
   Sliders,
   ChevronRight,
 } from 'lucide-react';
-import helpSupportLogo from '@/assets/help-support-logo.png';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   DropdownMenu,

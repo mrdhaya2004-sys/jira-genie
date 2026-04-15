@@ -8,7 +8,7 @@ import {
   History,
   Settings,
   LogOut,
-  
+  HelpCircle,
   Ticket,
   LayoutDashboard,
   Code2,
@@ -18,7 +18,6 @@ import {
 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
-import helpSupportLogo from '@/assets/help-support-logo.png';
 import testzoneLogo from '@/assets/testzone-logo.png';
 import { useMentions } from '@/hooks/useMentions';
 import HelpChatDialog from '@/components/help/HelpChatDialog';
