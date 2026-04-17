@@ -102,85 +102,60 @@ serve(async (req) => {
       }
     );
 
-    let issueTypeId: string | null = null;
-    let issueTypeName: string = ticketData.issueType || 'Task';
-    
-    if (projectResponse.ok) {
-      const projectData = await projectResponse.json();
-      const issueTypes = projectData.issueTypes || [];
-      
-      console.log('Available issue types from Jira:', JSON.stringify(issueTypes.map((it: {name: string; id: string}) => ({ name: it.name, id: it.id }))));
-      
-      // Filter out subtask types - they require parent issue
-      const standardIssueTypes = issueTypes.filter((it: { name: string; subtask?: boolean }) => {
-        const isSubtask = it.subtask === true || 
-                          it.name.toLowerCase().includes('subtask') || 
-                          it.name.toLowerCase().includes('sub-task');
-        return !isSubtask;
-      });
-      
-      console.log('Standard issue types (excluding subtask):', JSON.stringify(standardIssueTypes.map((it: {name: string; id: string}) => ({ name: it.name, id: it.id }))));
-      
-      // Get the requested type - preserve exact value from user selection
-      const requestedType = (ticketData.issueType || 'Task').trim();
-      const requestedTypeLower = requestedType.toLowerCase();
-      console.log('Requested issue type (original):', requestedType);
-      console.log('Requested issue type (lowercase):', requestedTypeLower);
-      
-      // First, try exact case-insensitive match on name
-      let matchingType = standardIssueTypes.find((it: { name: string; id: string }) => 
-        it.name.toLowerCase() === requestedTypeLower
+    if (!projectResponse.ok) {
+      const errText = await projectResponse.text();
+      console.error('Failed to fetch project info:', errText);
+      return new Response(
+        JSON.stringify({ error: `Unable to fetch project metadata from Jira: ${errText}` }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
-      
-      console.log('Exact match result:', matchingType ? `Found: ${matchingType.name} (ID: ${matchingType.id})` : 'Not found');
-
-      // If no exact match, try common aliases
-      if (!matchingType) {
-        const typeAliases: Record<string, string[]> = {
-          'bug': ['bug', 'defect', 'error'],
-          'task': ['task', 'to-do', 'todo'],
-          'story': ['story', 'user story', 'feature'],
-          'epic': ['epic', 'initiative'],
-          'incident': ['incident', 'outage'],
-        };
-        
-        // Find which canonical type the requested type maps to
-        let canonicalType: string | null = null;
-        for (const [canonical, aliases] of Object.entries(typeAliases)) {
-          if (aliases.includes(requestedTypeLower)) {
-            canonicalType = canonical;
-            break;
-          }
-        }
-        
-        console.log('Canonical type from aliases:', canonicalType);
-        
-        if (canonicalType) {
-          matchingType = standardIssueTypes.find((it: { name: string }) => 
-            it.name.toLowerCase() === canonicalType
-          );
-          console.log('Alias match result:', matchingType ? `Found: ${matchingType.name}` : 'Not found');
-        }
-      }
-
-      if (matchingType) {
-        issueTypeId = matchingType.id;
-        issueTypeName = matchingType.name;
-        console.log(`✅ Using matched issue type: ${matchingType.name} (ID: ${issueTypeId})`);
-      } else if (standardIssueTypes.length > 0) {
-        // Only use fallback if requested type truly doesn't exist
-        // Prefer Task as a safe fallback
-        const taskType = standardIssueTypes.find((it: { name: string }) => 
-          it.name.toLowerCase() === 'task'
-        );
-        const fallbackType = taskType || standardIssueTypes[0];
-        issueTypeId = fallbackType.id;
-        issueTypeName = fallbackType.name;
-        console.log(`⚠️ Requested type "${requestedType}" not found in Jira. Using fallback: ${fallbackType.name} (ID: ${issueTypeId})`);
-      }
-    } else {
-      console.error('Failed to fetch project info:', await projectResponse.text());
     }
+
+    const projectData = await projectResponse.json();
+    const projectIssueTypes: Array<{ id: string; name: string; subtask?: boolean }> = projectData.issueTypes || [];
+
+    // Exclude subtasks (require a parent)
+    const standardIssueTypes = projectIssueTypes.filter((it) => it.subtask !== true);
+
+    console.log(
+      '[issuetype] Available for project',
+      jiraProjectKey,
+      JSON.stringify(standardIssueTypes.map((it) => ({ id: it.id, name: it.name })))
+    );
+
+    const requested = (ticketData.issueType || '').trim();
+    console.log('[issuetype] Requested from frontend:', requested);
+
+    if (!requested) {
+      return new Response(
+        JSON.stringify({ error: 'Issue type is required. Please select an issue type.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Strict matching: accept exact ID match OR exact case-insensitive name match.
+    // No aliases, no fuzzy matching, no fallback to a default type.
+    const matchById = standardIssueTypes.find((it) => it.id === requested);
+    const matchByName = matchById
+      ? null
+      : standardIssueTypes.find((it) => it.name.toLowerCase() === requested.toLowerCase());
+
+    const matchingType = matchById || matchByName;
+
+    if (!matchingType) {
+      const available = standardIssueTypes.map((it) => it.name).join(', ');
+      console.error(`[issuetype] ❌ "${requested}" is not a valid issue type for project ${jiraProjectKey}. Available: ${available}`);
+      return new Response(
+        JSON.stringify({
+          error: `Invalid issue type "${requested}" for project ${jiraProjectKey}. Available types: ${available}`,
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const issueTypeId: string = matchingType.id;
+    const issueTypeName: string = matchingType.name;
+    console.log(`[issuetype] ✅ Resolved "${requested}" -> ${issueTypeName} (ID: ${issueTypeId})`);
 
     // Build the issue payload
     const issuePayload: Record<string, unknown> = {
@@ -204,7 +179,7 @@ serve(async (req) => {
             },
           ],
         },
-        issuetype: issueTypeId ? { id: issueTypeId } : { name: issueTypeName },
+        issuetype: { id: issueTypeId },
         priority: {
           id: priorityMap[ticketData.priority] || '3',
         },
