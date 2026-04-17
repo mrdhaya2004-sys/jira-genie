@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { ChatMessage, TicketData, ChatOption, DuplicateTicket, DynamicInput, Platform, Environment, TitleAnalysisResult } from '@/types/ticket';
 import { useAuth } from './AuthContext';
-import { jiraService, JiraMetadata, DuplicateIssue } from '@/services/jiraService';
+import { jiraService, JiraTicketResponse, JiraMetadata, DuplicateIssue } from '@/services/jiraService';
 import { addAICreatedTicket } from '@/lib/aiTicketStorage';
 import { toast } from 'sonner';
 
@@ -103,7 +103,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }));
   }, []);
 
-  const createJiraTicket = useCallback(async (): Promise<{ success: boolean; ticketKey?: string; ticketUrl?: string; error?: string }> => {
+  const createJiraTicket = useCallback(async (): Promise<JiraTicketResponse> => {
     console.log('[ChatContext] Creating Jira ticket with data:', ticketData);
     
     // Format the description with generated steps
