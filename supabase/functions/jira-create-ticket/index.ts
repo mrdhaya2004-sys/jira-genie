@@ -179,7 +179,7 @@ serve(async (req) => {
             },
           ],
         },
-        issuetype: issueTypeId ? { id: issueTypeId } : { name: issueTypeName },
+        issuetype: { id: issueTypeId },
         priority: {
           id: priorityMap[ticketData.priority] || '3',
         },
