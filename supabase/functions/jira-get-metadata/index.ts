@@ -80,6 +80,42 @@ serve(async (req) => {
     if (!projectResponse.ok) {
       const errorText = await projectResponse.text();
       console.error('Failed to fetch project:', errorText);
+      
+      // Check if this is a "project not found" error
+      let isProjectNotFound = false;
+      try {
+        const errData = JSON.parse(errorText);
+        if (errData.errorMessages && errData.errorMessages.some((msg: string) => 
+          msg.includes(jiraProjectKey) || 
+          msg.includes('没有找到') || // Chinese "not found"
+          msg.includes('not found') ||
+          msg.includes('No project') ||
+          msg.includes('project') && msg.includes('key')
+        )) {
+          isProjectNotFound = true;
+        }
+      } catch {
+        // If we can't parse the error, check the raw text
+        if (errorText.includes(jiraProjectKey) && (
+          errorText.includes('not found') || 
+          errorText.includes('没有找到')
+        )) {
+          isProjectNotFound = true;
+        }
+      }
+
+      if (isProjectNotFound || projectResponse.status === 404) {
+        return new Response(
+          JSON.stringify({
+            error: `PROJECT_KEY_NOT_FOUND`,
+            errorDetails: `The configured project key "${jiraProjectKey}" does not exist in your Jira instance.`,
+            projectKey: jiraProjectKey,
+            suggestion: 'Please update your Jira project key in Settings to continue.',
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ error: 'Failed to fetch project metadata' }),
         { status: projectResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
