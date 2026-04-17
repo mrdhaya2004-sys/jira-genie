@@ -7,6 +7,8 @@ export interface JiraTicketResponse {
   ticketId?: string;
   ticketUrl?: string;
   error?: string;
+  errorCode?: string;
+  suggestion?: string;
 }
 
 export interface DuplicateIssue {
