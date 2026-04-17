@@ -7,6 +7,8 @@ export interface JiraTicketResponse {
   ticketId?: string;
   ticketUrl?: string;
   error?: string;
+  errorCode?: string;
+  suggestion?: string;
 }
 
 export interface DuplicateIssue {
@@ -63,6 +65,17 @@ export const jiraService = {
 
       if (data?.error) {
         console.error('[jiraService] API returned error:', data.error);
+        
+        // Check for project key not found error and provide user-friendly message
+        if (data.error === 'PROJECT_KEY_NOT_FOUND' || data.projectKey) {
+          return { 
+            success: false, 
+            error: data.errorDetails || `Project key "${data.projectKey}" not found in your Jira instance.`,
+            errorCode: 'PROJECT_KEY_NOT_FOUND',
+            suggestion: data.suggestion || 'Please update your Jira project key in Settings.'
+          };
+        }
+        
         return { success: false, error: data.error };
       }
 
