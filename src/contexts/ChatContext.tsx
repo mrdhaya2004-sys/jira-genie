@@ -677,11 +677,20 @@ ${stepsText}
             });
             setCurrentPhase('completed');
           } else {
-            toast.error(result.error || 'Failed to create ticket');
-            addMessage({
-              type: 'system',
-              content: `❌ **Failed to create ticket**\n\n${result.error || 'An unexpected error occurred. Please try again.'}`,
-            });
+            // Check for project key not found error
+            if (result.errorCode === 'PROJECT_KEY_NOT_FOUND') {
+              toast.error('Jira Project Key Error');
+              addMessage({
+                type: 'system',
+                content: `❌ **Jira Project Key Error**\n\n${result.error || 'The configured project key does not exist in your Jira instance.'}\n\n**To fix this:**\n1. Click the **Settings** (⚙️) button in the top right\n2. Update the **Project Key** to a valid Jira project key\n3. Try creating the ticket again`,
+              });
+            } else {
+              toast.error(result.error || 'Failed to create ticket');
+              addMessage({
+                type: 'system',
+                content: `❌ **Failed to create ticket**\n\n${result.error || 'An unexpected error occurred. Please try again.'}`,
+              });
+            }
           }
         } else {
           await simulateBotTyping(500);
