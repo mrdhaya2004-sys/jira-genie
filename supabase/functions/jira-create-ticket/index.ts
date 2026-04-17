@@ -132,18 +132,19 @@ serve(async (req) => {
       if (isProjectNotFound || projectResponse.status === 404) {
         return new Response(
           JSON.stringify({
+            ok: false,
             error: `PROJECT_KEY_NOT_FOUND`,
             errorDetails: `The configured project key "${jiraProjectKey}" does not exist in your Jira instance.`,
             projectKey: jiraProjectKey,
             suggestion: 'Please update your Jira project key in Settings to continue.',
           }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
       return new Response(
-        JSON.stringify({ error: `Unable to fetch project metadata from Jira: ${errText}` }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ ok: false, error: `Unable to fetch project metadata from Jira: ${errText}` }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -263,8 +264,8 @@ serve(async (req) => {
       }
       
       return new Response(
-        JSON.stringify({ error: errorMessage }),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ ok: false, error: errorMessage }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
