@@ -1,19 +1,11 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getAuthenticatedUserAndJiraConnection } from "../_shared/jiraConnection.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// Sanitize domain - remove protocol and trailing slashes
-function sanitizeDomain(domain: string): string {
-  return domain
-    .replace(/^https?:\/\//i, '')
-    .replace(/\/+$/, '')
-    .trim();
-}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -31,38 +23,23 @@ serve(async (req) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-    
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Server configuration error');
-    }
-
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
+    const { user, jiraConnection, error: connectionError } = await getAuthenticatedUserAndJiraConnection(authHeader);
+    if (!user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const jiraDomainRaw = Deno.env.get('JIRA_DOMAIN');
-    const jiraDomain = jiraDomainRaw ? sanitizeDomain(jiraDomainRaw) : null;
-    const jiraEmail = Deno.env.get('JIRA_USER_EMAIL');
-    const jiraApiToken = Deno.env.get('JIRA_API_TOKEN');
-    const jiraProjectKey = Deno.env.get('JIRA_PROJECT_KEY');
-
-    if (!jiraDomain || !jiraEmail || !jiraApiToken || !jiraProjectKey) {
-      console.error('Missing Jira configuration');
+    if (!jiraConnection) {
+      console.error('Missing Jira connection for user:', user.id, connectionError);
       return new Response(
-        JSON.stringify({ error: 'Jira configuration is incomplete' }),
+        JSON.stringify({ ok: false, error: connectionError || 'Jira connection is incomplete' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const { jiraDomain, jiraEmail, jiraApiToken, jiraProjectKey } = jiraConnection;
 
     const auth = btoa(`${jiraEmail}:${jiraApiToken}`);
 
