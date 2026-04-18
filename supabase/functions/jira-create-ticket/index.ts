@@ -142,8 +142,8 @@ serve(async (req) => {
 
     if (!requested) {
       return new Response(
-        JSON.stringify({ error: 'Issue type is required. Please select an issue type.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ ok: false, error: 'Issue type is required. Please select an issue type.' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -161,9 +161,10 @@ serve(async (req) => {
       console.error(`[issuetype] ❌ "${requested}" is not a valid issue type for project ${jiraProjectKey}. Available: ${available}`);
       return new Response(
         JSON.stringify({
+          ok: false,
           error: `Invalid issue type "${requested}" for project ${jiraProjectKey}. Available types: ${available}`,
         }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
