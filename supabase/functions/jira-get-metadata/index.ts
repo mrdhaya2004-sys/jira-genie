@@ -226,7 +226,7 @@ serve(async (req) => {
         components: components,
         sprints: sprints,
         users: users,
-        priorities: ['Critical', 'High', 'Medium', 'Low'],
+        priorities: priorities,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
