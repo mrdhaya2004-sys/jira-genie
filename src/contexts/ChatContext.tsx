@@ -144,7 +144,11 @@ ${stepsText}
     }
   }, [ticketData]);
 
-  // Get options based on metadata
+  // All option lists below are derived from the user's connected Jira project metadata.
+  // When the project does not expose a value (e.g. no components, no sprints), we
+  // surface a single "None" / "Skip" option instead of inventing fake defaults so
+  // the chatbot only offers choices that are actually valid in the user's project.
+
   const getModuleOptions = useCallback((): ChatOption[] => {
     if (jiraMetadata?.components?.length) {
       return jiraMetadata.components.map((comp, i) => ({
@@ -155,10 +159,7 @@ ${stepsText}
       }));
     }
     return [
-      { id: 'auth', label: 'Authentication', value: 'Authentication', icon: '🔐' },
-      { id: 'database', label: 'Database', value: 'Database', icon: '🗄️' },
-      { id: 'api', label: 'API Services', value: 'API Services', icon: '🔌' },
-      { id: 'ui', label: 'User Interface', value: 'User Interface', icon: '🖥️' },
+      { id: 'none', label: 'No specific component', value: '', icon: '➖', description: 'This Jira project has no components configured' },
     ];
   }, [jiraMetadata]);
 
@@ -172,9 +173,7 @@ ${stepsText}
       }));
     }
     return [
-      { id: 'current', label: 'Current Sprint', value: 'Current Sprint', icon: '🏃' },
-      { id: 'next', label: 'Next Sprint', value: 'Next Sprint', icon: '📅' },
-      { id: 'backlog', label: 'Backlog', value: 'Backlog', icon: '📋' },
+      { id: 'backlog', label: 'Backlog', value: 'Backlog', icon: '📋', description: 'No active or future sprints found for this project' },
     ];
   }, [jiraMetadata]);
 
@@ -192,6 +191,36 @@ ${stepsText}
       })));
     }
     return options;
+  }, [jiraMetadata]);
+
+  const getPriorityOptions = useCallback((): ChatOption[] => {
+    const iconMap: Record<string, string> = {
+      Critical: '🔴', Highest: '🔴', High: '🟠',
+      Medium: '🔵', Low: '🟢', Lowest: '⚪',
+    };
+    const descMap: Record<string, string> = {
+      Critical: 'System down, blocking all work',
+      Highest: 'System down, blocking all work',
+      High: 'Major impact, needs urgent attention',
+      Medium: 'Moderate impact, can wait a bit',
+      Low: 'Minor issue, no rush',
+      Lowest: 'Trivial, when time allows',
+    };
+    if (jiraMetadata?.priorities?.length) {
+      return jiraMetadata.priorities.map((p) => ({
+        id: p.toLowerCase(),
+        label: p,
+        value: p,
+        icon: iconMap[p] || '⚪',
+        description: descMap[p] || `${p} priority`,
+      }));
+    }
+    return [
+      { id: 'critical', label: 'Critical', value: 'Critical', icon: '🔴', description: 'System down, blocking all work' },
+      { id: 'high', label: 'High', value: 'High', icon: '🟠', description: 'Major impact, needs urgent attention' },
+      { id: 'medium', label: 'Medium', value: 'Medium', icon: '🔵', description: 'Moderate impact, can wait a bit' },
+      { id: 'low', label: 'Low', value: 'Low', icon: '🟢', description: 'Minor issue, no rush' },
+    ];
   }, [jiraMetadata]);
 
   const getIssueTypeOptions = useCallback((): ChatOption[] => {
