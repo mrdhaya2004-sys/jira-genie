@@ -222,12 +222,16 @@ ${stepsText}
         'Sub-task': 'Part of a larger task',
         Subtask: 'Part of a larger task',
       };
-      return jiraMetadata.issueTypes.slice(0, 6).map((type) => ({
-        id: type.toLowerCase().replace('-', ''),
+      // Filter out sub-tasks (they require a parent and aren't supported in this flow)
+      const filtered = jiraMetadata.issueTypes.filter(
+        (t) => t.toLowerCase() !== 'sub-task' && t.toLowerCase() !== 'subtask'
+      );
+      return filtered.map((type) => ({
+        id: type.toLowerCase().replace(/\s+/g, '-'),
         label: type,
         value: type,
         icon: iconMap[type] || '📋',
-        description: descMap[type] || '',
+        description: descMap[type] || `${type} issue type`,
       }));
     }
     return defaultTypes;
