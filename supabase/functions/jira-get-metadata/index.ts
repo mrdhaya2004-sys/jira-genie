@@ -102,21 +102,34 @@ serve(async (req) => {
 
     const projectData = await projectResponse.json();
 
-    // Fetch issue types for the project
-    const issueTypesResponse = await fetch(
-      `https://${jiraDomain}/rest/api/3/project/${jiraProjectKey}/statuses`,
-      {
-        headers: {
-          'Authorization': `Basic ${auth}`,
-          'Accept': 'application/json',
-        },
-      }
-    );
+    // Extract issue types from the project payload itself (filter out sub-tasks).
+    const projectIssueTypes: Array<{ id: string; name: string; subtask?: boolean }> = projectData.issueTypes || [];
+    const issueTypes: string[] = projectIssueTypes
+      .filter((it) => it.subtask !== true)
+      .map((it) => it.name)
+      .filter(Boolean);
 
-    let issueTypes: string[] = ['Bug', 'Task', 'Story'];
-    if (issueTypesResponse.ok) {
-      const issueTypesData = await issueTypesResponse.json();
-      issueTypes = issueTypesData.map((it: Record<string, unknown>) => it.name).filter(Boolean);
+    // Fetch priorities available in this Jira instance
+    let priorities: string[] = ['Critical', 'High', 'Medium', 'Low'];
+    try {
+      const prioritiesResponse = await fetch(
+        `https://${jiraDomain}/rest/api/3/priority`,
+        {
+          headers: {
+            'Authorization': `Basic ${auth}`,
+            'Accept': 'application/json',
+          },
+        }
+      );
+      if (prioritiesResponse.ok) {
+        const prioritiesData = await prioritiesResponse.json();
+        const fetched = (prioritiesData as Array<Record<string, unknown>>)
+          .map((p) => p.name as string)
+          .filter(Boolean);
+        if (fetched.length > 0) priorities = fetched;
+      }
+    } catch (priorityError) {
+      console.log('Could not fetch priorities, using defaults:', priorityError);
     }
 
     // Fetch components
