@@ -172,6 +172,84 @@ serve(async (req) => {
     const issueTypeName: string = matchingType.name;
     console.log(`[issuetype] ✅ Resolved "${requested}" -> ${issueTypeName} (ID: ${issueTypeId})`);
 
+    // Convert markdown-style description into ADF (Atlassian Document Format)
+    // so that *bold*, lists, and numbered steps render correctly in Jira.
+    const buildAdfDescription = (raw: string) => {
+      const text = raw || 'No description provided';
+
+      // Inline parser: handles *bold* segments within a line.
+      const parseInline = (line: string) => {
+        const nodes: Array<Record<string, unknown>> = [];
+        const regex = /\*([^*\n]+)\*/g;
+        let lastIndex = 0;
+        let match: RegExpExecArray | null;
+        while ((match = regex.exec(line)) !== null) {
+          if (match.index > lastIndex) {
+            nodes.push({ type: 'text', text: line.slice(lastIndex, match.index) });
+          }
+          nodes.push({ type: 'text', text: match[1], marks: [{ type: 'strong' }] });
+          lastIndex = regex.lastIndex;
+        }
+        if (lastIndex < line.length) {
+          nodes.push({ type: 'text', text: line.slice(lastIndex) });
+        }
+        return nodes.length > 0 ? nodes : [{ type: 'text', text: line }];
+      };
+
+      const lines = text.split('\n');
+      const content: Array<Record<string, unknown>> = [];
+      let i = 0;
+      while (i < lines.length) {
+        const line = lines[i];
+        const trimmed = line.trim();
+
+        if (trimmed === '') {
+          i++;
+          continue;
+        }
+
+        // Bullet list (lines starting with "- ")
+        if (/^-\s+/.test(trimmed)) {
+          const items: Array<Record<string, unknown>> = [];
+          while (i < lines.length && /^-\s+/.test(lines[i].trim())) {
+            const itemText = lines[i].trim().replace(/^-\s+/, '');
+            items.push({
+              type: 'listItem',
+              content: [{ type: 'paragraph', content: parseInline(itemText) }],
+            });
+            i++;
+          }
+          content.push({ type: 'bulletList', content: items });
+          continue;
+        }
+
+        // Numbered list (lines starting with "1. ", "2. ", etc.)
+        if (/^\d+\.\s+/.test(trimmed)) {
+          const items: Array<Record<string, unknown>> = [];
+          while (i < lines.length && /^\d+\.\s+/.test(lines[i].trim())) {
+            const itemText = lines[i].trim().replace(/^\d+\.\s+/, '');
+            items.push({
+              type: 'listItem',
+              content: [{ type: 'paragraph', content: parseInline(itemText) }],
+            });
+            i++;
+          }
+          content.push({ type: 'orderedList', content: items });
+          continue;
+        }
+
+        // Default: paragraph (single line)
+        content.push({ type: 'paragraph', content: parseInline(trimmed) });
+        i++;
+      }
+
+      return {
+        type: 'doc',
+        version: 1,
+        content: content.length > 0 ? content : [{ type: 'paragraph', content: [{ type: 'text', text }] }],
+      };
+    };
+
     // Build the issue payload
     const issuePayload: Record<string, unknown> = {
       fields: {
@@ -179,21 +257,7 @@ serve(async (req) => {
           key: jiraProjectKey,
         },
         summary: ticketData.summary,
-        description: {
-          type: 'doc',
-          version: 1,
-          content: [
-            {
-              type: 'paragraph',
-              content: [
-                {
-                  type: 'text',
-                  text: ticketData.description || 'No description provided',
-                },
-              ],
-            },
-          ],
-        },
+        description: buildAdfDescription(ticketData.description),
         issuetype: { id: issueTypeId },
         priority: {
           id: priorityMap[ticketData.priority] || '3',
