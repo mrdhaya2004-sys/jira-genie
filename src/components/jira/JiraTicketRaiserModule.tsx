@@ -97,6 +97,7 @@ const JiraTicketRaiserModule: React.FC<JiraTicketRaiserModuleProps> = ({ onNavig
             </Tooltip>
           </div>
         </div>
+        <ConnectedProjectBanner />
         <div className="flex-1 overflow-hidden">
           <ChatContainer />
         </div>
