@@ -1,13 +1,33 @@
 import React, { useState } from 'react';
-import { ChatProvider } from '@/contexts/ChatContext';
+import { ChatProvider, useChat } from '@/contexts/ChatContext';
 import ChatContainer from '@/components/chat/ChatContainer';
-import { Settings } from 'lucide-react';
+import { Settings, FolderKanban } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import JiraSettingsDialog from '@/components/jira/JiraSettingsDialog';
 import JiraConnectionGate from '@/components/jira/JiraConnectionGate';
 import { useJiraConnection } from '@/hooks/useJiraConnection';
 import jiraLogo from '@/assets/jira-logo.png';
+
+const ConnectedProjectBanner: React.FC = () => {
+  const { jiraMetadata } = useChat();
+  if (!jiraMetadata?.projectKey) return null;
+  return (
+    <div className="border-b border-border/60 bg-muted/30 px-6 py-2">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <FolderKanban className="h-3.5 w-3.5 text-primary" />
+        <span>
+          Connected to{' '}
+          <span className="font-semibold text-foreground">
+            {jiraMetadata.projectName || jiraMetadata.projectKey}
+          </span>{' '}
+          <span className="text-muted-foreground/80">({jiraMetadata.projectKey})</span>
+          <span className="ml-1.5 text-muted-foreground/70">— tickets will be created in this project</span>
+        </span>
+      </div>
+    </div>
+  );
+};
 
 const LiveStatusIndicator: React.FC = () => (
   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25">
@@ -77,6 +97,7 @@ const JiraTicketRaiserModule: React.FC<JiraTicketRaiserModuleProps> = ({ onNavig
             </Tooltip>
           </div>
         </div>
+        <ConnectedProjectBanner />
         <div className="flex-1 overflow-hidden">
           <ChatContainer />
         </div>
