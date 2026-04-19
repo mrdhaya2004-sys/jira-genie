@@ -58,12 +58,17 @@ serve(async (req) => {
     console.log('Requested issueType from frontend:', ticketData.issueType);
     console.log('Jira config - domain:', jiraDomain, 'project:', jiraProjectKey);
 
-    // Map priority to Jira priority IDs (these are standard Jira priority IDs)
+    // Map priority names to Jira priority IDs (standard Jira priority IDs).
+    // Supports both our custom names (Critical/High/Medium/Low) and Jira's
+    // native names (Highest/High/Medium/Low/Lowest) so project-driven priority
+    // lists from /rest/api/3/priority work out of the box.
     const priorityMap: Record<string, string> = {
+      'Highest': '1',
       'Critical': '1',
       'High': '2',
       'Medium': '3',
       'Low': '4',
+      'Lowest': '5',
     };
 
     const auth = btoa(`${jiraEmail}:${jiraApiToken}`);
