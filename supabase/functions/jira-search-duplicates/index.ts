@@ -112,7 +112,9 @@ serve(async (req) => {
     
     console.log('JQL Query (sanitized):', jql);
 
-    const response = await fetch(`https://${jiraDomain}/rest/api/3/search`, {
+    // Use the new /rest/api/3/search/jql endpoint (the legacy /search endpoint was removed).
+    // The new endpoint takes `fields` as a comma-separated string and does not return `total`.
+    const response = await fetch(`https://${jiraDomain}/rest/api/3/search/jql`, {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${auth}`,
@@ -122,7 +124,7 @@ serve(async (req) => {
       body: JSON.stringify({
         jql: jql,
         maxResults: 5,
-        fields: ['summary', 'description', 'status', 'priority', 'created', 'key'],
+        fields: ['summary', 'status', 'priority', 'created'],
       }),
     });
 
@@ -139,21 +141,26 @@ serve(async (req) => {
     }
 
     const data = JSON.parse(responseText);
-    console.log('Found', data.total, 'potential duplicates');
+    const issues: Array<Record<string, unknown>> = data.issues || [];
+    console.log('Found', issues.length, 'potential duplicates');
 
-    const duplicates = data.issues?.map((issue: Record<string, unknown>) => ({
-      key: issue.key,
-      summary: (issue.fields as Record<string, unknown>)?.summary,
-      status: ((issue.fields as Record<string, unknown>)?.status as Record<string, unknown>)?.name,
-      priority: ((issue.fields as Record<string, unknown>)?.priority as Record<string, unknown>)?.name,
-      created: (issue.fields as Record<string, unknown>)?.created,
-      url: `https://${jiraDomain}/browse/${issue.key}`,
-    })) || [];
+    const duplicates = issues.map((issue) => {
+      const fields = (issue.fields as Record<string, unknown>) || {};
+      return {
+        key: issue.key,
+        summary: fields.summary,
+        status: (fields.status as Record<string, unknown>)?.name,
+        priority: (fields.priority as Record<string, unknown>)?.name,
+        created: fields.created,
+        url: `https://${jiraDomain}/browse/${issue.key}`,
+      };
+    });
 
     return new Response(
       JSON.stringify({
         duplicates: duplicates,
-        totalCount: data.total || 0,
+        // New endpoint doesn't return total; report fetched count instead.
+        totalCount: issues.length,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
