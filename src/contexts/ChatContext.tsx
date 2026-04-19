@@ -357,12 +357,7 @@ ${stepsText}
           type: 'bot',
           content: "What's the **priority** level for this issue?",
           inputType: 'select',
-          options: [
-            { id: 'critical', label: 'Critical', value: 'Critical', icon: '🔴', description: 'System down, blocking all work' },
-            { id: 'high', label: 'High', value: 'High', icon: '🟠', description: 'Major impact, needs urgent attention' },
-            { id: 'medium', label: 'Medium', value: 'Medium', icon: '🔵', description: 'Moderate impact, can wait a bit' },
-            { id: 'low', label: 'Low', value: 'Low', icon: '🟢', description: 'Minor issue, no rush' },
-          ],
+          options: getPriorityOptions(),
         });
         break;
 
