@@ -158,12 +158,7 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
         })),
       });
     } else {
-      setPhase('ready_for_query');
-      addMessage({
-        role: 'assistant',
-        content: "You're in **Manual Mode**. I'll generate test cases based on your prompts without workspace context.\n\nYou can optionally upload a reference Excel file to define the test case format, or just ask me to generate test cases.\n\n**Examples:**\n- \"Generate 5 test cases for login functionality\"\n- \"Create negative test cases for user registration\"\n- \"Generate boundary test cases for age input field\"",
-        type: 'text',
-      });
+      promptFormatSelection('manual');
     }
   }, [workspaces, isLoadingWorkspaces, addMessage]);
 
@@ -188,10 +183,68 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
     
     addMessage({
       role: 'assistant',
-      content: `Workspace **${workspaceName}** loaded successfully!\n\n📊 **Brain Data:**\n- ${userStoryCount} user stor${userStoryCount === 1 ? 'y' : 'ies'}\n- ${appFileCount} application file${appFileCount === 1 ? '' : 's'}\n\nYou can optionally upload a **reference Excel file** to define the test case format, or just ask me to generate test cases.\n\n**Examples:**\n- \"Generate test cases for login module\"\n- \"Generate only negative test cases for dashboard\"\n- \"Create 10 functional test cases for search feature\"`,
+      content: `Workspace **${workspaceName}** loaded successfully!\n\n📊 **Brain Data:**\n- ${userStoryCount} user stor${userStoryCount === 1 ? 'y' : 'ies'}\n- ${appFileCount} application file${appFileCount === 1 ? '' : 's'}`,
       type: 'text',
     });
+
+    promptFormatSelection('workspace');
   }, [workspaces, fetchWorkspaceFiles, addMessage]);
+
+  const promptFormatSelection = useCallback((_mode: TestCaseMode) => {
+    setPhase('format_selection');
+    addMessage({
+      role: 'assistant',
+      content: 'How would you like to format the test cases?',
+      type: 'format_select',
+      options: [
+        { id: 'create_template', label: 'Create Template', value: 'create_template', icon: '🧩', description: 'Build columns inside the app' },
+        { id: 'upload_excel', label: 'Upload Excel', value: 'upload_excel', icon: '📎', description: 'Use a reference .xlsx file' },
+        { id: 'skip', label: 'Skip (AI default)', value: 'skip', icon: '⚡', description: 'Let AI choose the format' },
+      ],
+    });
+  }, [addMessage]);
+
+  const [templateBuilderOpen, setTemplateBuilderOpen] = useState(false);
+
+  const handleFormatSelect = useCallback((choice: TestCaseFormatChoice) => {
+    addMessage({
+      role: 'user',
+      content: choice === 'create_template' ? '🧩 Create Template' : choice === 'upload_excel' ? '📎 Upload Excel' : '⚡ Skip (AI default)',
+      type: 'text',
+    });
+
+    if (choice === 'create_template') {
+      setPhase('template_building');
+      setTemplateBuilderOpen(true);
+    } else if (choice === 'upload_excel') {
+      setPhase('ready_for_query');
+      addMessage({
+        role: 'assistant',
+        content: 'Click the upload button below to attach your reference Excel file, then describe the test cases you need.',
+        type: 'text',
+      });
+    } else {
+      setExcelStructure(null);
+      setPhase('ready_for_query');
+      addMessage({
+        role: 'assistant',
+        content: 'Got it — I\'ll use a default format.\n\n**Examples:**\n- "Generate 5 test cases for login functionality"\n- "Create negative test cases for user registration"',
+        type: 'text',
+      });
+    }
+  }, [addMessage]);
+
+  const handleTemplateConfirm = useCallback((structure: ParsedExcelStructure) => {
+    setExcelStructure(structure);
+    setTemplateBuilderOpen(false);
+    setPhase('ready_for_query');
+    addMessage({
+      role: 'assistant',
+      content: `✅ Template ready with **${structure.columns.length} columns**: ${structure.columns.map(c => c.header).join(', ')}.\n\nNow describe the test cases you'd like me to generate.`,
+      type: 'text',
+      excelStructure: structure,
+    });
+  }, [addMessage]);
 
   const parseExcelFile = useCallback(async (file: File): Promise<ParsedExcelStructure | null> => {
     return new Promise((resolve, reject) => {
