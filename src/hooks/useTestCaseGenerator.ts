@@ -566,6 +566,7 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
     setIsStreaming(false);
     setActiveHistoryLogId(null);
     setEpisodicContext([]);
+    setTemplateBuilderOpen(false);
 
     // Re-add initial greeting
     setTimeout(() => {
