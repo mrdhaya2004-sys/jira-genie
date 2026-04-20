@@ -5,13 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Copy, Check, Bot, User, Download, FileSpreadsheet } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { TestCaseChatMessage as ChatMessageType, TestCaseMode } from '@/types/testcase';
+import type { TestCaseChatMessage as ChatMessageType, TestCaseMode, TestCaseFormatChoice, GeneratedTestCase, ParsedExcelStructure } from '@/types/testcase';
+import TestCaseGridEditor from './TestCaseGridEditor';
 
 interface TestCaseChatMessageProps {
   message: ChatMessageType;
   onModeSelect?: (mode: TestCaseMode) => void;
   onWorkspaceSelect?: (id: string, name: string) => void;
   onDownload?: () => void;
+  onFormatSelect?: (choice: TestCaseFormatChoice) => void;
+  gridStructure?: ParsedExcelStructure | null;
+  gridRows?: GeneratedTestCase[];
+  onGridDownload?: (rows: GeneratedTestCase[]) => void;
 }
 
 const TestCaseChatMessage: React.FC<TestCaseChatMessageProps> = ({
@@ -19,6 +24,10 @@ const TestCaseChatMessage: React.FC<TestCaseChatMessageProps> = ({
   onModeSelect,
   onWorkspaceSelect,
   onDownload,
+  onFormatSelect,
+  gridStructure,
+  gridRows,
+  onGridDownload,
 }) => {
   const [copied, setCopied] = React.useState(false);
   const isBot = message.role === 'assistant';
@@ -160,6 +169,34 @@ const TestCaseChatMessage: React.FC<TestCaseChatMessageProps> = ({
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Format Selection Cards */}
+        {message.type === 'format_select' && message.options && onFormatSelect && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full mt-2">
+            {message.options.map((option) => (
+              <Card
+                key={option.id}
+                className="cursor-pointer hover:border-primary hover:shadow-md transition-all"
+                onClick={() => onFormatSelect(option.value as TestCaseFormatChoice)}
+              >
+                <CardContent className="p-3 flex flex-col items-center text-center gap-2">
+                  <span className="text-2xl">{option.icon}</span>
+                  <p className="font-medium text-sm">{option.label}</p>
+                  <p className="text-xs text-muted-foreground">{option.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Inline Grid Editor */}
+        {message.type === 'grid_editor' && gridStructure && onGridDownload && (
+          <TestCaseGridEditor
+            structure={gridStructure}
+            initialRows={gridRows || []}
+            onDownload={onGridDownload}
+          />
         )}
 
         {/* Download Button */}
