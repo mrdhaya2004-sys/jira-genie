@@ -9,6 +9,7 @@ import type { Workspace } from '@/types/workspace';
 import type {
   TestCaseFlowPhase,
   TestCaseMode,
+  TestCaseFormatChoice,
   TestCaseChatMessage,
   ParsedExcelStructure,
   GeneratedTestCase,
