@@ -525,6 +525,23 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
     }
   }, [selectedWorkspace, selectedMode, workspaceFiles, excelStructure, addMessage, toast]);
 
+  const downloadAsExcel = useCallback((rows: GeneratedTestCase[]) => {
+    if (!excelStructure) return;
+    const wb = XLSX.utils.book_new();
+    const wsData = [
+      excelStructure.columns.map(c => c.header),
+      ...rows.map(tc => excelStructure.columns.map(c => tc[c.key] || '')),
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    XLSX.utils.book_append_sheet(wb, ws, excelStructure.sheetName || 'Test Cases');
+    const fileName = `test_cases_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    toast({
+      title: 'Download Complete',
+      description: `${rows.length} test cases exported to ${fileName}`,
+    });
+  }, [excelStructure, toast]);
+
   const generateExcelDownload = useCallback(() => {
     if (generatedTestCases.length === 0 || !excelStructure) {
       toast({
@@ -534,30 +551,8 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
       });
       return;
     }
-
-    // Create workbook
-    const wb = XLSX.utils.book_new();
-    
-    // Create worksheet data with headers
-    const wsData = [
-      excelStructure.columns.map(c => c.header),
-      ...generatedTestCases.map(tc => 
-        excelStructure.columns.map(c => tc[c.key] || '')
-      ),
-    ];
-
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, 'Test Cases');
-
-    // Generate and download
-    const fileName = `test_cases_${new Date().toISOString().split('T')[0]}.xlsx`;
-    XLSX.writeFile(wb, fileName);
-
-    toast({
-      title: 'Download Complete',
-      description: `${generatedTestCases.length} test cases exported to ${fileName}`,
-    });
-  }, [generatedTestCases, excelStructure, toast]);
+    downloadAsExcel(generatedTestCases);
+  }, [generatedTestCases, excelStructure, toast, downloadAsExcel]);
 
   const resetFlow = useCallback(() => {
     setMessages([]);
