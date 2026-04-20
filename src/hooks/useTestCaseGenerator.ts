@@ -496,12 +496,12 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
         setEpisodicContext(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: fullContent }]);
       }
 
-      // Add download prompt if we have structured test cases
+      // Add grid editor if we have structure (works whether parsing succeeded or not)
       if (excelStructure) {
         addMessage({
           role: 'assistant',
-          content: 'Test case generation completed! Click the button below to download your test cases as an Excel file.',
-          type: 'download',
+          content: '✅ Test cases generated! Edit any cell below, add or remove rows, then download as Excel.',
+          type: 'grid_editor',
         });
       }
 
