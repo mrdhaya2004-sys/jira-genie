@@ -7,6 +7,7 @@ import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useTestCaseGenerator } from '@/hooks/useTestCaseGenerator';
 import TestCaseChatMessage from './TestCaseChatMessage';
 import TestCaseChatInput from './TestCaseChatInput';
+import TemplateBuilderDialog from './TemplateBuilderDialog';
 import HistoryPanel from '@/components/automation/HistoryPanel';
 import type { ResumeData } from '@/pages/DashboardPage';
 
@@ -22,13 +23,19 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
     selectedMode,
     selectedWorkspace,
     excelStructure,
+    generatedTestCases,
     isLoading,
     isStreaming,
+    templateBuilderOpen,
+    setTemplateBuilderOpen,
     handleModeSelect,
     handleWorkspaceSelect,
+    handleFormatSelect,
+    handleTemplateConfirm,
     handleExcelUpload,
     handleUserQuery,
     generateExcelDownload,
+    downloadAsExcel,
     resetFlow,
     resumeFromHistory,
   } = useTestCaseGenerator({ workspaces, isLoadingWorkspaces: workspacesLoading });
@@ -36,7 +43,6 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
-  // Handle resume from history with episodic memory
   useEffect(() => {
     if (resumeData && resumeData.module === 'test-case-generator') {
       if (resumeData.historyLogId) {
@@ -51,7 +57,6 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
     setPendingPrompt(prompt);
   };
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -63,9 +68,11 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
     return selectedMode === 'workspace' ? '📁 Workspace Mode' : '✍️ Manual Mode';
   };
 
+  const inputEnabled = phase === 'ready_for_query' || phase === 'completed';
+  const showUploadButton = phase === 'ready_for_query' && !excelStructure;
+
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Header */}
       <div className="border-b border-border/60 bg-card/50 backdrop-blur-sm px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl module-icon-gradient flex items-center justify-center">
@@ -109,7 +116,6 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
         </div>
       </div>
 
-      {/* Chat Area */}
       <ScrollArea className="flex-1" ref={scrollRef}>
         <div className="p-4 space-y-4 max-w-4xl mx-auto">
           {messages.map((message) => (
@@ -118,7 +124,11 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
               message={message}
               onModeSelect={phase === 'initial' ? handleModeSelect : undefined}
               onWorkspaceSelect={phase === 'workspace_selection' ? handleWorkspaceSelect : undefined}
+              onFormatSelect={phase === 'format_selection' ? handleFormatSelect : undefined}
               onDownload={message.type === 'download' ? generateExcelDownload : undefined}
+              gridStructure={message.type === 'grid_editor' ? excelStructure : undefined}
+              gridRows={message.type === 'grid_editor' ? generatedTestCases : undefined}
+              onGridDownload={message.type === 'grid_editor' ? downloadAsExcel : undefined}
             />
           ))}
 
@@ -131,25 +141,34 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
         </div>
       </ScrollArea>
 
-      {/* Input Area */}
-      {(phase === 'ready_for_query' || phase === 'completed') && (
+      <TemplateBuilderDialog
+        open={templateBuilderOpen}
+        onOpenChange={setTemplateBuilderOpen}
+        onConfirm={handleTemplateConfirm}
+      />
+
+      {inputEnabled && (
         <TestCaseChatInput
           onSend={(msg) => { setPendingPrompt(null); handleUserQuery(msg); }}
           onExcelUpload={handleExcelUpload}
           disabled={isLoading || isStreaming}
           placeholder="Ask me to generate test cases..."
-          showExcelUpload={true}
+          showExcelUpload={showUploadButton}
           initialValue={pendingPrompt || undefined}
         />
       )}
 
-      {phase !== 'ready_for_query' && phase !== 'completed' && phase !== 'generating' && (
+      {!inputEnabled && phase !== 'generating' && (
         <div className="border-t bg-muted/50 p-4">
           <p className="text-sm text-muted-foreground text-center">
             {phase === 'initial' 
               ? 'Please select a mode to continue' 
               : phase === 'workspace_selection'
               ? 'Please select a workspace to continue'
+              : phase === 'format_selection'
+              ? 'Please choose a format to continue'
+              : phase === 'template_building'
+              ? 'Build your template in the dialog to continue'
               : 'Complete the current step to continue'}
           </p>
         </div>

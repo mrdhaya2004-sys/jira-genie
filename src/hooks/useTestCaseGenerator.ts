@@ -9,6 +9,7 @@ import type { Workspace } from '@/types/workspace';
 import type {
   TestCaseFlowPhase,
   TestCaseMode,
+  TestCaseFormatChoice,
   TestCaseChatMessage,
   ParsedExcelStructure,
   GeneratedTestCase,
@@ -157,12 +158,7 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
         })),
       });
     } else {
-      setPhase('ready_for_query');
-      addMessage({
-        role: 'assistant',
-        content: "You're in **Manual Mode**. I'll generate test cases based on your prompts without workspace context.\n\nYou can optionally upload a reference Excel file to define the test case format, or just ask me to generate test cases.\n\n**Examples:**\n- \"Generate 5 test cases for login functionality\"\n- \"Create negative test cases for user registration\"\n- \"Generate boundary test cases for age input field\"",
-        type: 'text',
-      });
+      promptFormatSelection('manual');
     }
   }, [workspaces, isLoadingWorkspaces, addMessage]);
 
@@ -187,10 +183,68 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
     
     addMessage({
       role: 'assistant',
-      content: `Workspace **${workspaceName}** loaded successfully!\n\n📊 **Brain Data:**\n- ${userStoryCount} user stor${userStoryCount === 1 ? 'y' : 'ies'}\n- ${appFileCount} application file${appFileCount === 1 ? '' : 's'}\n\nYou can optionally upload a **reference Excel file** to define the test case format, or just ask me to generate test cases.\n\n**Examples:**\n- \"Generate test cases for login module\"\n- \"Generate only negative test cases for dashboard\"\n- \"Create 10 functional test cases for search feature\"`,
+      content: `Workspace **${workspaceName}** loaded successfully!\n\n📊 **Brain Data:**\n- ${userStoryCount} user stor${userStoryCount === 1 ? 'y' : 'ies'}\n- ${appFileCount} application file${appFileCount === 1 ? '' : 's'}`,
       type: 'text',
     });
+
+    promptFormatSelection('workspace');
   }, [workspaces, fetchWorkspaceFiles, addMessage]);
+
+  const promptFormatSelection = useCallback((_mode: TestCaseMode) => {
+    setPhase('format_selection');
+    addMessage({
+      role: 'assistant',
+      content: 'How would you like to format the test cases?',
+      type: 'format_select',
+      options: [
+        { id: 'create_template', label: 'Create Template', value: 'create_template', icon: '🧩', description: 'Build columns inside the app' },
+        { id: 'upload_excel', label: 'Upload Excel', value: 'upload_excel', icon: '📎', description: 'Use a reference .xlsx file' },
+        { id: 'skip', label: 'Skip (AI default)', value: 'skip', icon: '⚡', description: 'Let AI choose the format' },
+      ],
+    });
+  }, [addMessage]);
+
+  const [templateBuilderOpen, setTemplateBuilderOpen] = useState(false);
+
+  const handleFormatSelect = useCallback((choice: TestCaseFormatChoice) => {
+    addMessage({
+      role: 'user',
+      content: choice === 'create_template' ? '🧩 Create Template' : choice === 'upload_excel' ? '📎 Upload Excel' : '⚡ Skip (AI default)',
+      type: 'text',
+    });
+
+    if (choice === 'create_template') {
+      setPhase('template_building');
+      setTemplateBuilderOpen(true);
+    } else if (choice === 'upload_excel') {
+      setPhase('ready_for_query');
+      addMessage({
+        role: 'assistant',
+        content: 'Click the upload button below to attach your reference Excel file, then describe the test cases you need.',
+        type: 'text',
+      });
+    } else {
+      setExcelStructure(null);
+      setPhase('ready_for_query');
+      addMessage({
+        role: 'assistant',
+        content: 'Got it — I\'ll use a default format.\n\n**Examples:**\n- "Generate 5 test cases for login functionality"\n- "Create negative test cases for user registration"',
+        type: 'text',
+      });
+    }
+  }, [addMessage]);
+
+  const handleTemplateConfirm = useCallback((structure: ParsedExcelStructure) => {
+    setExcelStructure(structure);
+    setTemplateBuilderOpen(false);
+    setPhase('ready_for_query');
+    addMessage({
+      role: 'assistant',
+      content: `✅ Template ready with **${structure.columns.length} columns**: ${structure.columns.map(c => c.header).join(', ')}.\n\nNow describe the test cases you'd like me to generate.`,
+      type: 'text',
+      excelStructure: structure,
+    });
+  }, [addMessage]);
 
   const parseExcelFile = useCallback(async (file: File): Promise<ParsedExcelStructure | null> => {
     return new Promise((resolve, reject) => {
@@ -442,12 +496,12 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
         setEpisodicContext(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: fullContent }]);
       }
 
-      // Add download prompt if we have structured test cases
+      // Add grid editor if we have structure (works whether parsing succeeded or not)
       if (excelStructure) {
         addMessage({
           role: 'assistant',
-          content: 'Test case generation completed! Click the button below to download your test cases as an Excel file.',
-          type: 'download',
+          content: '✅ Test cases generated! Edit any cell below, add or remove rows, then download as Excel.',
+          type: 'grid_editor',
         });
       }
 
@@ -471,6 +525,23 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
     }
   }, [selectedWorkspace, selectedMode, workspaceFiles, excelStructure, addMessage, toast]);
 
+  const downloadAsExcel = useCallback((rows: GeneratedTestCase[]) => {
+    if (!excelStructure) return;
+    const wb = XLSX.utils.book_new();
+    const wsData = [
+      excelStructure.columns.map(c => c.header),
+      ...rows.map(tc => excelStructure.columns.map(c => tc[c.key] || '')),
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    XLSX.utils.book_append_sheet(wb, ws, excelStructure.sheetName || 'Test Cases');
+    const fileName = `test_cases_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    toast({
+      title: 'Download Complete',
+      description: `${rows.length} test cases exported to ${fileName}`,
+    });
+  }, [excelStructure, toast]);
+
   const generateExcelDownload = useCallback(() => {
     if (generatedTestCases.length === 0 || !excelStructure) {
       toast({
@@ -480,30 +551,8 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
       });
       return;
     }
-
-    // Create workbook
-    const wb = XLSX.utils.book_new();
-    
-    // Create worksheet data with headers
-    const wsData = [
-      excelStructure.columns.map(c => c.header),
-      ...generatedTestCases.map(tc => 
-        excelStructure.columns.map(c => tc[c.key] || '')
-      ),
-    ];
-
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, 'Test Cases');
-
-    // Generate and download
-    const fileName = `test_cases_${new Date().toISOString().split('T')[0]}.xlsx`;
-    XLSX.writeFile(wb, fileName);
-
-    toast({
-      title: 'Download Complete',
-      description: `${generatedTestCases.length} test cases exported to ${fileName}`,
-    });
-  }, [generatedTestCases, excelStructure, toast]);
+    downloadAsExcel(generatedTestCases);
+  }, [generatedTestCases, excelStructure, toast, downloadAsExcel]);
 
   const resetFlow = useCallback(() => {
     setMessages([]);
@@ -517,6 +566,7 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
     setIsStreaming(false);
     setActiveHistoryLogId(null);
     setEpisodicContext([]);
+    setTemplateBuilderOpen(false);
 
     // Re-add initial greeting
     setTimeout(() => {
@@ -608,11 +658,16 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
     generatedTestCases,
     isLoading,
     isStreaming,
+    templateBuilderOpen,
+    setTemplateBuilderOpen,
     handleModeSelect,
     handleWorkspaceSelect,
+    handleFormatSelect,
+    handleTemplateConfirm,
     handleExcelUpload,
     handleUserQuery,
     generateExcelDownload,
+    downloadAsExcel,
     resetFlow,
     resumeFromHistory,
   };
