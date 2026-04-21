@@ -443,29 +443,55 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
         }
       }
 
-      // Try to parse generated test cases from the response
+      // Ensure we have a structure (default if user skipped template/upload)
+      const defaultStructure: ParsedExcelStructure = {
+        sheetName: 'Test Cases',
+        sampleRows: [],
+        columns: [
+          { key: 'title', header: 'Title', index: 0 },
+          { key: 'preconditions', header: 'Preconditions', index: 1 },
+          { key: 'steps', header: 'Steps', index: 2 },
+          { key: 'expected_result', header: 'Expected Result', index: 3 },
+          { key: 'priority', header: 'Priority', index: 4 },
+          { key: 'type', header: 'Type', index: 5 },
+        ],
+      };
+      const activeStructure = excelStructure || defaultStructure;
+      if (!excelStructure) setExcelStructure(defaultStructure);
+
+      // Robustly parse generated test cases from the response
+      let parsedRows: GeneratedTestCase[] = [];
       try {
-        const testCasesMatch = fullContent.match(/```json\n([\s\S]*?)\n```/);
-        if (testCasesMatch) {
-          const parsedCases = JSON.parse(testCasesMatch[1]);
-          if (Array.isArray(parsedCases)) {
-            setGeneratedTestCases(parsedCases);
+        const fencedJson = fullContent.match(/```json\s*([\s\S]*?)```/i);
+        const fencedAny = fullContent.match(/```\s*([\s\S]*?)```/);
+        const bareArray = fullContent.match(/(\[\s*\{[\s\S]*?\}\s*\])/);
+        const candidate = (fencedJson?.[1] || fencedAny?.[1] || bareArray?.[1] || '').trim();
+        if (candidate) {
+          const parsed = JSON.parse(candidate);
+          if (Array.isArray(parsed)) {
+            parsedRows = parsed.map((row: any) => {
+              const normalized: GeneratedTestCase = {};
+              activeStructure.columns.forEach(col => {
+                const v = row[col.key] ?? row[col.header] ?? row[col.header.toLowerCase()] ?? '';
+                normalized[col.key] = Array.isArray(v) ? v.join('\n') : String(v ?? '');
+              });
+              return normalized;
+            });
           }
         }
-      } catch {
-        // If no JSON found, that's okay - the test cases are in text format
+      } catch (parseErr) {
+        console.warn('Test case JSON parse failed:', parseErr);
       }
 
+      setGeneratedTestCases(parsedRows);
       setPhase('completed');
 
       // Save to local history
       automationHistoryService.addEntry({
         toolType: 'testcase',
         title: query.slice(0, 50) + (query.length > 50 ? '...' : ''),
-        summary: `Generated test cases${selectedWorkspace ? ` for ${selectedWorkspace.name}` : ' in manual mode'}`,
-        metadata: {
-          workspace: selectedWorkspace?.name,
-        },
+        summary: `Generated ${parsedRows.length} test cases${selectedWorkspace ? ` for ${selectedWorkspace.name}` : ''}`,
+        metadata: { workspace: selectedWorkspace?.name },
       });
 
       // Save to persistent history and get log ID
@@ -475,7 +501,7 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
           module_name: 'test-case-generator',
           action_type: 'generate',
           input_prompt: query,
-          output_summary: `Generated test cases${selectedWorkspace ? ` for ${selectedWorkspace.name}` : ' in manual mode'}`,
+          output_summary: `Generated ${parsedRows.length} test cases${selectedWorkspace ? ` for ${selectedWorkspace.name}` : ' in manual mode'}`,
           workspace_id: selectedWorkspace?.id,
         }) || null;
         if (logId) setActiveHistoryLogId(logId);
@@ -492,18 +518,17 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
           turnIndex: turnIdx,
           workspaceId: selectedWorkspace?.id,
         });
-        // Update episodic context for future turns
         setEpisodicContext(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: fullContent }]);
       }
 
-      // Add grid editor if we have structure (works whether parsing succeeded or not)
-      if (excelStructure) {
-        addMessage({
-          role: 'assistant',
-          content: '✅ Test cases generated! Edit any cell below, add or remove rows, then download as Excel.',
-          type: 'grid_editor',
-        });
-      }
+      // Always show the editable grid + download UI
+      addMessage({
+        role: 'assistant',
+        content: parsedRows.length > 0
+          ? `✅ Generated **${parsedRows.length} test case${parsedRows.length === 1 ? '' : 's'}**. Edit any cell, add or remove rows, then download as Excel.`
+          : '⚠️ I couldn\'t auto-extract structured rows from the AI response. You can add rows manually below and download as Excel.',
+        type: 'grid_editor',
+      });
 
     } catch (error) {
       console.error('Test case generation error:', error);
