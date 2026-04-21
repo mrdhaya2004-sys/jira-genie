@@ -7,6 +7,7 @@ import { Copy, Check, Bot, User, Download, FileSpreadsheet } from 'lucide-react'
 import { cn } from '@/lib/utils';
 import type { TestCaseChatMessage as ChatMessageType, TestCaseMode, TestCaseFormatChoice, GeneratedTestCase, ParsedExcelStructure } from '@/types/testcase';
 import TestCaseGridEditor from './TestCaseGridEditor';
+import JsonToExcelPanel from './JsonToExcelPanel';
 
 interface TestCaseChatMessageProps {
   message: ChatMessageType;
