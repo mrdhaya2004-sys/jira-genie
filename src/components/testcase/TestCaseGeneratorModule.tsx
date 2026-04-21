@@ -41,7 +41,39 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
   } = useTestCaseGenerator({ workspaces, isLoadingWorkspaces: workspacesLoading });
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+
+  // Resolve the actual scrollable viewport inside Radix ScrollArea
+  useEffect(() => {
+    if (scrollRef.current) {
+      viewportRef.current = scrollRef.current.querySelector(
+        '[data-radix-scroll-area-viewport]'
+      ) as HTMLDivElement | null;
+    }
+  }, []);
+
+  const scrollToBottom = useCallback((smooth = true) => {
+    const vp = viewportRef.current;
+    if (!vp) return;
+    vp.scrollTo({ top: vp.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+  }, []);
+
+  // Track user scroll to enable smart auto-scroll
+  useEffect(() => {
+    const vp = viewportRef.current;
+    if (!vp) return;
+    const onScroll = () => {
+      const distance = vp.scrollHeight - vp.scrollTop - vp.clientHeight;
+      const atBottom = distance < 80;
+      setAutoScroll(atBottom);
+      setShowScrollButton(!atBottom);
+    };
+    vp.addEventListener('scroll', onScroll, { passive: true });
+    return () => vp.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     if (resumeData && resumeData.module === 'test-case-generator') {
@@ -57,11 +89,17 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
     setPendingPrompt(prompt);
   };
 
+  // Auto-scroll on new messages / streaming updates when user is at bottom
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, isStreaming]);
+    if (autoScroll) scrollToBottom(true);
+  }, [messages, isStreaming, isLoading, autoScroll, scrollToBottom]);
+
+  // Continuous scroll during streaming
+  useEffect(() => {
+    if (!isStreaming || !autoScroll) return;
+    const interval = setInterval(() => scrollToBottom(false), 150);
+    return () => clearInterval(interval);
+  }, [isStreaming, autoScroll, scrollToBottom]);
 
   const getModeLabel = () => {
     if (!selectedMode) return null;
