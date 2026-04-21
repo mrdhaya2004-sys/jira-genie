@@ -460,27 +460,9 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
       if (!excelStructure) setExcelStructure(defaultStructure);
 
       // Robustly parse generated test cases from the response
-      let parsedRows: GeneratedTestCase[] = [];
-      try {
-        const fencedJson = fullContent.match(/```json\s*([\s\S]*?)```/i);
-        const fencedAny = fullContent.match(/```\s*([\s\S]*?)```/);
-        const bareArray = fullContent.match(/(\[\s*\{[\s\S]*?\}\s*\])/);
-        const candidate = (fencedJson?.[1] || fencedAny?.[1] || bareArray?.[1] || '').trim();
-        if (candidate) {
-          const parsed = JSON.parse(candidate);
-          if (Array.isArray(parsed)) {
-            parsedRows = parsed.map((row: any) => {
-              const normalized: GeneratedTestCase = {};
-              activeStructure.columns.forEach(col => {
-                const v = row[col.key] ?? row[col.header] ?? row[col.header.toLowerCase()] ?? '';
-                normalized[col.key] = Array.isArray(v) ? v.join('\n') : String(v ?? '');
-              });
-              return normalized;
-            });
-          }
-        }
-      } catch (parseErr) {
-        console.warn('Test case JSON parse failed:', parseErr);
+      const parsedRows: GeneratedTestCase[] = extractTestCasesFromAIResponse(fullContent, activeStructure);
+      if (parsedRows.length === 0) {
+        console.warn('Test case extraction returned no rows. Raw content:', fullContent.slice(0, 500));
       }
 
       setGeneratedTestCases(parsedRows);
