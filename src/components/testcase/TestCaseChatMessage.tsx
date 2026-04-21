@@ -191,6 +191,14 @@ const TestCaseChatMessage: React.FC<TestCaseChatMessageProps> = ({
           </div>
         )}
 
+        {/* JSON → Excel manual conversion panel (AI output preview) */}
+        {isBot && /```json|\[\s*\{[\s\S]*?\}\s*\]/i.test(message.content) && (
+          <JsonToExcelPanel
+            rawContent={message.content}
+            structure={gridStructure}
+          />
+        )}
+
         {/* Inline Grid Editor */}
         {message.type === 'grid_editor' && gridStructure && onGridDownload && (
           <TestCaseGridEditor
