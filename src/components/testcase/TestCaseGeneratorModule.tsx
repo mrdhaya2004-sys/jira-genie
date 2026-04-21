@@ -154,30 +154,44 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
         </div>
       </div>
 
-      <ScrollArea className="flex-1" ref={scrollRef}>
-        <div className="p-4 space-y-4 max-w-4xl mx-auto">
-          {messages.map((message) => (
-            <TestCaseChatMessage
-              key={message.id}
-              message={message}
-              onModeSelect={phase === 'initial' ? handleModeSelect : undefined}
-              onWorkspaceSelect={phase === 'workspace_selection' ? handleWorkspaceSelect : undefined}
-              onFormatSelect={phase === 'format_selection' ? handleFormatSelect : undefined}
-              onDownload={message.type === 'download' ? generateExcelDownload : undefined}
-              gridStructure={message.type === 'grid_editor' ? excelStructure : undefined}
-              gridRows={message.type === 'grid_editor' ? generatedTestCases : undefined}
-              onGridDownload={message.type === 'grid_editor' ? downloadAsExcel : undefined}
-            />
-          ))}
+      <div className="relative flex-1 min-h-0">
+        <ScrollArea className="h-full" ref={scrollRef}>
+          <div className="p-4 space-y-4 max-w-4xl mx-auto">
+            {messages.map((message) => (
+              <TestCaseChatMessage
+                key={message.id}
+                message={message}
+                onModeSelect={phase === 'initial' ? handleModeSelect : undefined}
+                onWorkspaceSelect={phase === 'workspace_selection' ? handleWorkspaceSelect : undefined}
+                onFormatSelect={phase === 'format_selection' ? handleFormatSelect : undefined}
+                onDownload={message.type === 'download' ? generateExcelDownload : undefined}
+                gridStructure={message.type === 'grid_editor' ? excelStructure : undefined}
+                gridRows={message.type === 'grid_editor' ? generatedTestCases : undefined}
+                onGridDownload={message.type === 'grid_editor' ? downloadAsExcel : undefined}
+              />
+            ))}
 
-          {(isLoading || isStreaming) && phase === 'generating' && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Generating test cases...</span>
-            </div>
-          )}
-        </div>
-      </ScrollArea>
+            {(isLoading || isStreaming) && phase === 'generating' && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Generating test cases...</span>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+
+        {showScrollButton && (
+          <Button
+            size="icon"
+            variant="secondary"
+            onClick={() => { setAutoScroll(true); scrollToBottom(true); }}
+            className="absolute bottom-4 right-6 h-9 w-9 rounded-full shadow-lg border border-border/60 z-10 animate-fade-in"
+            aria-label="Scroll to bottom"
+          >
+            <ArrowDown className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
 
       <TemplateBuilderDialog
         open={templateBuilderOpen}
