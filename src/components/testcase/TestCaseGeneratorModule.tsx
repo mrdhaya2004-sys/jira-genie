@@ -1,8 +1,8 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, RotateCcw, ClipboardList, FileSpreadsheet } from 'lucide-react';
+import { Loader2, RotateCcw, ClipboardList, FileSpreadsheet, ArrowDown } from 'lucide-react';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useTestCaseGenerator } from '@/hooks/useTestCaseGenerator';
 import TestCaseChatMessage from './TestCaseChatMessage';
@@ -41,7 +41,39 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
   } = useTestCaseGenerator({ workspaces, isLoadingWorkspaces: workspacesLoading });
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+
+  // Resolve the actual scrollable viewport inside Radix ScrollArea
+  useEffect(() => {
+    if (scrollRef.current) {
+      viewportRef.current = scrollRef.current.querySelector(
+        '[data-radix-scroll-area-viewport]'
+      ) as HTMLDivElement | null;
+    }
+  }, []);
+
+  const scrollToBottom = useCallback((smooth = true) => {
+    const vp = viewportRef.current;
+    if (!vp) return;
+    vp.scrollTo({ top: vp.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+  }, []);
+
+  // Track user scroll to enable smart auto-scroll
+  useEffect(() => {
+    const vp = viewportRef.current;
+    if (!vp) return;
+    const onScroll = () => {
+      const distance = vp.scrollHeight - vp.scrollTop - vp.clientHeight;
+      const atBottom = distance < 80;
+      setAutoScroll(atBottom);
+      setShowScrollButton(!atBottom);
+    };
+    vp.addEventListener('scroll', onScroll, { passive: true });
+    return () => vp.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     if (resumeData && resumeData.module === 'test-case-generator') {
@@ -57,11 +89,17 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
     setPendingPrompt(prompt);
   };
 
+  // Auto-scroll on new messages / streaming updates when user is at bottom
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, isStreaming]);
+    if (autoScroll) scrollToBottom(true);
+  }, [messages, isStreaming, isLoading, autoScroll, scrollToBottom]);
+
+  // Continuous scroll during streaming
+  useEffect(() => {
+    if (!isStreaming || !autoScroll) return;
+    const interval = setInterval(() => scrollToBottom(false), 150);
+    return () => clearInterval(interval);
+  }, [isStreaming, autoScroll, scrollToBottom]);
 
   const getModeLabel = () => {
     if (!selectedMode) return null;
@@ -116,30 +154,44 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
         </div>
       </div>
 
-      <ScrollArea className="flex-1" ref={scrollRef}>
-        <div className="p-4 space-y-4 max-w-4xl mx-auto">
-          {messages.map((message) => (
-            <TestCaseChatMessage
-              key={message.id}
-              message={message}
-              onModeSelect={phase === 'initial' ? handleModeSelect : undefined}
-              onWorkspaceSelect={phase === 'workspace_selection' ? handleWorkspaceSelect : undefined}
-              onFormatSelect={phase === 'format_selection' ? handleFormatSelect : undefined}
-              onDownload={message.type === 'download' ? generateExcelDownload : undefined}
-              gridStructure={message.type === 'grid_editor' ? excelStructure : undefined}
-              gridRows={message.type === 'grid_editor' ? generatedTestCases : undefined}
-              onGridDownload={message.type === 'grid_editor' ? downloadAsExcel : undefined}
-            />
-          ))}
+      <div className="relative flex-1 min-h-0">
+        <ScrollArea className="h-full" ref={scrollRef}>
+          <div className="p-4 space-y-4 max-w-4xl mx-auto">
+            {messages.map((message) => (
+              <TestCaseChatMessage
+                key={message.id}
+                message={message}
+                onModeSelect={phase === 'initial' ? handleModeSelect : undefined}
+                onWorkspaceSelect={phase === 'workspace_selection' ? handleWorkspaceSelect : undefined}
+                onFormatSelect={phase === 'format_selection' ? handleFormatSelect : undefined}
+                onDownload={message.type === 'download' ? generateExcelDownload : undefined}
+                gridStructure={message.type === 'grid_editor' ? excelStructure : undefined}
+                gridRows={message.type === 'grid_editor' ? generatedTestCases : undefined}
+                onGridDownload={message.type === 'grid_editor' ? downloadAsExcel : undefined}
+              />
+            ))}
 
-          {(isLoading || isStreaming) && phase === 'generating' && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Generating test cases...</span>
-            </div>
-          )}
-        </div>
-      </ScrollArea>
+            {(isLoading || isStreaming) && phase === 'generating' && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Generating test cases...</span>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+
+        {showScrollButton && (
+          <Button
+            size="icon"
+            variant="secondary"
+            onClick={() => { setAutoScroll(true); scrollToBottom(true); }}
+            className="absolute bottom-4 right-6 h-9 w-9 rounded-full shadow-lg border border-border/60 z-10 animate-fade-in"
+            aria-label="Scroll to bottom"
+          >
+            <ArrowDown className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
 
       <TemplateBuilderDialog
         open={templateBuilderOpen}
