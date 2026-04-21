@@ -1,8 +1,8 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, RotateCcw, ClipboardList, FileSpreadsheet } from 'lucide-react';
+import { Loader2, RotateCcw, ClipboardList, FileSpreadsheet, ArrowDown } from 'lucide-react';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useTestCaseGenerator } from '@/hooks/useTestCaseGenerator';
 import TestCaseChatMessage from './TestCaseChatMessage';
