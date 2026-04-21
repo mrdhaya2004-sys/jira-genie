@@ -20,6 +20,101 @@ interface UseTestCaseGeneratorOptions {
   isLoadingWorkspaces?: boolean;
 }
 
+const normalizeKey = (s: string): string =>
+  String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+
+const extractJsonArray = (raw: string): any[] | null => {
+  if (!raw) return null;
+  const candidates: string[] = [];
+
+  const jsonFenceRe = /```json\s*([\s\S]*?)```/gi;
+  let m: RegExpExecArray | null;
+  while ((m = jsonFenceRe.exec(raw)) !== null) candidates.push(m[1]);
+
+  const anyFenceRe = /```\s*([\s\S]*?)```/g;
+  while ((m = anyFenceRe.exec(raw)) !== null) candidates.push(m[1]);
+
+  const firstBracket = raw.indexOf('[');
+  const lastBracket = raw.lastIndexOf(']');
+  if (firstBracket !== -1 && lastBracket > firstBracket) {
+    candidates.push(raw.slice(firstBracket, lastBracket + 1));
+  }
+  candidates.push(raw);
+
+  for (const c of candidates) {
+    const cleaned = c
+      .trim()
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '')
+      .replace(/,\s*([}\]])/g, '$1')
+      .trim();
+
+    const s = cleaned.indexOf('[');
+    const e = cleaned.lastIndexOf(']');
+    const slice = s !== -1 && e > s ? cleaned.slice(s, e + 1) : cleaned;
+
+    try {
+      const parsed = JSON.parse(slice);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && typeof parsed === 'object') return [parsed];
+    } catch {
+      try {
+        const requoted = slice.replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, '"$1"');
+        const parsed = JSON.parse(requoted);
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed && typeof parsed === 'object') return [parsed];
+      } catch {
+        // continue
+      }
+    }
+  }
+  return null;
+};
+
+const mapRowToSchema = (
+  row: any,
+  columns: ParsedExcelStructure['columns'],
+): GeneratedTestCase => {
+  const out: GeneratedTestCase = {};
+  if (!row || typeof row !== 'object') {
+    columns.forEach(c => { out[c.key] = ''; });
+    return out;
+  }
+  const rowIndex: Record<string, any> = {};
+  Object.keys(row).forEach(k => { rowIndex[normalizeKey(k)] = row[k]; });
+
+  columns.forEach(col => {
+    const candidates = [col.key, col.header, col.header.toLowerCase()];
+    let value: any = undefined;
+    for (const cand of candidates) {
+      const nk = normalizeKey(cand);
+      if (nk in rowIndex) { value = rowIndex[nk]; break; }
+    }
+    if (value === undefined) value = '';
+    if (Array.isArray(value)) {
+      value = value
+        .map(v => (typeof v === 'string' ? v : JSON.stringify(v)))
+        .map((v, i) => (/^\s*\d+[.)]/.test(v) ? v : `${i + 1}. ${v}`))
+        .join('\n');
+    } else if (value && typeof value === 'object') {
+      value = JSON.stringify(value);
+    }
+    out[col.key] = String(value ?? '');
+  });
+  return out;
+};
+
+const extractTestCasesFromAIResponse = (
+  raw: string,
+  structure: ParsedExcelStructure,
+): GeneratedTestCase[] => {
+  const arr = extractJsonArray(raw);
+  if (!arr) return [];
+  return arr
+    .filter(r => r && typeof r === 'object')
+    .map(r => mapRowToSchema(r, structure.columns));
+};
+
 export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }: UseTestCaseGeneratorOptions) => {
   const { toast } = useToast();
   const { addLog } = useHistoryLogs();
@@ -460,27 +555,9 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
       if (!excelStructure) setExcelStructure(defaultStructure);
 
       // Robustly parse generated test cases from the response
-      let parsedRows: GeneratedTestCase[] = [];
-      try {
-        const fencedJson = fullContent.match(/```json\s*([\s\S]*?)```/i);
-        const fencedAny = fullContent.match(/```\s*([\s\S]*?)```/);
-        const bareArray = fullContent.match(/(\[\s*\{[\s\S]*?\}\s*\])/);
-        const candidate = (fencedJson?.[1] || fencedAny?.[1] || bareArray?.[1] || '').trim();
-        if (candidate) {
-          const parsed = JSON.parse(candidate);
-          if (Array.isArray(parsed)) {
-            parsedRows = parsed.map((row: any) => {
-              const normalized: GeneratedTestCase = {};
-              activeStructure.columns.forEach(col => {
-                const v = row[col.key] ?? row[col.header] ?? row[col.header.toLowerCase()] ?? '';
-                normalized[col.key] = Array.isArray(v) ? v.join('\n') : String(v ?? '');
-              });
-              return normalized;
-            });
-          }
-        }
-      } catch (parseErr) {
-        console.warn('Test case JSON parse failed:', parseErr);
+      const parsedRows: GeneratedTestCase[] = extractTestCasesFromAIResponse(fullContent, activeStructure);
+      if (parsedRows.length === 0) {
+        console.warn('Test case extraction returned no rows. Raw content:', fullContent.slice(0, 500));
       }
 
       setGeneratedTestCases(parsedRows);

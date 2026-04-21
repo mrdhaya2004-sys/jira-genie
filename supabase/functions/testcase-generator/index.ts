@@ -91,23 +91,27 @@ serve(async (req) => {
     const columnKeys = columns.map((c: any) => c.key);
     const columnHeaders = columns.map((c: any) => c.header);
 
-    contextInfo += `\n\n## REQUIRED OUTPUT FORMAT
-You MUST output ALL test cases as a single JSON code block using these EXACT column keys:
+    contextInfo += `\n\n## REQUIRED OUTPUT FORMAT — STRICT
+You MUST output ONLY a single JSON array of test case objects, wrapped in a \`\`\`json code block.
+Use these EXACT column keys (case-sensitive) for every object:
 Keys: ${JSON.stringify(columnKeys)}
-Headers (for reference): ${JSON.stringify(columnHeaders)}
+Headers (for reference only): ${JSON.stringify(columnHeaders)}
 
-Example:
+Example (follow this shape EXACTLY):
 \`\`\`json
 [
   { ${columnKeys.map((k: string) => `"${k}": "..."`).join(', ')} }
 ]
 \`\`\`
 
-Rules:
-- Use multi-line strings for "steps" with numbered steps separated by \\n
-- Output ONLY ONE JSON code block containing an array of all test cases
-- After the JSON block you may add a brief 1-2 line summary in plain text
-- Do NOT split test cases across multiple code blocks`;
+STRICT RULES:
+- Output ONLY ONE \`\`\`json ... \`\`\` code block. Nothing else. No preamble, no summary, no trailing text.
+- The JSON MUST be valid: double-quoted keys and strings, no trailing commas, no comments, no single quotes.
+- EVERY object MUST contain ALL keys listed above. Use empty string "" if a value is unknown.
+- All values MUST be strings (never arrays, numbers, or objects).
+- For multi-step fields like "steps", use a single string with numbered steps separated by \\n (e.g. "1. Open app\\n2. Enter credentials").
+- Do NOT split test cases across multiple code blocks.
+- Do NOT wrap the array in another object.`;
 
     const systemPrompt = `You are an expert QA Engineer specializing in test case generation.
 
@@ -119,6 +123,7 @@ Generate comprehensive, well-structured test cases based on the user's request.
 2. Use realistic test data
 3. Consider positive, negative, and edge cases
 4. Be thorough but concise
+5. Respond ONLY with the required JSON code block — no other text
 ${contextInfo}`;
 
     // Build messages with episodic memory context
