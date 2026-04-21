@@ -75,9 +75,39 @@ serve(async (req) => {
     if (context?.userStories) {
       contextInfo += `\n\n## User Stories (from Workspace Brain):\n${context.userStories}`;
     }
-    if (context?.excelStructure) {
-      contextInfo += `\n\n## Excel Structure:\n${EXCEL_FORMAT_INSTRUCTION}\nColumns: ${JSON.stringify(context.excelStructure)}`;
-    }
+
+    // Determine column structure — use user-provided one or a sensible default
+    const defaultColumns = [
+      { key: 'title', header: 'Title' },
+      { key: 'preconditions', header: 'Preconditions' },
+      { key: 'steps', header: 'Steps' },
+      { key: 'expected_result', header: 'Expected Result' },
+      { key: 'priority', header: 'Priority' },
+      { key: 'type', header: 'Type' },
+    ];
+    const columns = context?.excelStructure?.columns?.length
+      ? context.excelStructure.columns
+      : defaultColumns;
+    const columnKeys = columns.map((c: any) => c.key);
+    const columnHeaders = columns.map((c: any) => c.header);
+
+    contextInfo += `\n\n## REQUIRED OUTPUT FORMAT
+You MUST output ALL test cases as a single JSON code block using these EXACT column keys:
+Keys: ${JSON.stringify(columnKeys)}
+Headers (for reference): ${JSON.stringify(columnHeaders)}
+
+Example:
+\`\`\`json
+[
+  { ${columnKeys.map((k: string) => `"${k}": "..."`).join(', ')} }
+]
+\`\`\`
+
+Rules:
+- Use multi-line strings for "steps" with numbered steps separated by \\n
+- Output ONLY ONE JSON code block containing an array of all test cases
+- After the JSON block you may add a brief 1-2 line summary in plain text
+- Do NOT split test cases across multiple code blocks`;
 
     const systemPrompt = `You are an expert QA Engineer specializing in test case generation.
 
@@ -86,13 +116,10 @@ Generate comprehensive, well-structured test cases based on the user's request.
 
 ## Important Rules
 1. Generate functional, negative, edge-case, and boundary test cases as appropriate
-2. Each test case must have: Title, Preconditions, Steps, Expected Result
-3. Use realistic test data
-4. Consider positive, negative, and edge cases
-5. Be thorough but concise
-6. Format output in clean markdown
-
-${contextInfo || 'No additional context. Generate test cases based on common patterns.'}`;
+2. Use realistic test data
+3. Consider positive, negative, and edge cases
+4. Be thorough but concise
+${contextInfo}`;
 
     // Build messages with episodic memory context
     const messages: Array<{ role: string; content: string }> = [
