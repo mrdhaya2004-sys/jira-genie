@@ -7,7 +7,6 @@ import { Copy, Check, Bot, User, Download, FileSpreadsheet } from 'lucide-react'
 import { cn } from '@/lib/utils';
 import type { TestCaseChatMessage as ChatMessageType, TestCaseMode, TestCaseFormatChoice, GeneratedTestCase, ParsedExcelStructure } from '@/types/testcase';
 import TestCaseGridEditor from './TestCaseGridEditor';
-import JsonToExcelPanel from './JsonToExcelPanel';
 
 interface TestCaseChatMessageProps {
   message: ChatMessageType;
@@ -189,14 +188,6 @@ const TestCaseChatMessage: React.FC<TestCaseChatMessageProps> = ({
               </Card>
             ))}
           </div>
-        )}
-
-        {/* JSON → Excel manual conversion panel (AI output preview) */}
-        {isBot && /```json|\[\s*\{[\s\S]*?\}\s*\]/i.test(message.content) && (
-          <JsonToExcelPanel
-            rawContent={message.content}
-            structure={gridStructure}
-          />
         )}
 
         {/* Inline Grid Editor */}
