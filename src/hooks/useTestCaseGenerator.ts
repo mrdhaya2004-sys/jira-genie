@@ -23,6 +23,63 @@ interface UseTestCaseGeneratorOptions {
 const normalizeKey = (s: string): string =>
   String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
 
+/**
+ * Salvage parser for partial/streamed JSON arrays.
+ * Walks character-by-character, tracks string + bracket state, and extracts
+ * every COMPLETE top-level object inside the first `[ ... ` it finds.
+ * Tolerates truncated trailing objects and missing closing `]`.
+ */
+const salvageObjectsFromArray = (raw: string): any[] => {
+  const startArr = raw.indexOf('[');
+  if (startArr === -1) return [];
+  const out: any[] = [];
+
+  let i = startArr + 1;
+  let inString = false;
+  let escape = false;
+  let depth = 0;
+  let objStart = -1;
+
+  while (i < raw.length) {
+    const ch = raw[i];
+
+    if (inString) {
+      if (escape) escape = false;
+      else if (ch === '\\') escape = true;
+      else if (ch === '"') inString = false;
+      i++;
+      continue;
+    }
+
+    if (ch === '"') { inString = true; i++; continue; }
+    if (ch === '{') {
+      if (depth === 0) objStart = i;
+      depth++;
+    } else if (ch === '}') {
+      depth--;
+      if (depth === 0 && objStart !== -1) {
+        const slice = raw.slice(objStart, i + 1);
+        const cleaned = slice
+          .replace(/\/\*[\s\S]*?\*\//g, '')
+          .replace(/^\s*\/\/.*$/gm, '')
+          .replace(/,\s*([}\]])/g, '$1');
+        try {
+          out.push(JSON.parse(cleaned));
+        } catch {
+          try {
+            out.push(JSON.parse(cleaned.replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, '"$1"')));
+          } catch { /* skip malformed object */ }
+        }
+        objStart = -1;
+      }
+    } else if (ch === ']' && depth === 0) {
+      break;
+    }
+    i++;
+  }
+  return out;
+};
+
 const extractJsonArray = (raw: string): any[] | null => {
   if (!raw) return null;
   const candidates: string[] = [];
@@ -34,6 +91,10 @@ const extractJsonArray = (raw: string): any[] | null => {
   const anyFenceRe = /```\s*([\s\S]*?)```/g;
   while ((m = anyFenceRe.exec(raw)) !== null) candidates.push(m[1]);
 
+  // Strip leading ```json fence if present (common with truncated streams missing closing ```)
+  const stripped = raw.replace(/^[\s\S]*?```json\s*/i, '').replace(/```[\s\S]*$/, '');
+  if (stripped && stripped !== raw) candidates.push(stripped);
+
   const firstBracket = raw.indexOf('[');
   const lastBracket = raw.lastIndexOf(']');
   if (firstBracket !== -1 && lastBracket > firstBracket) {
@@ -41,6 +102,7 @@ const extractJsonArray = (raw: string): any[] | null => {
   }
   candidates.push(raw);
 
+  // Strict pass: try to parse each candidate as-is
   for (const c of candidates) {
     const cleaned = c
       .trim()
@@ -63,10 +125,15 @@ const extractJsonArray = (raw: string): any[] | null => {
         const parsed = JSON.parse(requoted);
         if (Array.isArray(parsed)) return parsed;
         if (parsed && typeof parsed === 'object') return [parsed];
-      } catch {
-        // continue
-      }
+      } catch { /* fall through to salvage */ }
     }
+  }
+
+  // Salvage pass: extract whatever complete objects we can from a truncated array
+  const salvaged = salvageObjectsFromArray(raw);
+  if (salvaged.length > 0) {
+    console.info(`[testcase] Salvaged ${salvaged.length} object(s) from partial JSON.`);
+    return salvaged;
   }
   return null;
 };
