@@ -12,7 +12,7 @@ interface TestCaseGridEditorProps {
   onDownload: (rows: GeneratedTestCase[]) => void;
 }
 
-const TestCaseGridEditor: React.FC<TestCaseGridEditorProps> = ({ structure, initialRows, onDownload }) => {
+const TestCaseGridEditor = React.forwardRef<HTMLDivElement, TestCaseGridEditorProps>(({ structure, initialRows, onDownload }, ref) => {
   const [rows, setRows] = useState<GeneratedTestCase[]>(initialRows);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ const TestCaseGridEditor: React.FC<TestCaseGridEditorProps> = ({ structure, init
   };
 
   return (
-    <Card className="border-dashed mt-2">
+    <Card ref={ref} className="border-dashed mt-2">
       <CardContent className="p-3 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -111,6 +111,8 @@ const TestCaseGridEditor: React.FC<TestCaseGridEditorProps> = ({ structure, init
       </CardContent>
     </Card>
   );
-};
+});
+
+TestCaseGridEditor.displayName = 'TestCaseGridEditor';
 
 export default TestCaseGridEditor;
