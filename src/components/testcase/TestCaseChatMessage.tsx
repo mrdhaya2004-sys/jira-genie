@@ -48,7 +48,17 @@ const TestCaseChatMessage: React.FC<TestCaseChatMessageProps> = ({
   };
 
   const formatContent = (content: string) => {
-    const html = content
+    // Strip raw JSON / code fences from assistant content — users see the editable grid instead.
+    let cleaned = content;
+    if (message.role === 'assistant') {
+      cleaned = cleaned
+        .replace(/```json[\s\S]*?```/gi, '')
+        .replace(/```[\s\S]*?```/g, '')
+        .replace(/\[\s*\{[\s\S]*?\}\s*\]/g, '')
+        .trim();
+      if (!cleaned) cleaned = '✅ Test cases generated. Review and edit them in the table below.';
+    }
+    const html = cleaned
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br />');
     return DOMPurify.sanitize(html, sanitizeConfig);

@@ -335,7 +335,7 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
     setPhase('ready_for_query');
     addMessage({
       role: 'assistant',
-      content: `✅ Template ready with **${structure.columns.length} columns**: ${structure.columns.map(c => c.header).join(', ')}.\n\nNow describe the test cases you'd like me to generate.`,
+      content: `✅ **Your test case format is ready.**\n\nColumns (${structure.columns.length}): ${structure.columns.map(c => c.header).join(', ')}\n\nNow describe the test cases you'd like me to generate, and I'll produce them in this exact structure.`,
       type: 'text',
       excelStructure: structure,
     });
