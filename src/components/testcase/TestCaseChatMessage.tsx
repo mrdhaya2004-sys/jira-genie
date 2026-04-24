@@ -7,7 +7,6 @@ import { Copy, Check, Bot, User, Download, FileSpreadsheet } from 'lucide-react'
 import { cn } from '@/lib/utils';
 import type { TestCaseChatMessage as ChatMessageType, TestCaseMode, TestCaseFormatChoice, GeneratedTestCase, ParsedExcelStructure } from '@/types/testcase';
 import TestCaseGridEditor from './TestCaseGridEditor';
-import JsonToExcelPanel from './JsonToExcelPanel';
 
 interface TestCaseChatMessageProps {
   message: ChatMessageType;
@@ -49,7 +48,17 @@ const TestCaseChatMessage: React.FC<TestCaseChatMessageProps> = ({
   };
 
   const formatContent = (content: string) => {
-    const html = content
+    // Strip raw JSON / code fences from assistant content — users see the editable grid instead.
+    let cleaned = content;
+    if (message.role === 'assistant') {
+      cleaned = cleaned
+        .replace(/```json[\s\S]*?```/gi, '')
+        .replace(/```[\s\S]*?```/g, '')
+        .replace(/\[\s*\{[\s\S]*?\}\s*\]/g, '')
+        .trim();
+      if (!cleaned) cleaned = '✅ Test cases generated. Review and edit them in the table below.';
+    }
+    const html = cleaned
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br />');
     return DOMPurify.sanitize(html, sanitizeConfig);
@@ -189,14 +198,6 @@ const TestCaseChatMessage: React.FC<TestCaseChatMessageProps> = ({
               </Card>
             ))}
           </div>
-        )}
-
-        {/* JSON → Excel manual conversion panel (AI output preview) */}
-        {isBot && /```json|\[\s*\{[\s\S]*?\}\s*\]/i.test(message.content) && (
-          <JsonToExcelPanel
-            rawContent={message.content}
-            structure={gridStructure}
-          />
         )}
 
         {/* Inline Grid Editor */}
