@@ -498,6 +498,25 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
       type: 'text',
     });
 
+    // Pre-generation guard: block when workspace mode is selected but workspace has no brain data.
+    if (selectedMode === 'workspace' && selectedWorkspace) {
+      const hasBrainData = workspaceFiles.some(f =>
+        (f.file_type === 'user_story' && f.content_extracted && String(f.content_extracted).trim().length > 0) ||
+        ['apk', 'ipa'].includes(String(f.file_type)) ||
+        (f.content_extracted && String(f.content_extracted).trim().length > 0)
+      );
+
+      if (!hasBrainData) {
+        addMessage({
+          role: 'assistant',
+          content: `⚠️ **Cannot generate test cases — workspace is empty.**\n\nThe workspace **${selectedWorkspace.name}** has no brain data (no user stories, no APK/IPA, no DOM/UI context).\n\nPlease do one of the following:\n• Open **Hive AI – Core Workspace** and upload user stories, an APK/IPA, or DOM/UI files to this workspace.\n• Or restart and choose **Manual Mode** to generate without workspace context.`,
+          type: 'text',
+        });
+        setPhase('ready_for_query');
+        return;
+      }
+    }
+
     setPhase('generating');
     setIsLoading(true);
     setIsStreaming(true);
