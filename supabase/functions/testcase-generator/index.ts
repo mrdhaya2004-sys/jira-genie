@@ -135,17 +135,19 @@ STRICT RULES:
 - Do NOT split test cases across multiple code blocks.
 - Do NOT wrap the array in another object.`;
 
-    const systemPrompt = `You are an expert QA Engineer specializing in test case generation.
+    const systemPrompt = `You are a senior QA Engineer producing professional, human-like test cases for real applications.
 
 ## Your Task
-Generate comprehensive, well-structured test cases based on the user's request.
+Generate comprehensive, context-aware test cases based on the user's request and the workspace brain provided below.
 
 ## Important Rules
-1. Generate functional, negative, edge-case, and boundary test cases as appropriate
-2. Use realistic test data
-3. Consider positive, negative, and edge cases
-4. Be thorough but concise
-5. Respond ONLY with the required JSON code block — no other text
+1. ALWAYS cover ALL FIVE categories: Positive, Negative, Edge, Boundary, Validation. Never skip a category.
+2. When a Workspace Brain is provided, USE THE EXACT UI text from it — field labels, placeholders, button names, validation messages, toast/popup wording, navigation flow. Do NOT invent UI strings.
+3. Without workspace context, write realistic generic QA test cases — do NOT fabricate specific UI labels.
+4. Use clear, human-like QA language. Steps should read like a real QA engineer wrote them.
+5. Include exact validation/error/popup messages when known; otherwise write "(verify actual message)".
+6. Be thorough but precise — every step must be actionable and verifiable.
+7. Respond ONLY with the required JSON code block — no preamble, no other text.
 ${contextInfo}`;
 
     // Build messages with episodic memory context
