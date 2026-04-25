@@ -80,7 +80,7 @@ const TemplateBuilderDialog: React.FC<TemplateBuilderDialogProps> = ({ open, onO
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl w-[calc(100vw-2rem)] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
@@ -94,17 +94,17 @@ const TemplateBuilderDialog: React.FC<TemplateBuilderDialogProps> = ({ open, onO
         </DialogHeader>
 
         {/* Stepper */}
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-2 text-xs w-full min-w-0">
           <div className={cn(
-            'flex items-center gap-1.5 px-2.5 py-1 rounded-full border',
+            'flex items-center gap-1.5 px-2.5 py-1 rounded-full border whitespace-nowrap shrink-0',
             step === 'edit' ? 'border-primary text-primary bg-primary/5' : 'border-border text-muted-foreground'
           )}>
             <span className="h-4 w-4 rounded-full bg-primary text-primary-foreground inline-flex items-center justify-center text-[10px] font-semibold">1</span>
             Build columns
           </div>
-          <div className="h-px flex-1 bg-border" />
+          <div className="h-px flex-1 min-w-[12px] bg-border" />
           <div className={cn(
-            'flex items-center gap-1.5 px-2.5 py-1 rounded-full border',
+            'flex items-center gap-1.5 px-2.5 py-1 rounded-full border whitespace-nowrap shrink-0',
             step === 'confirm' ? 'border-primary text-primary bg-primary/5' : 'border-border text-muted-foreground'
           )}>
             <span className={cn(
@@ -206,14 +206,14 @@ const TemplateBuilderDialog: React.FC<TemplateBuilderDialogProps> = ({ open, onO
               <div className="bg-muted/60 px-3 py-2 text-xs font-medium text-muted-foreground border-b border-border">
                 Preview — {cleanedHeaders.length} column{cleanedHeaders.length === 1 ? '' : 's'}
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs border-collapse">
+              <div className="overflow-x-auto max-w-full">
+                <table className="min-w-full text-xs border-collapse">
                   <thead className="bg-muted/40">
                     <tr>
                       {cleanedHeaders.map((h, i) => (
                         <th
                           key={i}
-                          className="px-3 py-2 text-left font-semibold border-b border-r border-border min-w-[140px] last:border-r-0"
+                          className="px-3 py-2 text-left font-semibold border-b border-r border-border min-w-[110px] last:border-r-0 whitespace-nowrap"
                         >
                           {h}
                         </th>
