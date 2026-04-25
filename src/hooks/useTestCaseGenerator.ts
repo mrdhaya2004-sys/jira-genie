@@ -498,10 +498,11 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
       type: 'text',
     });
 
-    // Pre-generation guard: only block when workspace truly lacks USABLE content.
-    // Usable = meaningful extracted text (user stories, DOM/UI, OCR) OR parsed APK/IPA metadata.
+    // Pre-generation guard: block only when the selected workspace has no usable brain source at all.
+    // Uploaded user-story documents and APK/IPA files are valid brain sources even if extraction metadata is still sparse.
     if (selectedMode === 'workspace' && selectedWorkspace) {
-      const MIN_TEXT_LEN = 30; // ignore trivial extracts like "" or "n/a"
+      const MIN_TEXT_LEN = 10;
+      const supportedBrainExtensions = ['.pdf', '.doc', '.docx', '.txt', '.md', '.csv', '.json', '.apk', '.ipa'];
 
       const hasUsableText = (f: any): boolean => {
         const text = typeof f?.content_extracted === 'string' ? f.content_extracted.trim() : '';
@@ -511,12 +512,12 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
       const hasUsableMetadata = (f: any): boolean => {
         const meta = f?.metadata;
         if (!meta || typeof meta !== 'object') return false;
-        // Look for any signal indicating real parsed content
         const signals = [
-          meta.package_name, meta.bundle_id, meta.app_name, meta.version,
-          meta.activities, meta.screens, meta.permissions,
-          meta.dom, meta.ui_elements, meta.elements,
-          meta.ocr_text, meta.ocrText, meta.text,
+          meta.package_name, meta.packageName, meta.bundle_id, meta.bundleId,
+          meta.app_name, meta.appName, meta.version, meta.version_name, meta.versionName,
+          meta.activities, meta.screens, meta.permissions, meta.manifest,
+          meta.dom, meta.ui_elements, meta.uiElements, meta.elements,
+          meta.ocr_text, meta.ocrText, meta.text, meta.pages,
         ];
         return signals.some(v =>
           (typeof v === 'string' && v.trim().length >= MIN_TEXT_LEN) ||
@@ -525,27 +526,24 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
         );
       };
 
-      const usableFiles = workspaceFiles.filter(f => {
+      const isSupportedBrainUpload = (f: any): boolean => {
         const type = String(f?.file_type || '').toLowerCase();
-        if (['user_story', 'dom', 'ui', 'screenshot', 'image', 'pdf', 'doc', 'docx', 'txt', 'md'].includes(type)) {
-          return hasUsableText(f);
-        }
-        if (['apk', 'ipa'].includes(type)) {
-          // APK/IPA only count if we actually parsed something out of them
-          return hasUsableText(f) || hasUsableMetadata(f);
-        }
-        // Unknown types: accept if they carry real extracted text or metadata
-        return hasUsableText(f) || hasUsableMetadata(f);
-      });
+        const name = String(f?.file_name || '').toLowerCase();
+        return ['user_story', 'apk', 'ipa'].includes(type) || supportedBrainExtensions.some(ext => name.endsWith(ext));
+      };
 
-      if (usableFiles.length === 0) {
+      const hasBrainSource = workspaceFiles.some(f =>
+        hasUsableText(f) || hasUsableMetadata(f) || isSupportedBrainUpload(f)
+      );
+
+      if (!hasBrainSource) {
         const fileSummary = workspaceFiles.length === 0
           ? 'No files have been uploaded to this workspace yet.'
-          : `Found ${workspaceFiles.length} file(s), but none contain usable extracted content (DOM/UI text, OCR output, or parsed APK/IPA metadata).`;
+          : `Found ${workspaceFiles.length} file(s), but none are supported brain files and none contain extracted content.`;
 
         addMessage({
           role: 'assistant',
-          content: `⚠️ **Cannot generate test cases — workspace lacks usable content.**\n\nWorkspace **${selectedWorkspace.name}**: ${fileSummary}\n\nPlease do one of the following:\n• Open **Hive AI – Core Workspace** and upload user stories, an APK/IPA, or DOM/UI screenshots so they can be parsed.\n• Wait for in-progress extraction/OCR to finish, then retry.\n• Or restart and choose **Manual Mode** to generate without workspace context.`,
+          content: `⚠️ **Cannot generate test cases — workspace lacks usable brain data.**\n\nWorkspace **${selectedWorkspace.name}**: ${fileSummary}\n\nPlease upload a user story document, APK/IPA, DOM/UI file, screenshot OCR output, or parsed metadata in **Hive AI – Core Workspace**, then retry.`,
           type: 'text',
         });
         setPhase('ready_for_query');
@@ -564,18 +562,33 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
         throw new Error('Please log in to generate test cases');
       }
 
-      // Prepare workspace brain — user stories + any other extracted text (DOM dumps, UI specs, etc.)
+      // Prepare workspace brain — extracted text plus uploaded app/document inventory.
       const userStories = workspaceFiles
-        .filter(f => f.file_type === 'user_story' && f.content_extracted)
-        .map(f => `### User Story: ${f.file_name}\n${f.content_extracted}`)
+        .filter(f => f.file_type === 'user_story')
+        .map(f => {
+          const extracted = typeof f.content_extracted === 'string' && f.content_extracted.trim()
+            ? f.content_extracted.trim()
+            : 'Uploaded user story document is available, but extracted text is not stored yet. Use the filename as the only available document signal.';
+          return `### User Story Document: ${f.file_name}\n${extracted}`;
+        })
         .join('\n\n');
 
-      const otherContext = workspaceFiles
+      const extractedContext = workspaceFiles
         .filter(f => f.file_type !== 'user_story' && f.content_extracted)
         .map(f => `### ${String(f.file_type).toUpperCase()} — ${f.file_name}\n${f.content_extracted}`)
         .join('\n\n');
 
-      const combinedContext = [userStories, otherContext].filter(Boolean).join('\n\n');
+      const appFiles = workspaceFiles.filter(f => ['apk', 'ipa'].includes(String(f.file_type).toLowerCase()));
+      const appFileContext = appFiles.length > 0
+        ? `### Uploaded Application Files\n${appFiles.map(f => `- ${f.file_name} (${String(f.file_type).toUpperCase()})`).join('\n')}`
+        : '';
+
+      const metadataContext = workspaceFiles
+        .filter(f => f.metadata && typeof f.metadata === 'object' && Object.keys(f.metadata).length > 0)
+        .map(f => `### Parsed Metadata — ${f.file_name}\n${JSON.stringify(f.metadata, null, 2)}`)
+        .join('\n\n');
+
+      const combinedContext = [userStories, extractedContext, appFileContext, metadataContext].filter(Boolean).join('\n\n');
 
       // Call edge function
       const response = await fetch(
