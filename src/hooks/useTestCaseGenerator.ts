@@ -509,11 +509,18 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
         throw new Error('Please log in to generate test cases');
       }
 
-      // Prepare context from workspace files
+      // Prepare workspace brain — user stories + any other extracted text (DOM dumps, UI specs, etc.)
       const userStories = workspaceFiles
         .filter(f => f.file_type === 'user_story' && f.content_extracted)
-        .map(f => f.content_extracted)
+        .map(f => `### User Story: ${f.file_name}\n${f.content_extracted}`)
         .join('\n\n');
+
+      const otherContext = workspaceFiles
+        .filter(f => f.file_type !== 'user_story' && f.content_extracted)
+        .map(f => `### ${String(f.file_type).toUpperCase()} — ${f.file_name}\n${f.content_extracted}`)
+        .join('\n\n');
+
+      const combinedContext = [userStories, otherContext].filter(Boolean).join('\n\n');
 
       // Call edge function
       const response = await fetch(
@@ -529,7 +536,7 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
             mode: selectedMode,
             query,
             context: {
-              userStories,
+              userStories: combinedContext,
               excelStructure,
             },
             episodicMemory: episodicContext.length > 0 ? episodicContext : undefined,
