@@ -498,18 +498,54 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
       type: 'text',
     });
 
-    // Pre-generation guard: block when workspace mode is selected but workspace has no brain data.
+    // Pre-generation guard: only block when workspace truly lacks USABLE content.
+    // Usable = meaningful extracted text (user stories, DOM/UI, OCR) OR parsed APK/IPA metadata.
     if (selectedMode === 'workspace' && selectedWorkspace) {
-      const hasBrainData = workspaceFiles.some(f =>
-        (f.file_type === 'user_story' && f.content_extracted && String(f.content_extracted).trim().length > 0) ||
-        ['apk', 'ipa'].includes(String(f.file_type)) ||
-        (f.content_extracted && String(f.content_extracted).trim().length > 0)
-      );
+      const MIN_TEXT_LEN = 30; // ignore trivial extracts like "" or "n/a"
 
-      if (!hasBrainData) {
+      const hasUsableText = (f: any): boolean => {
+        const text = typeof f?.content_extracted === 'string' ? f.content_extracted.trim() : '';
+        return text.length >= MIN_TEXT_LEN;
+      };
+
+      const hasUsableMetadata = (f: any): boolean => {
+        const meta = f?.metadata;
+        if (!meta || typeof meta !== 'object') return false;
+        // Look for any signal indicating real parsed content
+        const signals = [
+          meta.package_name, meta.bundle_id, meta.app_name, meta.version,
+          meta.activities, meta.screens, meta.permissions,
+          meta.dom, meta.ui_elements, meta.elements,
+          meta.ocr_text, meta.ocrText, meta.text,
+        ];
+        return signals.some(v =>
+          (typeof v === 'string' && v.trim().length >= MIN_TEXT_LEN) ||
+          (Array.isArray(v) && v.length > 0) ||
+          (v && typeof v === 'object' && Object.keys(v).length > 0)
+        );
+      };
+
+      const usableFiles = workspaceFiles.filter(f => {
+        const type = String(f?.file_type || '').toLowerCase();
+        if (['user_story', 'dom', 'ui', 'screenshot', 'image', 'pdf', 'doc', 'docx', 'txt', 'md'].includes(type)) {
+          return hasUsableText(f);
+        }
+        if (['apk', 'ipa'].includes(type)) {
+          // APK/IPA only count if we actually parsed something out of them
+          return hasUsableText(f) || hasUsableMetadata(f);
+        }
+        // Unknown types: accept if they carry real extracted text or metadata
+        return hasUsableText(f) || hasUsableMetadata(f);
+      });
+
+      if (usableFiles.length === 0) {
+        const fileSummary = workspaceFiles.length === 0
+          ? 'No files have been uploaded to this workspace yet.'
+          : `Found ${workspaceFiles.length} file(s), but none contain usable extracted content (DOM/UI text, OCR output, or parsed APK/IPA metadata).`;
+
         addMessage({
           role: 'assistant',
-          content: `⚠️ **Cannot generate test cases — workspace is empty.**\n\nThe workspace **${selectedWorkspace.name}** has no brain data (no user stories, no APK/IPA, no DOM/UI context).\n\nPlease do one of the following:\n• Open **Hive AI – Core Workspace** and upload user stories, an APK/IPA, or DOM/UI files to this workspace.\n• Or restart and choose **Manual Mode** to generate without workspace context.`,
+          content: `⚠️ **Cannot generate test cases — workspace lacks usable content.**\n\nWorkspace **${selectedWorkspace.name}**: ${fileSummary}\n\nPlease do one of the following:\n• Open **Hive AI – Core Workspace** and upload user stories, an APK/IPA, or DOM/UI screenshots so they can be parsed.\n• Wait for in-progress extraction/OCR to finish, then retry.\n• Or restart and choose **Manual Mode** to generate without workspace context.`,
           type: 'text',
         });
         setPhase('ready_for_query');
