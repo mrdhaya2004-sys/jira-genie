@@ -70,11 +70,33 @@ serve(async (req) => {
       }
     }
 
-    // Build system prompt
+    // Build system prompt — enrich with workspace brain (user stories, DOM/UI hints)
     let contextInfo = '';
-    if (context?.userStories) {
-      contextInfo += `\n\n## User Stories (from Workspace Brain):\n${context.userStories}`;
+    const hasWorkspaceContext = !!(context?.userStories && context.userStories.trim().length > 0);
+
+    if (hasWorkspaceContext) {
+      contextInfo += `\n\n## Workspace Brain — Real Application Context\nThe following is REAL data extracted from the user's application (user stories, DOM snapshots, UI text, validation messages, popups). You MUST ground every test case in this data. Do NOT invent UI labels, field names, error messages, or flows that are not present below.\n\n${context.userStories}`;
     }
+
+    if (context?.uiContext) {
+      contextInfo += `\n\n## Extracted UI Elements\n${typeof context.uiContext === 'string' ? context.uiContext : JSON.stringify(context.uiContext, null, 2)}`;
+    }
+
+    // Categorization requirement — every generation MUST cover all 5 categories
+    contextInfo += `\n\n## REQUIRED COVERAGE — STRICT CATEGORIZATION
+Every generation MUST include test cases across ALL FIVE categories below. Do NOT skip any category.
+Tag each test case using the "type" / category field with EXACTLY one of these values:
+  1. "Positive"   — Happy-path / valid scenarios
+  2. "Negative"   — Invalid inputs, error scenarios
+  3. "Edge"       — Rare or extreme conditions
+  4. "Boundary"   — Min/max limits, field-length constraints
+  5. "Validation" — Required fields, input format, UI validations
+
+Distribution guidance (unless user requests otherwise): aim for a balanced mix — at least 2 cases per category when generating 10+ cases, at least 1 per category for smaller batches.
+
+${hasWorkspaceContext
+  ? 'Ground EVERY test case in the Workspace Brain above. Use the EXACT field labels, button text, placeholder text, validation messages, toast/popup wording, and navigation flow that appear there. If a specific message is not present, write "(verify actual message)" rather than inventing one.'
+  : 'No workspace context was provided. Generate realistic, professional QA-level test cases using common industry patterns, but keep wording generic (do not invent specific UI strings).'}`;
 
     // Determine column structure — use user-provided one or a sensible default
     const defaultColumns = [
@@ -113,17 +135,19 @@ STRICT RULES:
 - Do NOT split test cases across multiple code blocks.
 - Do NOT wrap the array in another object.`;
 
-    const systemPrompt = `You are an expert QA Engineer specializing in test case generation.
+    const systemPrompt = `You are a senior QA Engineer producing professional, human-like test cases for real applications.
 
 ## Your Task
-Generate comprehensive, well-structured test cases based on the user's request.
+Generate comprehensive, context-aware test cases based on the user's request and the workspace brain provided below.
 
 ## Important Rules
-1. Generate functional, negative, edge-case, and boundary test cases as appropriate
-2. Use realistic test data
-3. Consider positive, negative, and edge cases
-4. Be thorough but concise
-5. Respond ONLY with the required JSON code block — no other text
+1. ALWAYS cover ALL FIVE categories: Positive, Negative, Edge, Boundary, Validation. Never skip a category.
+2. When a Workspace Brain is provided, USE THE EXACT UI text from it — field labels, placeholders, button names, validation messages, toast/popup wording, navigation flow. Do NOT invent UI strings.
+3. Without workspace context, write realistic generic QA test cases — do NOT fabricate specific UI labels.
+4. Use clear, human-like QA language. Steps should read like a real QA engineer wrote them.
+5. Include exact validation/error/popup messages when known; otherwise write "(verify actual message)".
+6. Be thorough but precise — every step must be actionable and verifiable.
+7. Respond ONLY with the required JSON code block — no preamble, no other text.
 ${contextInfo}`;
 
     // Build messages with episodic memory context
