@@ -206,14 +206,14 @@ const TemplateBuilderDialog: React.FC<TemplateBuilderDialogProps> = ({ open, onO
               <div className="bg-muted/60 px-3 py-2 text-xs font-medium text-muted-foreground border-b border-border">
                 Preview — {cleanedHeaders.length} column{cleanedHeaders.length === 1 ? '' : 's'}
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs border-collapse">
+              <div className="overflow-x-auto max-w-full">
+                <table className="min-w-full text-xs border-collapse">
                   <thead className="bg-muted/40">
                     <tr>
                       {cleanedHeaders.map((h, i) => (
                         <th
                           key={i}
-                          className="px-3 py-2 text-left font-semibold border-b border-r border-border min-w-[140px] last:border-r-0"
+                          className="px-3 py-2 text-left font-semibold border-b border-r border-border min-w-[110px] last:border-r-0 whitespace-nowrap"
                         >
                           {h}
                         </th>
