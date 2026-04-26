@@ -213,9 +213,12 @@ const TemplateBuilderDialog: React.FC<TemplateBuilderDialogProps> = ({ open, onO
                   </span>
                 )}
               </div>
-              <div className="overflow-x-auto max-w-full min-h-[140px] flex">
+              <div className="overflow-x-auto max-w-full min-h-[140px] flex relative">
                 {cleanedHeaders.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center gap-2 py-8 px-4 text-center">
+                  <div
+                    key="empty"
+                    className="flex-1 flex flex-col items-center justify-center gap-2 py-8 px-4 text-center animate-fade-in"
+                  >
                     <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
                       <TableProperties className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -225,7 +228,10 @@ const TemplateBuilderDialog: React.FC<TemplateBuilderDialogProps> = ({ open, onO
                     </p>
                   </div>
                 ) : (
-                  <table className="min-w-full text-xs border-collapse">
+                  <table
+                    key={`table-${cleanedHeaders.length}`}
+                    className="min-w-full text-xs border-collapse animate-slide-up-subtle"
+                  >
                     <thead className="bg-muted/40">
                       <tr>
                         {cleanedHeaders.map((h, i) => (
