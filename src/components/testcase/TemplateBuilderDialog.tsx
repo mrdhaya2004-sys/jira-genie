@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Trash2, GripVertical, ArrowLeft, ArrowRight, Sparkles, CheckCircle2, Pencil } from 'lucide-react';
+import { Plus, Trash2, GripVertical, ArrowLeft, ArrowRight, Sparkles, CheckCircle2, Pencil, TableProperties, Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import type { ParsedExcelStructure, TestCaseColumn } from '@/types/testcase';
 
