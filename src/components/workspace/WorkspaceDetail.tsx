@@ -77,24 +77,26 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-4 p-4 border-b bg-background">
-        <Button variant="ghost" size="icon" onClick={onBack}>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 p-3 sm:p-4 border-b bg-background">
+        <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9 shrink-0">
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div className="flex-1">
-          <h1 className="text-xl font-semibold">{workspace.name}</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-base sm:text-xl font-semibold truncate">{workspace.name}</h1>
           {workspace.description && (
-            <p className="text-sm text-muted-foreground">{workspace.description}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">{workspace.description}</p>
           )}
         </div>
-        <Badge variant="outline" className="gap-1">
-          <FileText className="h-3 w-3" />
-          {userStories.length} Stories
-        </Badge>
-        <Badge variant="outline" className="gap-1">
-          <Smartphone className="h-3 w-3" />
-          {appFiles.length} Apps
-        </Badge>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs">
+            <FileText className="h-3 w-3" />
+            {userStories.length} Stories
+          </Badge>
+          <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs">
+            <Smartphone className="h-3 w-3" />
+            {appFiles.length} Apps
+          </Badge>
+        </div>
       </div>
 
       {/* Content */}

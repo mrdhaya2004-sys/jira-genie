@@ -61,6 +61,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [helpChatOpen, setHelpChatOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const {
     notifications,
     isLoading,
@@ -101,7 +102,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
       <div className="flex items-center gap-3">
         {/* Mobile Menu */}
         <div className="lg:hidden">
-          <Sheet>
+          <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="h-9 w-9">
                 <Menu className="h-5 w-5" />
@@ -111,6 +112,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
               <DashboardSidebar 
                 activeModule={activeModule}
                 onModuleChange={onModuleChange}
+                onAfterNavigate={() => setMobileNavOpen(false)}
               />
             </SheetContent>
           </Sheet>

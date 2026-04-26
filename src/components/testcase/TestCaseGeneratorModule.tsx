@@ -111,33 +111,33 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
 
   return (
     <div className="h-full flex flex-col bg-background">
-      <div className="border-b border-border/60 bg-card/50 backdrop-blur-sm px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl module-icon-gradient flex items-center justify-center">
+      <div className="border-b border-border/60 bg-card/50 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl module-icon-gradient flex items-center justify-center shrink-0">
             <ClipboardList className="h-5 w-5 text-primary" />
           </div>
-          <div>
-            <h2 className="font-semibold tracking-tight flex items-center gap-2">
-              Test Case Generator
-              <Badge variant="secondary" className="text-xs">AI-Powered</Badge>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold tracking-tight flex items-center gap-2 text-sm sm:text-base truncate">
+              <span className="truncate">Test Case Generator</span>
+              <Badge variant="secondary" className="text-[10px] sm:text-xs hidden sm:inline-flex shrink-0">AI-Powered</Badge>
             </h2>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
               Generate test cases using AI and workspace brain data
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {selectedMode && (
-            <Badge variant="outline" className="text-xs">{getModeLabel()}</Badge>
+            <Badge variant="outline" className="text-xs hidden md:inline-flex">{getModeLabel()}</Badge>
           )}
           {selectedWorkspace && (
-            <Badge variant="outline" className="text-xs">📁 {selectedWorkspace.name}</Badge>
+            <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[160px] truncate">📁 {selectedWorkspace.name}</Badge>
           )}
           {excelStructure && (
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs hidden md:inline-flex">
               <FileSpreadsheet className="h-3 w-3 mr-1" />
-              {excelStructure.columns.length} columns
+              {excelStructure.columns.length} cols
             </Badge>
           )}
           
@@ -147,9 +147,9 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
             onResumePrompt={handleResumeFromPanel}
           />
           
-          <Button variant="outline" size="sm" onClick={resetFlow}>
-            <RotateCcw className="h-4 w-4 mr-1" />
-            Start Over
+          <Button variant="outline" size="sm" onClick={resetFlow} className="px-2 sm:px-3">
+            <RotateCcw className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">Start Over</span>
           </Button>
         </div>
       </div>

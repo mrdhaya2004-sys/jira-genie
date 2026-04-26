@@ -90,28 +90,28 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
   return (
     <div className="h-full flex flex-col bg-background">
       {/* Header */}
-      <div className="border-b bg-card px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg overflow-hidden bg-background ring-1 ring-border flex items-center justify-center shrink-0">
+      <div className="border-b bg-card px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg overflow-hidden bg-background ring-1 ring-border flex items-center justify-center shrink-0">
             <img src={scenarioLogo} alt="Logic Scenario Creator logo" className="h-full w-full object-contain" />
           </div>
-          <div>
-            <h2 className="font-semibold flex items-center gap-2">
-              🧩 Logic Scenario Creator
-              <Badge variant="secondary" className="text-xs">AI-Powered</Badge>
-              {isCodePhase && <Badge variant="default" className="text-xs">Code Mode</Badge>}
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold flex items-center gap-2 text-sm sm:text-base truncate">
+              <span className="truncate">🧩 Logic Scenario Creator</span>
+              <Badge variant="secondary" className="text-[10px] sm:text-xs hidden sm:inline-flex shrink-0">AI-Powered</Badge>
+              {isCodePhase && <Badge variant="default" className="text-[10px] sm:text-xs hidden md:inline-flex shrink-0">Code Mode</Badge>}
             </h2>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
               {isCodePhase ? 'Convert scenarios to automation code' : 'Generate automation-ready BDD-style logic scenarios'}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap justify-end">
-          {selectedFramework && <Badge variant="outline" className="text-xs">{getFrameworkBadge()}</Badge>}
-          {selectedWorkspace && <Badge variant="outline" className="text-xs">📁 {selectedWorkspace.name}</Badge>}
-          {selectedModule && <Badge variant="outline" className="text-xs">📦 {selectedModule}</Badge>}
-          {selectedCodeFramework && <Badge variant="secondary" className="text-xs">{getCodeFrameworkBadge()}</Badge>}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {selectedFramework && <Badge variant="outline" className="text-xs hidden md:inline-flex">{getFrameworkBadge()}</Badge>}
+          {selectedWorkspace && <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[140px] truncate">📁 {selectedWorkspace.name}</Badge>}
+          {selectedModule && <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[120px] truncate">📦 {selectedModule}</Badge>}
+          {selectedCodeFramework && <Badge variant="secondary" className="text-xs hidden md:inline-flex">{getCodeFrameworkBadge()}</Badge>}
           
           <HistoryPanel 
             toolType="scenario" 
@@ -119,9 +119,9 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
             onResumePrompt={handleResumeFromPanel}
           />
           
-          <Button variant="outline" size="sm" onClick={resetFlow}>
-            <RotateCcw className="h-4 w-4 mr-1" />
-            Start Over
+          <Button variant="outline" size="sm" onClick={resetFlow} className="px-2 sm:px-3">
+            <RotateCcw className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">Start Over</span>
           </Button>
         </div>
       </div>

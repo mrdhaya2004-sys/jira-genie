@@ -27,13 +27,19 @@ interface DashboardSidebarProps {
   className?: string;
   activeModule: ActiveModule;
   onModuleChange: (module: ActiveModule) => void;
+  onAfterNavigate?: () => void;
 }
 
 const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   className,
   activeModule,
-  onModuleChange
+  onModuleChange,
+  onAfterNavigate
 }) => {
+  const navigate = (m: ActiveModule) => {
+    onModuleChange(m);
+    onAfterNavigate?.();
+  };
   const { profile, signOut } = useAuth();
   const { unreadCount } = useMentions();
   const [helpChatOpen, setHelpChatOpen] = useState(false);
@@ -93,7 +99,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         {menuItems.map((item) =>
         <button
           key={item.label}
-          onClick={() => onModuleChange(item.module)}
+          onClick={() => navigate(item.module)}
           className={cn(
             "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150",
             activeModule === item.module
@@ -121,7 +127,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           {automationItems.map((item) =>
           <button
             key={item.label}
-            onClick={() => onModuleChange(item.module)}
+            onClick={() => navigate(item.module)}
             className={cn("w-full gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150 flex items-center justify-start",
 
             activeModule === item.module
@@ -141,7 +147,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       {/* Bottom Section */}
       <div className="px-3 py-2 space-y-0.5 relative z-10">
         <button
-          onClick={() => onModuleChange('ai-settings')}
+          onClick={() => navigate("ai-settings")}
           className={cn(
             "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150",
             activeModule === 'ai-settings'
@@ -160,7 +166,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           Help & Support
         </button>
         <button
-          onClick={() => onModuleChange('account-settings')}
+          onClick={() => navigate("account-settings")}
           className={cn(
             "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150",
             activeModule === 'account-settings'
@@ -177,7 +183,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       {/* User Profile */}
       <div className="p-3 relative z-10">
         <div className="flex items-center gap-3 p-2.5 rounded-lg border border-sidebar-border/40 bg-sidebar-accent/30 transition-colors hover:bg-sidebar-accent/50">
-          <button onClick={() => onModuleChange('profile')} className="flex items-center gap-3 flex-1 min-w-0">
+          <button onClick={() => navigate("profile")} className="flex items-center gap-3 flex-1 min-w-0">
             <div className="relative">
               <Avatar className="h-9 w-9 ring-2 ring-sidebar-primary/20">
                 <AvatarImage src={profile?.avatar_url || undefined} />
