@@ -10,6 +10,7 @@ import ScenarioChatInput from './ScenarioChatInput';
 import HistoryPanel from '@/components/automation/HistoryPanel';
 import type { AutomationFramework, CodeFramework } from '@/types/scenario';
 import type { ResumeData } from '@/pages/DashboardPage';
+import scenarioLogo from '@/assets/xpath-generator-logo.png';
 
 interface LogicScenarioCreatorModuleProps {
   resumeData?: ResumeData | null;
@@ -91,8 +92,8 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
       {/* Header */}
       <div className="border-b bg-card px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            {isCodePhase ? <Code2 className="h-5 w-5 text-primary" /> : <FileCode className="h-5 w-5 text-primary" />}
+          <div className="h-10 w-10 rounded-lg overflow-hidden bg-background ring-1 ring-border flex items-center justify-center shrink-0">
+            <img src={scenarioLogo} alt="Logic Scenario Creator logo" className="h-full w-full object-contain" />
           </div>
           <div>
             <h2 className="font-semibold flex items-center gap-2">
