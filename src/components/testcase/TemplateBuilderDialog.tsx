@@ -204,33 +204,58 @@ const TemplateBuilderDialog: React.FC<TemplateBuilderDialogProps> = ({ open, onO
             </div>
 
             <div className="rounded-lg border border-border overflow-hidden">
-              <div className="bg-muted/60 px-3 py-2 text-xs font-medium text-muted-foreground border-b border-border">
-                Preview — {cleanedHeaders.length} column{cleanedHeaders.length === 1 ? '' : 's'}
+              <div className="bg-muted/60 px-3 py-2 text-xs font-medium text-muted-foreground border-b border-border flex items-center justify-between">
+                <span>Preview — {cleanedHeaders.length} column{cleanedHeaders.length === 1 ? '' : 's'}</span>
+                {cleanedHeaders.length > 0 && (
+                  <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/70">
+                    <TableProperties className="h-3 w-3" />
+                    Sample row
+                  </span>
+                )}
               </div>
-              <div className="overflow-x-auto max-w-full">
-                <table className="min-w-full text-xs border-collapse">
-                  <thead className="bg-muted/40">
-                    <tr>
-                      {cleanedHeaders.map((h, i) => (
-                        <th
-                          key={i}
-                          className="px-3 py-2 text-left font-semibold border-b border-r border-border min-w-[110px] last:border-r-0 whitespace-nowrap"
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      {cleanedHeaders.map((_, i) => (
-                        <td key={i} className="px-3 py-3 border-r border-border last:border-r-0 text-muted-foreground/60 italic">
-                          —
-                        </td>
-                      ))}
-                    </tr>
-                  </tbody>
-                </table>
+              <div className="overflow-x-auto max-w-full min-h-[140px] flex">
+                {cleanedHeaders.length === 0 ? (
+                  <div className="flex-1 flex flex-col items-center justify-center gap-2 py-8 px-4 text-center">
+                    <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
+                      <TableProperties className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm font-medium text-foreground">No columns to preview</p>
+                    <p className="text-xs text-muted-foreground max-w-xs">
+                      Go back and add at least one column to see your test case structure here.
+                    </p>
+                  </div>
+                ) : (
+                  <table className="min-w-full text-xs border-collapse">
+                    <thead className="bg-muted/40">
+                      <tr>
+                        {cleanedHeaders.map((h, i) => (
+                          <th
+                            key={i}
+                            className="px-3 py-2 text-left font-semibold border-b border-r border-border min-w-[110px] last:border-r-0 whitespace-nowrap"
+                          >
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        {cleanedHeaders.map((_, i) => (
+                          <td key={i} className="px-3 py-3 border-r border-border last:border-r-0 min-w-[110px]">
+                            <Skeleton className="h-3 w-full max-w-[90px] bg-muted/60" />
+                          </td>
+                        ))}
+                      </tr>
+                      <tr>
+                        {cleanedHeaders.map((_, i) => (
+                          <td key={i} className="px-3 py-3 border-r border-t border-border last:border-r-0 min-w-[110px]">
+                            <Skeleton className="h-3 w-3/4 bg-muted/40" />
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           </div>
