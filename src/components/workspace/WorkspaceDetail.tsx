@@ -100,8 +100,8 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
       </div>
 
       {/* Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-        <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-4 h-12">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden min-h-0">
+        <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-3 sm:px-4 h-12 shrink-0">
           <TabsTrigger value="files" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
             Files & Stories
           </TabsTrigger>
@@ -110,8 +110,8 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="files" className="flex-1 overflow-auto p-4 mt-0">
-          <div className="grid gap-6 md:grid-cols-2">
+        <TabsContent value="files" className="flex-1 overflow-auto p-3 sm:p-4 mt-0 bg-muted/20 data-[state=inactive]:hidden">
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 min-h-full content-start">
             {/* User Stories */}
             <Card>
               <CardHeader>
