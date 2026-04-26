@@ -65,24 +65,24 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
   return (
     <div className="h-full flex flex-col bg-background">
       {/* Header */}
-      <div className="border-b bg-card px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img src={xpathLogo} alt="XPath Generator" className="h-10 w-10 rounded-lg object-contain" />
-          <div>
-            <h2 className="font-semibold flex items-center gap-2">
-              🧬 XPath Generator
-              <Badge variant="secondary" className="text-xs">AI-Powered</Badge>
+      <div className="border-b bg-card px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+          <img src={xpathLogo} alt="XPath Generator" className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg object-contain shrink-0" />
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold flex items-center gap-2 text-sm sm:text-base truncate">
+              <span className="truncate">🧬 XPath Generator</span>
+              <Badge variant="secondary" className="text-[10px] sm:text-xs hidden sm:inline-flex shrink-0">AI-Powered</Badge>
             </h2>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
               Generate accurate Android & iOS XPaths from DOM analysis
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {selectedWorkspace && <Badge variant="outline" className="text-xs">📁 {selectedWorkspace.name}</Badge>}
-          {selectedModule && <Badge variant="outline" className="text-xs">📦 {selectedModule}</Badge>}
-          {selectedPlatform && <Badge variant="outline" className="text-xs">{getPlatformBadge()}</Badge>}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {selectedWorkspace && <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[140px] truncate">📁 {selectedWorkspace.name}</Badge>}
+          {selectedModule && <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[120px] truncate">📦 {selectedModule}</Badge>}
+          {selectedPlatform && <Badge variant="outline" className="text-xs hidden md:inline-flex">{getPlatformBadge()}</Badge>}
           
           <HistoryPanel 
             toolType="xpath" 
@@ -90,9 +90,9 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
             onResumePrompt={handleResumeFromPanel}
           />
           
-          <Button variant="outline" size="sm" onClick={resetFlow}>
-            <RotateCcw className="h-4 w-4 mr-1" />
-            Start Over
+          <Button variant="outline" size="sm" onClick={resetFlow} className="px-2 sm:px-3">
+            <RotateCcw className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">Start Over</span>
           </Button>
         </div>
       </div>
