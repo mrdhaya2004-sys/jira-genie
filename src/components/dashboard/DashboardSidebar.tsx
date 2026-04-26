@@ -27,13 +27,19 @@ interface DashboardSidebarProps {
   className?: string;
   activeModule: ActiveModule;
   onModuleChange: (module: ActiveModule) => void;
+  onAfterNavigate?: () => void;
 }
 
 const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   className,
   activeModule,
-  onModuleChange
+  onModuleChange,
+  onAfterNavigate
 }) => {
+  const navigate = (m: ActiveModule) => {
+    onModuleChange(m);
+    onAfterNavigate?.();
+  };
   const { profile, signOut } = useAuth();
   const { unreadCount } = useMentions();
   const [helpChatOpen, setHelpChatOpen] = useState(false);
