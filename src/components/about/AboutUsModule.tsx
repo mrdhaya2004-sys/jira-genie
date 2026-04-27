@@ -6,6 +6,7 @@ import cholaTemple from '@/assets/about-chola-temple.jpg';
 import tamilArchitecture from '@/assets/about-tamil-architecture.jpg';
 import tamilHeritage from '@/assets/about-tamil-heritage.jpg';
 import testzoneLogo from '@/assets/testzone-logo.png';
+import { KolamMandala, TempleSilhouette, DiyaFlame, Embers } from './HeritageDecor';
 
 const AboutUsModule: React.FC = () => {
   return (
