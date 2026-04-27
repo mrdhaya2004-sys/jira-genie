@@ -22,6 +22,19 @@ const AboutUsModule: React.FC = () => {
         />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.25)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.25)_1px,transparent_1px)] bg-[size:40px_40px] opacity-30" />
 
+        {/* Floating heritage kolam (top-right) */}
+        <KolamMandala
+          className="absolute -top-16 -right-16 w-72 h-72 sm:w-96 sm:h-96 text-orange-500/30 heritage-spin-slow pointer-events-none"
+        />
+        {/* Subtle counter-spin kolam (bottom-left) */}
+        <KolamMandala
+          className="absolute -bottom-24 -left-20 w-72 h-72 text-primary/20 heritage-spin-reverse pointer-events-none hidden sm:block"
+        />
+        {/* Floating temple silhouette */}
+        <TempleSilhouette className="absolute right-6 sm:right-16 bottom-0 w-24 sm:w-32 text-amber-600/20 heritage-float pointer-events-none" />
+        {/* Glowing orb */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[480px] h-[480px] rounded-full bg-gradient-to-br from-orange-500/15 via-amber-500/10 to-transparent blur-3xl heritage-glow pointer-events-none" />
+
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
           <div className="flex items-center gap-2 mb-6">
             <Badge variant="secondary" className="gap-1.5 px-3 py-1 text-xs">
