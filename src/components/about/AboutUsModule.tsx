@@ -54,9 +54,7 @@ const AboutUsModule: React.FC = () => {
             <div>
               <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-tight">
                 Where heritage meets{' '}
-                <span className="bg-gradient-to-r from-primary via-orange-500 to-amber-500 bg-clip-text text-transparent">
-                  intelligence.
-                </span>
+                <span className="heritage-shimmer-text">intelligence.</span>
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground mt-2">
                 Rooted in tradition. Powered by AI.
