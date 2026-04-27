@@ -199,8 +199,12 @@ const AboutUsModule: React.FC = () => {
       </section>
 
       {/* HERITAGE → TECHNOLOGY BRIDGE */}
-      <section className="relative border-y border-border/40 bg-muted/30">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
+      <section className="relative border-y border-border/40 bg-muted/30 overflow-hidden">
+        {/* Centered ambient kolam behind heading */}
+        <KolamMandala className="absolute top-4 left-1/2 -translate-x-1/2 w-[420px] h-[420px] text-orange-500/10 heritage-spin-reverse pointer-events-none" />
+        <TempleSilhouette className="absolute -bottom-4 -left-6 w-28 sm:w-36 text-amber-700/15 heritage-float pointer-events-none" />
+        <TempleSilhouette className="absolute -bottom-4 -right-6 w-28 sm:w-36 text-amber-700/15 heritage-float pointer-events-none" style={{ animationDelay: '2s' } as React.CSSProperties} />
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
           <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
             <Badge variant="outline" className="mb-4">
               <Layers className="h-3 w-3 mr-1.5" />
