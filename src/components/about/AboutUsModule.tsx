@@ -90,7 +90,9 @@ const AboutUsModule: React.FC = () => {
 
       {/* TAMIL HERITAGE */}
       <section className="relative max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+        {/* Decorative kolam corner */}
+        <KolamMandala className="absolute top-6 right-4 sm:right-10 w-32 h-32 sm:w-44 sm:h-44 text-orange-500/20 heritage-spin-slow pointer-events-none" />
+        <div className="relative grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
           <div>
             <Badge className="mb-4 bg-orange-500/10 text-orange-600 dark:text-orange-400 hover:bg-orange-500/15 border-orange-500/20">
               <Landmark className="h-3 w-3 mr-1.5" />
