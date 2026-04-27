@@ -6,6 +6,7 @@ import cholaTemple from '@/assets/about-chola-temple.jpg';
 import tamilArchitecture from '@/assets/about-tamil-architecture.jpg';
 import tamilHeritage from '@/assets/about-tamil-heritage.jpg';
 import testzoneLogo from '@/assets/testzone-logo.png';
+import { KolamMandala, TempleSilhouette, DiyaFlame, Embers } from './HeritageDecor';
 
 const AboutUsModule: React.FC = () => {
   return (
@@ -20,6 +21,19 @@ const AboutUsModule: React.FC = () => {
           }}
         />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.25)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.25)_1px,transparent_1px)] bg-[size:40px_40px] opacity-30" />
+
+        {/* Floating heritage kolam (top-right) */}
+        <KolamMandala
+          className="absolute -top-16 -right-16 w-72 h-72 sm:w-96 sm:h-96 text-orange-500/30 heritage-spin-slow pointer-events-none"
+        />
+        {/* Subtle counter-spin kolam (bottom-left) */}
+        <KolamMandala
+          className="absolute -bottom-24 -left-20 w-72 h-72 text-primary/20 heritage-spin-reverse pointer-events-none hidden sm:block"
+        />
+        {/* Floating temple silhouette */}
+        <TempleSilhouette className="absolute right-6 sm:right-16 bottom-0 w-24 sm:w-32 text-amber-600/20 heritage-float pointer-events-none" />
+        {/* Glowing orb */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[480px] h-[480px] rounded-full bg-gradient-to-br from-orange-500/15 via-amber-500/10 to-transparent blur-3xl heritage-glow pointer-events-none" />
 
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
           <div className="flex items-center gap-2 mb-6">
@@ -40,9 +54,7 @@ const AboutUsModule: React.FC = () => {
             <div>
               <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-tight">
                 Where heritage meets{' '}
-                <span className="bg-gradient-to-r from-primary via-orange-500 to-amber-500 bg-clip-text text-transparent">
-                  intelligence.
-                </span>
+                <span className="heritage-shimmer-text">intelligence.</span>
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground mt-2">
                 Rooted in tradition. Powered by AI.
@@ -78,7 +90,9 @@ const AboutUsModule: React.FC = () => {
 
       {/* TAMIL HERITAGE */}
       <section className="relative max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+        {/* Decorative kolam corner */}
+        <KolamMandala className="absolute top-6 right-4 sm:right-10 w-32 h-32 sm:w-44 sm:h-44 text-orange-500/20 heritage-spin-slow pointer-events-none" />
+        <div className="relative grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
           <div>
             <Badge className="mb-4 bg-orange-500/10 text-orange-600 dark:text-orange-400 hover:bg-orange-500/15 border-orange-500/20">
               <Landmark className="h-3 w-3 mr-1.5" />
@@ -128,7 +142,11 @@ const AboutUsModule: React.FC = () => {
           </div>
 
           <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-tr from-orange-500/20 via-amber-500/10 to-transparent rounded-3xl blur-2xl" />
+            <div className="absolute -inset-4 bg-gradient-to-tr from-orange-500/20 via-amber-500/10 to-transparent rounded-3xl blur-2xl heritage-glow" />
+            {/* Floating diya lamp */}
+            <div className="absolute -top-6 -left-6 sm:-top-8 sm:-left-8 z-10 w-14 h-20 sm:w-16 sm:h-24 heritage-float drop-shadow-[0_0_20px_rgba(255,140,40,0.45)]">
+              <DiyaFlame className="w-full h-full" />
+            </div>
             <div className="relative aspect-[4/5] rounded-2xl overflow-hidden ring-1 ring-border/60 shadow-2xl">
               <img
                 src={cholaTemple}
@@ -181,8 +199,12 @@ const AboutUsModule: React.FC = () => {
       </section>
 
       {/* HERITAGE → TECHNOLOGY BRIDGE */}
-      <section className="relative border-y border-border/40 bg-muted/30">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
+      <section className="relative border-y border-border/40 bg-muted/30 overflow-hidden">
+        {/* Centered ambient kolam behind heading */}
+        <KolamMandala className="absolute top-4 left-1/2 -translate-x-1/2 w-[420px] h-[420px] text-orange-500/10 heritage-spin-reverse pointer-events-none" />
+        <TempleSilhouette className="absolute -bottom-4 -left-6 w-28 sm:w-36 text-amber-700/15 heritage-float pointer-events-none" />
+        <TempleSilhouette className="absolute -bottom-4 -right-6 w-28 sm:w-36 text-amber-700/15 heritage-float pointer-events-none" style={{ animationDelay: '2s' } as React.CSSProperties} />
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
           <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
             <Badge variant="outline" className="mb-4">
               <Layers className="h-3 w-3 mr-1.5" />
@@ -283,10 +305,18 @@ const AboutUsModule: React.FC = () => {
       </section>
 
       {/* TAGLINE / POSITIONING */}
-      <section className="relative border-t border-border/40 bg-gradient-to-br from-background via-muted/30 to-background">
+      <section className="relative border-t border-border/40 bg-gradient-to-br from-background via-muted/30 to-background overflow-hidden">
         <div className="absolute inset-0 opacity-[0.15] bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary)/0.4),transparent_60%)]" />
+        {/* Animated kolam halo */}
+        <KolamMandala className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] sm:w-[680px] sm:h-[680px] text-orange-500/15 heritage-spin-slow pointer-events-none" />
+        <KolamMandala className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] text-primary/10 heritage-spin-reverse pointer-events-none" />
+        {/* Rising embers */}
+        <Embers count={18} />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
-          <Quote className="h-8 w-8 text-primary/60 mx-auto mb-5" />
+          <div className="inline-flex h-14 w-14 items-center justify-center mb-5">
+            <DiyaFlame className="w-12 h-16 drop-shadow-[0_0_18px_rgba(255,140,40,0.55)]" />
+          </div>
+          <Quote className="h-6 w-6 text-primary/50 mx-auto mb-4" />
           <p className="text-2xl sm:text-4xl font-bold tracking-tight leading-tight">
             “From <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">Tamil Nadu</span> to the world -
             A next-generation AI testing platform where{' '}
