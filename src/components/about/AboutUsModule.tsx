@@ -53,8 +53,8 @@ const AboutUsModule: React.FC = () => {
           <p className="text-base sm:text-lg text-muted-foreground max-w-3xl leading-relaxed">
             Test Zone is a next-generation, AI-powered testing platform that brings
             intelligence, automation, and context-awareness to modern software quality.
-            Built by engineers who believe that great technology — like great
-            architecture — is timeless.
+            Built by engineers who believe that great technology - like great
+            architecture - is timeless.
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-10 max-w-3xl">
@@ -101,7 +101,7 @@ const AboutUsModule: React.FC = () => {
                 mathematics, astronomy, metallurgy, philosophy, and architecture.
                 The land that gave the world the <span className="text-foreground font-medium">Chola Empire</span>{' '}
                 also gave it temples that still stand as monuments to precision
-                engineering — geometry, acoustics, and structural design centuries
+                engineering - geometry, acoustics, and structural design centuries
                 ahead of their time.
               </p>
               <p>
@@ -211,7 +211,7 @@ const AboutUsModule: React.FC = () => {
               {
                 icon: Sparkles,
                 title: 'Continuity of innovation',
-                body: 'A single thread of curiosity — running from palm-leaf manuscripts to neural networks. We are simply the next chapter.',
+                body: 'A single thread of curiosity  running from palm-leaf manuscripts to neural networks. We are simply the next chapter.',
               },
             ].map((c) => (
               <Card key={c.title} className="p-5 sm:p-6 bg-card/60 backdrop-blur-sm border-border/60 hover:border-primary/40 transition-colors">
@@ -252,19 +252,19 @@ const AboutUsModule: React.FC = () => {
             {
               icon: Cpu,
               title: 'Context-Aware Testing',
-              body: 'The platform understands your stories, screens, APIs and intent — generating tests that fit your product, not generic templates.',
+              body: 'The platform understands your stories, screens, APIs and intent - generating tests that fit your product, not generic templates.',
               accent: 'from-violet-500/20 to-fuchsia-500/10',
             },
             {
               icon: Zap,
               title: 'AI-Driven Automation',
-              body: 'From scenario design to executable code in seconds — across Selenium, Playwright, Cypress, and more.',
+              body: 'From scenario design to executable code in seconds - across Selenium, Playwright, Cypress, and more.',
               accent: 'from-amber-500/20 to-orange-500/10',
             },
             {
               icon: Sparkles,
               title: 'Human-Like Test Generation',
-              body: 'Functional, negative, and edge-case suites written with the nuance of a senior QA — at machine scale.',
+              body: 'Functional, negative, and edge-case suites written with the nuance of a senior QA - at machine scale.',
               accent: 'from-emerald-500/20 to-teal-500/10',
             },
           ].map((p) => (
@@ -288,8 +288,8 @@ const AboutUsModule: React.FC = () => {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
           <Quote className="h-8 w-8 text-primary/60 mx-auto mb-5" />
           <p className="text-2xl sm:text-4xl font-bold tracking-tight leading-tight">
-            “From <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">Tamil Nadu</span> to the world —
-            a next-generation AI testing platform where{' '}
+            “From <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">Tamil Nadu</span> to the world -
+            A next-generation AI testing platform where{' '}
             <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">tradition meets technology</span>.”
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
@@ -300,7 +300,7 @@ const AboutUsModule: React.FC = () => {
             <Badge variant="outline" className="text-xs">Built for the world</Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-10">
-            © {new Date().getFullYear()} Test Zone — Crafted with pride in Tamil Nadu, India.
+            © {new Date().getFullYear()} Test Zone - Crafted with pride in Tamil Nadu, India.
           </p>
         </div>
       </section>
