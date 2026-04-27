@@ -305,10 +305,18 @@ const AboutUsModule: React.FC = () => {
       </section>
 
       {/* TAGLINE / POSITIONING */}
-      <section className="relative border-t border-border/40 bg-gradient-to-br from-background via-muted/30 to-background">
+      <section className="relative border-t border-border/40 bg-gradient-to-br from-background via-muted/30 to-background overflow-hidden">
         <div className="absolute inset-0 opacity-[0.15] bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary)/0.4),transparent_60%)]" />
+        {/* Animated kolam halo */}
+        <KolamMandala className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] sm:w-[680px] sm:h-[680px] text-orange-500/15 heritage-spin-slow pointer-events-none" />
+        <KolamMandala className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] text-primary/10 heritage-spin-reverse pointer-events-none" />
+        {/* Rising embers */}
+        <Embers count={18} />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
-          <Quote className="h-8 w-8 text-primary/60 mx-auto mb-5" />
+          <div className="inline-flex h-14 w-14 items-center justify-center mb-5">
+            <DiyaFlame className="w-12 h-16 drop-shadow-[0_0_18px_rgba(255,140,40,0.55)]" />
+          </div>
+          <Quote className="h-6 w-6 text-primary/50 mx-auto mb-4" />
           <p className="text-2xl sm:text-4xl font-bold tracking-tight leading-tight">
             “From <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">Tamil Nadu</span> to the world -
             A next-generation AI testing platform where{' '}
