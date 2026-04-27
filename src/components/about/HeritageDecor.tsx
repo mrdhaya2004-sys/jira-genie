@@ -50,10 +50,11 @@ export const KolamMandala: React.FC<{ className?: string; stroke?: string }> = (
 );
 
 /** Stylised gopuram (temple tower) silhouette. */
-export const TempleSilhouette: React.FC<{ className?: string }> = ({ className }) => (
+export const TempleSilhouette: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className, style }) => (
   <svg
     viewBox="0 0 200 240"
     className={className}
+    style={style}
     fill="currentColor"
     aria-hidden="true"
   >
