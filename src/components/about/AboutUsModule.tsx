@@ -211,7 +211,7 @@ const AboutUsModule: React.FC = () => {
               {
                 icon: Sparkles,
                 title: 'Continuity of innovation',
-                body: 'A single thread of curiosity  running from palm-leaf manuscripts to neural networks. We are simply the next chapter.',
+                body: 'A single thread of curiosity running from palm-leaf manuscripts to neural networks. We are simply the next chapter.',
               },
             ].map((c) => (
               <Card key={c.title} className="p-5 sm:p-6 bg-card/60 backdrop-blur-sm border-border/60 hover:border-primary/40 transition-colors">
