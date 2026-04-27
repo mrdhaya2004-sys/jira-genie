@@ -279,6 +279,7 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
               </CardContent>
             </Card>
           </div>
+          )}
         </TabsContent>
 
         <TabsContent value="ai" className="flex-1 flex flex-col overflow-hidden p-0 mt-0 min-h-0 data-[state=inactive]:hidden">
