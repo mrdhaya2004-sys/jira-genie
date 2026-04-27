@@ -111,6 +111,43 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
         </TabsList>
 
         <TabsContent value="files" className="flex-1 overflow-auto p-3 sm:p-4 mt-0 bg-muted/20 data-[state=inactive]:hidden">
+          {files.length === 0 && !filesLoading ? (
+            <div className="min-h-full flex items-center justify-center py-8">
+              <div className="text-center max-w-md mx-auto">
+                <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                  <FolderOpen className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">No files or stories yet</h3>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Upload user stories or application files (APK / IPA) to start training the AI on your project context.
+                </p>
+                <div className="flex items-center justify-center gap-2 flex-wrap">
+                  <Button asChild variant="outline" size="sm" className="gap-2">
+                    <label htmlFor="story-upload" className="cursor-pointer">
+                      <Upload className="h-4 w-4" />
+                      Upload Story
+                    </label>
+                  </Button>
+                  <Button asChild variant="outline" size="sm" className="gap-2">
+                    <label htmlFor="apk-upload" className="cursor-pointer">
+                      <Upload className="h-4 w-4" />
+                      Upload APK
+                    </label>
+                  </Button>
+                  <Button asChild variant="outline" size="sm" className="gap-2">
+                    <label htmlFor="ipa-upload" className="cursor-pointer">
+                      <Upload className="h-4 w-4" />
+                      Upload IPA
+                    </label>
+                  </Button>
+                </div>
+                {/* Hidden inputs to back the labels above */}
+                <input type="file" id="story-upload" className="hidden" accept=".txt,.doc,.docx,.pdf" onChange={(e) => handleFileUpload(e, 'user_story')} />
+                <input type="file" id="apk-upload" className="hidden" accept=".apk" onChange={(e) => handleFileUpload(e, 'apk')} />
+                <input type="file" id="ipa-upload" className="hidden" accept=".ipa" onChange={(e) => handleFileUpload(e, 'ipa')} />
+              </div>
+            </div>
+          ) : (
           <div className="grid gap-4 sm:gap-6 md:grid-cols-2 min-h-full content-start">
             {/* User Stories */}
             <Card>
