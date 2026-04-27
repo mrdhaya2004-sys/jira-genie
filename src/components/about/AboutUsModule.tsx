@@ -142,7 +142,11 @@ const AboutUsModule: React.FC = () => {
           </div>
 
           <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-tr from-orange-500/20 via-amber-500/10 to-transparent rounded-3xl blur-2xl" />
+            <div className="absolute -inset-4 bg-gradient-to-tr from-orange-500/20 via-amber-500/10 to-transparent rounded-3xl blur-2xl heritage-glow" />
+            {/* Floating diya lamp */}
+            <div className="absolute -top-6 -left-6 sm:-top-8 sm:-left-8 z-10 w-14 h-20 sm:w-16 sm:h-24 heritage-float drop-shadow-[0_0_20px_rgba(255,140,40,0.45)]">
+              <DiyaFlame className="w-full h-full" />
+            </div>
             <div className="relative aspect-[4/5] rounded-2xl overflow-hidden ring-1 ring-border/60 shadow-2xl">
               <img
                 src={cholaTemple}
