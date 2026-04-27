@@ -10,6 +10,7 @@ import TestCaseChatInput from './TestCaseChatInput';
 import TemplateBuilderDialog from './TemplateBuilderDialog';
 import HistoryPanel from '@/components/automation/HistoryPanel';
 import type { ResumeData } from '@/pages/DashboardPage';
+import testCaseLogo from '@/assets/test-case-generator-logo.webp';
 
 interface TestCaseGeneratorModuleProps {
   resumeData?: ResumeData | null;
@@ -113,8 +114,17 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
     <div className="h-full flex flex-col bg-background">
       <div className="border-b border-border/60 bg-card/50 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl module-icon-gradient flex items-center justify-center shrink-0">
-            <ClipboardList className="h-5 w-5 text-primary" />
+          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-white flex items-center justify-center shrink-0 overflow-hidden ring-1 ring-border/50">
+            <img
+              src={testCaseLogo}
+              alt="Test Case Generator logo"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              width={40}
+              height={40}
+              className="h-full w-full object-contain"
+            />
           </div>
           <div className="min-w-0 flex-1">
             <h2 className="font-semibold tracking-tight flex items-center gap-2 text-sm sm:text-base truncate">
