@@ -14,7 +14,8 @@ import {
   Code2,
   ClipboardList,
   FileCode2,
-  Brain } from
+  Brain,
+  Info } from
 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
@@ -164,6 +165,17 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         >
           <HelpCircle className="h-4 w-4" />
           Help & Support
+        </button>
+        <button
+          onClick={() => navigate("about")}
+          className={cn(
+            "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150",
+            activeModule === 'about'
+              ? "bg-sidebar-accent text-sidebar-accent-foreground sidebar-active-indicator"
+              : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5"
+          )}>
+          <Info className="h-4 w-4" />
+          About Us
         </button>
         <button
           onClick={() => navigate("account-settings")}

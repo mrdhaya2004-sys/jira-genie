@@ -49,6 +49,7 @@ const MODULE_LABELS: Record<ActiveModule, string> = {
   'ai-settings': 'AI Configuration',
   'profile': 'Profile',
   'account-settings': 'Account Settings',
+  'about': 'About Us',
 };
 
 interface DashboardHeaderProps {

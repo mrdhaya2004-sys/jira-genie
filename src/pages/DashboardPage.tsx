@@ -13,8 +13,9 @@ import CurrentChatModule from '@/components/currentchat/CurrentChatModule';
 import AIConfigurationModule from '@/components/settings/AIConfigurationModule';
 import ProfileModule from '@/components/profile/ProfileModule';
 import AccountSettingsModule from '@/components/settings/AccountSettingsModule';
+import AboutUsModule from '@/components/about/AboutUsModule';
 
-export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'ai-settings' | 'profile' | 'account-settings';
+export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'ai-settings' | 'profile' | 'account-settings' | 'about';
 
 const MODULE_MAP: Record<string, ActiveModule> = {
   'test-case-generator': 'test-case-generator',
@@ -71,6 +72,7 @@ const DashboardPage: React.FC = () => {
             {activeModule === 'ai-settings' && <AIConfigurationModule />}
             {activeModule === 'profile' && <ProfileModule />}
             {activeModule === 'account-settings' && <AccountSettingsModule />}
+            {activeModule === 'about' && <AboutUsModule />}
           </div>
         </main>
       </div>
