@@ -10,7 +10,7 @@ import ScenarioChatInput from './ScenarioChatInput';
 import HistoryPanel from '@/components/automation/HistoryPanel';
 import type { AutomationFramework, CodeFramework } from '@/types/scenario';
 import type { ResumeData } from '@/pages/DashboardPage';
-import scenarioLogo from '@/assets/xpath-generator-logo.png';
+import scenarioLogo from '@/assets/xpath-generator-logo.webp';
 
 interface LogicScenarioCreatorModuleProps {
   resumeData?: ResumeData | null;
