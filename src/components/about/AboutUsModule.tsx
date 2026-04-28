@@ -33,7 +33,7 @@ const AboutUsModule: React.FC = () => {
         {/* Floating temple silhouette */}
         <TempleSilhouette className="absolute right-6 sm:right-16 bottom-0 w-24 sm:w-32 text-amber-600/20 heritage-float pointer-events-none" />
         {/* Glowing orb */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[480px] h-[480px] rounded-full bg-gradient-to-br from-orange-500/15 via-amber-500/10 to-transparent blur-3xl heritage-glow pointer-events-none" />
+        <div aria-hidden="true" className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[480px] h-[480px] rounded-full bg-gradient-to-br from-orange-500/15 via-amber-500/10 to-transparent blur-3xl heritage-glow pointer-events-none" />
 
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
           <div className="flex items-center gap-2 mb-6">
@@ -142,9 +142,9 @@ const AboutUsModule: React.FC = () => {
           </div>
 
           <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-tr from-orange-500/20 via-amber-500/10 to-transparent rounded-3xl blur-2xl heritage-glow" />
+            <div aria-hidden="true" className="absolute -inset-4 bg-gradient-to-tr from-orange-500/20 via-amber-500/10 to-transparent rounded-3xl blur-2xl heritage-glow pointer-events-none" />
             {/* Floating diya lamp */}
-            <div className="absolute -top-6 -left-6 sm:-top-8 sm:-left-8 z-10 w-14 h-20 sm:w-16 sm:h-24 heritage-float drop-shadow-[0_0_20px_rgba(255,140,40,0.45)]">
+            <div aria-hidden="true" className="absolute -top-6 -left-6 sm:-top-8 sm:-left-8 z-10 w-14 h-20 sm:w-16 sm:h-24 heritage-float drop-shadow-[0_0_20px_rgba(255,140,40,0.45)] pointer-events-none">
               <DiyaFlame className="w-full h-full" />
             </div>
             <div className="relative aspect-[4/5] rounded-2xl overflow-hidden ring-1 ring-border/60 shadow-2xl">
@@ -306,14 +306,14 @@ const AboutUsModule: React.FC = () => {
 
       {/* TAGLINE / POSITIONING */}
       <section className="relative border-t border-border/40 bg-gradient-to-br from-background via-muted/30 to-background overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.15] bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary)/0.4),transparent_60%)]" />
+        <div aria-hidden="true" className="absolute inset-0 opacity-[0.15] bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary)/0.4),transparent_60%)] pointer-events-none" />
         {/* Animated kolam halo */}
         <KolamMandala className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] sm:w-[680px] sm:h-[680px] text-orange-500/15 heritage-spin-slow pointer-events-none" />
         <KolamMandala className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] text-primary/10 heritage-spin-reverse pointer-events-none" />
         {/* Rising embers */}
         <Embers count={18} />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
-          <div className="inline-flex h-14 w-14 items-center justify-center mb-5">
+          <div aria-hidden="true" className="inline-flex h-14 w-14 items-center justify-center mb-5 pointer-events-none">
             <DiyaFlame className="w-12 h-16 drop-shadow-[0_0_18px_rgba(255,140,40,0.55)]" />
           </div>
           <Quote className="h-6 w-6 text-primary/50 mx-auto mb-4" />
