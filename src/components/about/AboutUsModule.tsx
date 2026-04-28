@@ -1,14 +1,19 @@
 import React from 'react';
-import { Sparkles, Brain, Cpu, Globe, Landmark, ScrollText, Layers, Zap, Quote, User, Smartphone, GraduationCap, Lightbulb, Cog, Rocket, MapPin, Compass } from 'lucide-react';
+import { Sparkles, Brain, Cpu, Globe, Landmark, ScrollText, Layers, Zap, Quote, User, MapPin, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import cholaTemple from '@/assets/about-chola-temple.jpg';
 import tamilArchitecture from '@/assets/about-tamil-architecture.jpg';
 import tamilHeritage from '@/assets/about-tamil-heritage.jpg';
 import testzoneLogo from '@/assets/testzone-logo.png';
 import { KolamMandala, TempleSilhouette, DiyaFlame, Embers } from './HeritageDecor';
 
-const AboutUsModule: React.FC = () => {
+interface AboutUsModuleProps {
+  onOpenFounder?: () => void;
+}
+
+const AboutUsModule: React.FC<AboutUsModuleProps> = ({ onOpenFounder }) => {
   return (
     <div className="h-full overflow-y-auto bg-background">
       {/* HERO */}
