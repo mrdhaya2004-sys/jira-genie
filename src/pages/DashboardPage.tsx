@@ -73,7 +73,8 @@ const DashboardPage: React.FC = () => {
             {activeModule === 'ai-settings' && <AIConfigurationModule />}
             {activeModule === 'profile' && <ProfileModule />}
             {activeModule === 'account-settings' && <AccountSettingsModule />}
-            {activeModule === 'about' && <AboutUsModule />}
+            {activeModule === 'about' && <AboutUsModule onOpenFounder={() => setActiveModule('founder')} />}
+            {activeModule === 'founder' && <FounderPage onBack={() => setActiveModule('about')} />}
           </div>
         </main>
       </div>
