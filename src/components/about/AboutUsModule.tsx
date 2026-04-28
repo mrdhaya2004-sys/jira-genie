@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Brain, Cpu, Globe, Landmark, ScrollText, Layers, Zap, Quote } from 'lucide-react';
+import { Sparkles, Brain, Cpu, Globe, Landmark, ScrollText, Layers, Zap, Quote, User, Smartphone, GraduationCap, Lightbulb, Cog, Rocket, MapPin, Compass } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import cholaTemple from '@/assets/about-chola-temple.jpg';
