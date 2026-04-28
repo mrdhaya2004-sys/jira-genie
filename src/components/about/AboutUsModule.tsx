@@ -33,7 +33,7 @@ const AboutUsModule: React.FC = () => {
         {/* Floating temple silhouette */}
         <TempleSilhouette className="absolute right-6 sm:right-16 bottom-0 w-24 sm:w-32 text-amber-600/20 heritage-float pointer-events-none" />
         {/* Glowing orb */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[480px] h-[480px] rounded-full bg-gradient-to-br from-orange-500/15 via-amber-500/10 to-transparent blur-3xl heritage-glow pointer-events-none" />
+        <div aria-hidden="true" className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[480px] h-[480px] rounded-full bg-gradient-to-br from-orange-500/15 via-amber-500/10 to-transparent blur-3xl heritage-glow pointer-events-none" />
 
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
           <div className="flex items-center gap-2 mb-6">
