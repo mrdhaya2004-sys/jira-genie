@@ -239,10 +239,12 @@ const AboutUsModule: React.FC<AboutUsModuleProps> = ({ onOpenFounder }) => {
                     aria-hidden="true"
                     className="absolute -inset-2 bg-gradient-to-tr from-orange-500/25 via-amber-500/15 to-primary/15 rounded-full blur-xl heritage-glow pointer-events-none"
                   />
-                  <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-full overflow-hidden ring-1 ring-border/60 shadow-lg bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-primary/20 flex items-center justify-center">
-                    <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
-                      DAP
-                    </span>
+                  <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-full overflow-hidden ring-1 ring-border/60 shadow-lg bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-primary/20">
+                    <img
+                      src={founderPhoto}
+                      alt="Dhayanand A P, Founder of Test Zone"
+                      className="h-full w-full object-cover"
+                    />
                   </div>
                 </div>
                 <div className="sm:mt-1">
