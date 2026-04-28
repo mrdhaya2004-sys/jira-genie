@@ -1,14 +1,19 @@
 import React from 'react';
-import { Sparkles, Brain, Cpu, Globe, Landmark, ScrollText, Layers, Zap, Quote, User, Smartphone, GraduationCap, Lightbulb, Cog, Rocket, MapPin, Compass } from 'lucide-react';
+import { Sparkles, Brain, Cpu, Globe, Landmark, ScrollText, Layers, Zap, Quote, User, MapPin, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import cholaTemple from '@/assets/about-chola-temple.jpg';
 import tamilArchitecture from '@/assets/about-tamil-architecture.jpg';
 import tamilHeritage from '@/assets/about-tamil-heritage.jpg';
 import testzoneLogo from '@/assets/testzone-logo.png';
 import { KolamMandala, TempleSilhouette, DiyaFlame, Embers } from './HeritageDecor';
 
-const AboutUsModule: React.FC = () => {
+interface AboutUsModuleProps {
+  onOpenFounder?: () => void;
+}
+
+const AboutUsModule: React.FC<AboutUsModuleProps> = ({ onOpenFounder }) => {
   return (
     <div className="h-full overflow-y-auto bg-background">
       {/* HERO */}
@@ -198,131 +203,78 @@ const AboutUsModule: React.FC = () => {
         </div>
       </section>
 
-      {/* FOUNDER STORY */}
+      {/* ABOUT THE FOUNDER (short) */}
       <section className="relative border-t border-border/40 overflow-hidden">
-        {/* Ambient decor */}
-        <KolamMandala className="absolute -top-20 -left-24 w-72 h-72 text-orange-500/15 heritage-spin-slow pointer-events-none" />
-        <KolamMandala className="absolute -bottom-24 -right-24 w-80 h-80 text-primary/10 heritage-spin-reverse pointer-events-none hidden sm:block" />
-        <div aria-hidden="true" className="absolute top-1/3 right-1/4 w-[420px] h-[420px] rounded-full bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-transparent blur-3xl heritage-glow pointer-events-none" />
+        <KolamMandala
+          aria-hidden="true"
+          className="absolute -top-20 -left-24 w-72 h-72 text-orange-500/15 heritage-spin-slow pointer-events-none"
+        />
+        <KolamMandala
+          aria-hidden="true"
+          className="absolute -bottom-24 -right-24 w-80 h-80 text-primary/10 heritage-spin-reverse pointer-events-none hidden sm:block"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute top-1/2 right-1/4 w-[420px] h-[420px] rounded-full bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-transparent blur-3xl heritage-glow pointer-events-none"
+        />
 
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
-          {/* Header */}
-          <div className="max-w-3xl mb-12 sm:mb-16">
+          <div className="max-w-3xl mb-8">
             <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/15 border-primary/20">
               <User className="h-3 w-3 mr-1.5" />
-              Founder Story
+              About the Founder
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-              The story behind{' '}
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+              The mind behind{' '}
               <span className="heritage-shimmer-text">Test Zone</span>
             </h2>
-            <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
-              A personal journey — from a small village with limited connectivity
-              to building an AI-powered testing platform from Tamil Nadu.
-            </p>
           </div>
 
-          {/* Narrative grid: timeline + opening quote */}
-          <div className="grid lg:grid-cols-[1fr_2fr] gap-8 lg:gap-12">
-            {/* Opening narrative card */}
-            <Card className="relative p-6 sm:p-7 bg-gradient-to-br from-card to-card/40 border-border/60 h-fit lg:sticky lg:top-6">
-              <Quote className="h-6 w-6 text-primary/40 mb-3" />
-              <p className="text-base sm:text-lg leading-relaxed text-foreground/90 italic">
-                I come from a small village where even basic internet connectivity
-                was a challenge. Technology wasn't easily accessible — but
-                curiosity always was.
-              </p>
-              <div className="mt-6 flex items-center gap-3 pt-5 border-t border-border/60">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500/20 to-primary/20 flex items-center justify-center">
-                  <MapPin className="h-4 w-4 text-orange-500" />
+          <Card className="relative p-6 sm:p-8 bg-gradient-to-br from-card to-card/40 border-border/60">
+            <div className="grid sm:grid-cols-[auto_1fr] gap-6 items-start">
+              <div className="flex sm:flex-col items-center sm:items-start gap-4 sm:gap-3">
+                <div className="relative">
+                  <div
+                    aria-hidden="true"
+                    className="absolute -inset-2 bg-gradient-to-tr from-orange-500/25 via-amber-500/15 to-primary/15 rounded-full blur-xl heritage-glow pointer-events-none"
+                  />
+                  <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-full overflow-hidden ring-1 ring-border/60 shadow-lg bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-primary/20 flex items-center justify-center">
+                    <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
+                      DAP
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold">Founder, Test Zone</p>
-                  <p className="text-xs text-muted-foreground">Tamil Nadu, India</p>
+                <div className="sm:mt-1">
+                  <p className="font-semibold text-sm sm:text-base">Dhayanand A P</p>
+                  <p className="text-xs text-muted-foreground">Founder, Test Zone</p>
+                  <div className="flex items-center gap-1.5 mt-1 text-[11px] text-muted-foreground">
+                    <MapPin className="h-3 w-3 text-orange-500" />
+                    <span>Tamil Nadu, India</span>
+                  </div>
                 </div>
               </div>
-            </Card>
 
-            {/* Timeline */}
-            <div className="relative">
-              {/* Vertical line */}
-              <div aria-hidden="true" className="absolute left-5 top-2 bottom-2 w-px bg-gradient-to-b from-orange-500/40 via-primary/30 to-transparent" />
-
-              <ol className="space-y-6 sm:space-y-8">
-                {[
-                  {
-                    icon: Smartphone,
-                    title: 'A first window into technology',
-                    body: "My mother is a Computer Science professor, and my father — though he studied only up to high school — had a deep interest in technology. At a time when mobile phones were rare in our village, my father owned one. That became my first window into the world of technology.",
-                  },
-                  {
-                    icon: GraduationCap,
-                    title: 'Curiosity over grades',
-                    body: "I wasn't a topper in school. I struggled academically in the early stages. But what I lacked in grades, I made up for with curiosity — spending hours exploring mobile phones, understanding how they worked, and breaking down their structure. A turning point came in 10th standard, inspired by someone who believed in me and gave me the space to grow.",
-                  },
-                  {
-                    icon: Cog,
-                    title: 'Engineering systems thinking',
-                    body: 'In college, I chose Electronics and Communication — drawn to hardware, circuits, and embedded systems. That\'s where I started understanding how systems work at a deeper level: how devices, architecture, and logic come together.',
-                  },
-                  {
-                    icon: Brain,
-                    title: 'Starting from scratch with AI',
-                    body: 'As AI began to evolve, I realized something important — while I understood hardware systems, AI was a completely different world. So I started from scratch again: learning, researching, and slowly immersing myself into AI.',
-                  },
-                  {
-                    icon: Lightbulb,
-                    title: 'Seeing the real problem',
-                    body: 'My first professional role as an Automation Tester changed everything. That\'s where I saw the problem clearly: software testing was heavily repetitive, time-consuming, and dependent on manual effort. The question kept returning — what if AI could handle testing intelligently? Not just automation, but understanding systems, generating test cases, and reducing human effort.',
-                  },
-                  {
-                    icon: Rocket,
-                    title: 'That idea became Test Zone',
-                    body: 'Today, Test Zone is an AI-powered testing platform built to simplify and transform how testing is done — making it smarter, faster, and more efficient. Coming from a place where even internet access was limited, building an AI product today — especially from Tamil Nadu — is something I take great pride in.',
-                  },
-                ].map((step, idx) => (
-                  <li key={step.title} className="relative pl-14">
-                    <div className="absolute left-0 top-0 h-10 w-10 rounded-xl bg-gradient-to-br from-primary/15 to-orange-500/15 border border-border/60 flex items-center justify-center shadow-sm">
-                      <step.icon className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-[11px] font-mono text-muted-foreground tracking-wider">
-                        0{idx + 1}
-                      </span>
-                      <h3 className="font-semibold text-base sm:text-lg leading-snug">
-                        {step.title}
-                      </h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {step.body}
-                    </p>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </div>
-
-          {/* Closing line */}
-          <div className="relative mt-14 sm:mt-20">
-            <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-primary/10 to-transparent rounded-2xl blur-2xl pointer-events-none" />
-            <div className="relative rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-6 sm:p-8 flex items-start gap-4">
-              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-orange-500/20 to-primary/20 flex items-center justify-center shrink-0">
-                <Compass className="h-5 w-5 text-orange-500" />
-              </div>
               <div>
-                <p className="text-lg sm:text-xl font-semibold tracking-tight leading-snug">
-                  “From a small village to building an AI platform —{' '}
-                  <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
-                    the journey continues.
-                  </span>
-                  ”
+                <Quote className="h-5 w-5 text-primary/40 mb-2" />
+                <p className="text-sm sm:text-base leading-relaxed text-foreground/90">
+                  From a small village with limited internet to building an
+                  AI-powered testing platform — Dhayanand's journey is shaped by
+                  curiosity, resilience, and a belief that great technology
+                  should solve real problems. After years as an automation
+                  tester, he set out to make software testing intelligent,
+                  context-aware, and effortless. That vision became Test Zone.
                 </p>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-                  Built with curiosity. Driven by purpose. Grounded in roots.
-                </p>
+                <Button
+                  onClick={onOpenFounder}
+                  className="mt-5 group"
+                  size="sm"
+                >
+                  Read Full Story
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </Button>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       </section>
 
