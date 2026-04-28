@@ -49,15 +49,13 @@ const FounderPage: React.FC<FounderPageProps> = ({ onBack }) => {
     },
   ];
 
-  // Founder image: optional. If user adds src/assets/founder.jpg, it will load.
-  // Until then, we render a stylized initials avatar.
-  let founderImage: string | undefined;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    founderImage = new URL('../../assets/founder.jpg', import.meta.url).href;
-  } catch {
-    founderImage = undefined;
-  }
+  // Founder image: optional. Drop a file at src/assets/founder.{jpg,jpeg,png,webp}
+  // and it will be picked up automatically.
+  const founderImages = import.meta.glob(
+    '/src/assets/founder.{jpg,jpeg,png,webp}',
+    { eager: true, query: '?url', import: 'default' }
+  ) as Record<string, string>;
+  const founderImage: string | undefined = Object.values(founderImages)[0];
 
   return (
     <div className="h-full overflow-y-auto bg-background">
