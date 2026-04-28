@@ -456,5 +456,26 @@
   .heritage-kolam circle,
   .heritage-kolam line {
     animation: none !important;
+    transition: none !important;
+  }
+  /* Ensure kolam strokes remain visible without the draw-in animation */
+  .heritage-kolam path,
+  .heritage-kolam circle,
+  .heritage-kolam line {
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+    opacity: 1 !important;
+  }
+  /* Neutralise gradient-shimmer text so it stays readable */
+  .heritage-shimmer-text {
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    background-clip: initial !important;
+    -webkit-text-fill-color: currentColor !important;
+    color: hsl(var(--foreground)) !important;
+  }
+  /* Hide ambient embers entirely — purely decorative motion */
+  .heritage-ember {
+    display: none !important;
   }
 }
