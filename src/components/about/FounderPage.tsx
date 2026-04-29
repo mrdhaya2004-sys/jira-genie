@@ -160,8 +160,8 @@ const FounderPage: React.FC<FounderPageProps> = ({ onBack }) => {
           <Quote className="h-7 w-7 text-primary/40 mb-3" />
           <p className="text-lg sm:text-xl leading-relaxed text-foreground/90 italic text-center">
             “I come from a small village where even basic internet connectivity
-            was a challenge. Technology wasn't easily accessible \u2014 but
-            curiosity always was.\u201d
+            was a challenge. Technology wasn't easily accessible but
+            curiosity always was."
           </p>
         </Card>
       </section>
