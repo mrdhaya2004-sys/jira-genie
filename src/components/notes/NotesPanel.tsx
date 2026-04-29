@@ -238,14 +238,14 @@ const NoteDetail: React.FC<{
           </Button>
         </div>
       </div>
-      <div className="p-2 space-y-2 flex-1 overflow-y-auto">
+      <div className="p-2 flex flex-col gap-2 flex-1 min-h-0">
         <Input
           value={note.title}
           onChange={(e) => onChange({ title: e.target.value })}
           placeholder="Title"
-          className="h-8 text-sm font-medium border-border/40 bg-background/60"
+          className="h-8 text-sm font-medium border-border/40 bg-background/60 shrink-0"
         />
-        <div className="relative">
+        <div className="relative shrink-0">
           <TagIcon className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
           <Input
             value={tagInput}
@@ -255,8 +255,10 @@ const NoteDetail: React.FC<{
             className="h-7 pl-7 text-xs border-border/40 bg-background/60"
           />
         </div>
-        <NoteEditor content={note.content} onChange={(html) => onChange({ content: html })} />
-        <p className="text-[10px] text-muted-foreground text-right pt-1">
+        <div className="flex-1 min-h-0">
+          <NoteEditor content={note.content} onChange={(html) => onChange({ content: html })} />
+        </div>
+        <p className="text-[10px] text-muted-foreground text-right shrink-0">
           Edited {formatDistanceToNow(new Date(note.updated_at), { addSuffix: true })} · auto-saved
         </p>
       </div>
