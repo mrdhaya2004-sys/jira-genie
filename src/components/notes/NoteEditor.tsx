@@ -28,7 +28,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ content, onChange }) => {
     editorProps: {
       attributes: {
         class:
-          'prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-[160px] px-3 py-2',
+          'prose prose-sm dark:prose-invert max-w-none focus:outline-none px-3 py-2 h-full',
       },
     },
     onUpdate: ({ editor }) => {
