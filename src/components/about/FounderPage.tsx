@@ -209,13 +209,13 @@ const FounderPage: React.FC<FounderPageProps> = ({ onBack }) => {
             </div>
             <div>
               <p className="text-lg font-semibold tracking-tight leading-snug text-justify sm:text-4xl">
-                \u201cFrom a small village to building an AI platform\u00a0the journey continues.\u201d
+                From a small village to building an AI platform the journey continues.
               </p>
               <p className="text-xs sm:text-sm text-muted-foreground mt-3">
-                \u00a0Built with curiosity. Driven by purpose. Grounded in roots.
+                  Built with curiosity. Driven by purpose. Grounded in roots.
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                \u00a0- Dhayanand A P, Founder of Test Zone
+                - Dhayanand A P, Founder of Test Zone
               </p>
             </div>
           </div>
