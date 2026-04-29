@@ -70,8 +70,8 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ content, onChange }) => {
   );
 
   return (
-    <div className="rounded-md border border-border/60 bg-background/50 overflow-hidden">
-      <div className="flex items-center gap-0.5 border-b border-border/60 px-1.5 py-1 bg-muted/40">
+    <div className="rounded-md border border-border/60 bg-background/50 overflow-hidden flex flex-col h-full">
+      <div className="flex items-center gap-0.5 border-b border-border/60 px-1.5 py-1 bg-muted/40 shrink-0">
         <ToolbarBtn label="Bold" onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')}>
           <Bold className="h-3.5 w-3.5" />
         </ToolbarBtn>
@@ -91,7 +91,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ content, onChange }) => {
           <Code2 className="h-3.5 w-3.5" />
         </ToolbarBtn>
       </div>
-      <EditorContent editor={editor} />
+      <EditorContent editor={editor} className="flex-1 overflow-y-auto min-h-0" />
     </div>
   );
 };
