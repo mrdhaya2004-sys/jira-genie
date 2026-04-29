@@ -140,8 +140,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
         {/* Smart Notes */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Smart Notes">
-              <StickyNote className="h-[18px] w-[18px]" />
+            <Button variant="ghost" size="icon" className="h-9 w-9 group note-glow" aria-label="Smart Notes">
+              <StickyNote className="h-[18px] w-[18px] note-amber" />
             </Button>
           </PopoverTrigger>
           <PopoverContent align="end" className="p-0 w-auto" sideOffset={8}>
