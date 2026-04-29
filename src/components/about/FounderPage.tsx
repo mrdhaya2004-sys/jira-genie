@@ -21,31 +21,31 @@ const FounderPage: React.FC<FounderPageProps> = ({ onBack }) => {
       icon: GraduationCap,
       title: 'Curiosity over grades',
       body:
-        "I wasn't a topper in school. I struggled academically in the early stages. But what I lacked in grades, I made up for with curiosity — spending hours exploring mobile phones, understanding how they worked, and breaking down their structure. A turning point came in 10th standard, inspired by someone who believed in me and gave me the space to grow.",
+        "I wasn’t a topper in school  I struggled academically in my early years. But what I lacked in grades, I made up for with curiosity.  And I spent hours exploring mobile phones, understanding how they worked and breaking down their structure. Everything began to change during my 10th standard, when someone believed in me and gave me the space to grow. That moment became a turning point in my journey.",
     },
     {
       icon: Cog,
       title: 'Engineering systems thinking',
       body:
-        "In college, I chose Electronics and Communication — drawn to hardware, circuits, and embedded systems. That's where I started understanding how systems work at a deeper level: how devices, architecture, and logic come together.",
+        "In college, I chose Electronics and Communication, driven by my curiosity for hardware, circuits and embedded systems. It was during this time that I began to understand systems at a deeper level how devices, architecture, and logic come together to create meaningful functionality.",
     },
     {
       icon: Brain,
       title: 'Starting from scratch with AI',
       body:
-        'As AI began to evolve, I realized something important — while I understood hardware systems, AI was a completely different world. So I started from scratch again: learning, researching, and slowly immersing myself into AI.',
+        "As AI began to evolve, I realized something important  while I had a strong understanding of hardware systems, AI was an entirely different world. So, I started from scratch again a learning, researching and gradually immersing myself in the field of AI.",
     },
     {
       icon: Lightbulb,
       title: 'Seeing the real problem',
       body:
-        "My first professional role as an Automation Tester changed everything. That's where I saw the problem clearly: software testing was heavily repetitive, time-consuming, and dependent on manual effort. The question kept returning — what if AI could handle testing intelligently? Not just automation, but understanding systems, generating test cases, and reducing human effort.",
+        "My first professional role as an Automation Tester changed everything. That's where I saw the problem clearly: software testing was heavily repetitive, time-consuming, and dependent on manual effort. The question kept returning\u00a0 what if AI could Handle Testing Intelligently? Not just automation, but understanding systems, generating test cases, and reducing human effort.",
     },
     {
       icon: Rocket,
       title: 'That idea became Test Zone',
       body:
-        'Today, Test Zone is an AI-powered testing platform built to simplify and transform how testing is done — making it smarter, faster, and more efficient. Coming from a place where even internet access was limited, building an AI product today — especially from Tamil Nadu — is something I take great pride in.',
+        "That idea evolved into Test Zone. Today, Test Zone is an AI-powered testing platform designed to simplify and transform the way testing is done making it smarter, faster, and more efficient. Coming from a place where even basic internet access was once limited, building an AI product today  especially from Tamil Nadu is something I take immense pride in.",
     },
   ];
 
@@ -160,8 +160,8 @@ const FounderPage: React.FC<FounderPageProps> = ({ onBack }) => {
           <Quote className="h-7 w-7 text-primary/40 mb-3" />
           <p className="text-lg sm:text-xl leading-relaxed text-foreground/90 italic text-center">
             “I come from a small village where even basic internet connectivity
-            was a challenge. Technology wasn't easily accessible  but
-            curiosity always was.”
+            was a challenge. Technology wasn't easily accessible \u2014 but
+            curiosity always was.\u201d
           </p>
         </Card>
       </section>
@@ -187,7 +187,7 @@ const FounderPage: React.FC<FounderPageProps> = ({ onBack }) => {
                     {step.title}
                   </h2>
                 </div>
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed text-justify">
                   {step.body}
                 </p>
               </li>
@@ -208,18 +208,14 @@ const FounderPage: React.FC<FounderPageProps> = ({ onBack }) => {
               <Compass className="h-5 w-5 text-orange-500" />
             </div>
             <div>
-              <p className="text-lg sm:text-2xl font-semibold tracking-tight leading-snug">
-                “From a small village to building an AI platform —{' '}
-                <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
-                  the journey continues.
-                </span>
-                ”
+              <p className="text-lg font-semibold tracking-tight leading-snug text-justify sm:text-4xl">
+                \u201cFrom a small village to building an AI platform\u00a0the journey continues.\u201d
               </p>
               <p className="text-xs sm:text-sm text-muted-foreground mt-3">
-                Built with curiosity. Driven by purpose. Grounded in roots.
+                \u00a0Built with curiosity. Driven by purpose. Grounded in roots.
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                — Dhayanand A P, Founder of Test Zone
+                \u00a0- Dhayanand A P, Founder of Test Zone
               </p>
             </div>
           </div>
