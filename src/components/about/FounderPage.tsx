@@ -15,7 +15,7 @@ const FounderPage: React.FC<FounderPageProps> = ({ onBack }) => {
       icon: Smartphone,
       title: 'A first window into technology',
       body:
-        "My mother is a Computer Science professor, and my father — though he studied only up to high school — had a deep interest in technology. At a time when mobile phones were rare in our village, my father owned one. That became my first window into the world of technology.",
+        "My mother is a Computer Science professor, and my father, despite having studied only up to high school, has always been deeply interested in technology. At a time when mobile phones were rare in our village, my father owned one  and that became my very first window into the world of technology.",
     },
     {
       icon: GraduationCap,
@@ -146,8 +146,8 @@ const FounderPage: React.FC<FounderPageProps> = ({ onBack }) => {
                 <span className="heritage-shimmer-text">Test Zone</span>
               </h1>
               <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-2xl">
-                A personal journey — from a small village with limited connectivity
-                to building an AI-powered testing platform from Tamil Nadu.
+                A personal journey from a small village with limited connectivity
+                to building an AI -powered testing platform from Tamil Nadu.
               </p>
             </div>
           </div>
@@ -158,9 +158,9 @@ const FounderPage: React.FC<FounderPageProps> = ({ onBack }) => {
       <section className="max-w-4xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14">
         <Card className="relative p-6 sm:p-8 bg-gradient-to-br from-card to-card/40 border-border/60">
           <Quote className="h-7 w-7 text-primary/40 mb-3" />
-          <p className="text-lg sm:text-xl leading-relaxed text-foreground/90 italic">
+          <p className="text-lg sm:text-xl leading-relaxed text-foreground/90 italic text-center">
             “I come from a small village where even basic internet connectivity
-            was a challenge. Technology wasn't easily accessible — but
+            was a challenge. Technology wasn't easily accessible  but
             curiosity always was.”
           </p>
         </Card>
