@@ -12,7 +12,9 @@ import {
   HelpCircle,
   Sliders,
   ChevronRight,
+  StickyNote,
 } from 'lucide-react';
+import NotesPanel from '@/components/notes/NotesPanel';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -135,6 +137,18 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
 
       {/* Right side - Actions & Profile */}
       <div className="flex items-center gap-1.5">
+        {/* Smart Notes */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Smart Notes">
+              <StickyNote className="h-[18px] w-[18px]" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="p-0 w-auto" sideOffset={8}>
+            <NotesPanel />
+          </PopoverContent>
+        </Popover>
+
         {/* Notifications Bell */}
         <Popover>
           <PopoverTrigger asChild>
