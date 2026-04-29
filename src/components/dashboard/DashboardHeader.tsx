@@ -152,8 +152,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
         {/* Notifications Bell */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className={`relative h-9 w-9 ${unreadCount > 0 ? 'notification-pulse' : ''}`}>
-              <Bell className={`h-[18px] w-[18px] ${unreadCount > 0 ? 'fill-primary text-primary' : 'text-primary'}`} />
+            <Button variant="ghost" size="icon" className={`relative h-9 w-9 group bell-glow ${unreadCount > 0 ? 'notification-pulse' : ''}`}>
+              <Bell className="h-[18px] w-[18px] bell-golden" />
+              <span className="bell-shine" aria-hidden="true" />
               {unreadCount > 0 && (
                 <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-card" />
               )}
