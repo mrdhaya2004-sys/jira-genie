@@ -58,7 +58,7 @@ const AboutUsModule: React.FC<AboutUsModuleProps> = ({ onOpenFounder }) => {
               height={64}
             />
             <div>
-              <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-tight">
+              <h1 className="text-2xl sm:text-4xl font-bold tracking-tight leading-tight text-center">
                 Where heritage meets{' '}
                 <span className="heritage-shimmer-text">intelligence.</span>
               </h1>
@@ -68,7 +68,7 @@ const AboutUsModule: React.FC<AboutUsModuleProps> = ({ onOpenFounder }) => {
             </div>
           </div>
 
-          <p className="text-base sm:text-lg text-muted-foreground max-w-3xl leading-relaxed">
+          <p className="text-base sm:text-lg text-muted-foreground max-w-3xl leading-relaxed text-justify">
             Test Zone is a next-generation, AI-powered testing platform that brings
             intelligence, automation, and context-awareness to modern software quality.
             Built by engineers who believe that great technology - like great
@@ -104,19 +104,19 @@ const AboutUsModule: React.FC<AboutUsModuleProps> = ({ onOpenFounder }) => {
               <Landmark className="h-3 w-3 mr-1.5" />
               Tamil Heritage
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">
+            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-center mb-5">
               Proudly Built from{' '}
               <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
                 Tamil Nadu
               </span>
             </h2>
             <div className="space-y-4 text-muted-foreground leading-relaxed">
-              <p>
+              <p className="text-justify">
                 Tamil is one of the <span className="text-foreground font-medium">oldest living languages</span> in
                 the world — a tradition of literature, logic, and learning that has
                 flourished for more than two thousand years.
               </p>
-              <p>
+              <p className="text-justify">
                 Tamil Nadu has long been a crucible of human achievement: in
                 mathematics, astronomy, metallurgy, philosophy, and architecture.
                 The land that gave the world the <span className="text-foreground font-medium">Chola Empire</span>{' '}
@@ -164,7 +164,7 @@ const AboutUsModule: React.FC<AboutUsModuleProps> = ({ onOpenFounder }) => {
               />
               <div className="absolute inset-x-0 bottom-0 p-5 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
                 <p className="text-white/90 text-xs sm:text-sm font-medium">
-                  Chola architecture — engineering wisdom carved in stone.
+                  Chola architecture&nbsp; engineering wisdom carved in stone.
                 </p>
               </div>
             </div>
@@ -184,7 +184,7 @@ const AboutUsModule: React.FC<AboutUsModuleProps> = ({ onOpenFounder }) => {
             />
             <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
               <p className="text-white/95 text-sm font-semibold">Precision in stone</p>
-              <p className="text-white/70 text-xs">Dravidian craftsmanship — every detail intentional.</p>
+              <p className="text-sm text-muted-foreground leading-relaxed text-justify">Precision in stone{"\n\n"}Dravidian craftsmanship is&nbsp; every detail intentional.</p>
             </div>
           </div>
           <div className="relative aspect-[4/3] rounded-2xl overflow-hidden ring-1 ring-border/60 group">
@@ -198,7 +198,7 @@ const AboutUsModule: React.FC<AboutUsModuleProps> = ({ onOpenFounder }) => {
             />
             <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
               <p className="text-white/95 text-sm font-semibold">Light & geometry</p>
-              <p className="text-white/70 text-xs">Kolam patterns — algorithms drawn at dawn.</p>
+              <p className="text-sm text-muted-foreground leading-relaxed text-justify">Kolam patterns a algorithms drawn at dawn.</p>
             </div>
           </div>
         </div>
@@ -225,7 +225,7 @@ const AboutUsModule: React.FC<AboutUsModuleProps> = ({ onOpenFounder }) => {
               <User className="h-3 w-3 mr-1.5" />
               About the Founder
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+            <h2 className="text-2xl font-bold tracking-tight text-center sm:text-5xl">
               The mind behind{' '}
               <span className="heritage-shimmer-text">Test Zone</span>
             </h2>
@@ -259,7 +259,7 @@ const AboutUsModule: React.FC<AboutUsModuleProps> = ({ onOpenFounder }) => {
 
               <div>
                 <Quote className="h-5 w-5 text-primary/40 mb-2" />
-                <p className="text-sm sm:text-base leading-relaxed text-foreground/90">
+                <p className="text-sm sm:text-base leading-relaxed text-foreground/90 text-justify">
                   From a small village with limited internet to building an
                   AI-powered testing platform — Dhayanand's journey is shaped by
                   curiosity, resilience, and a belief that great technology
