@@ -407,6 +407,48 @@ export type Database = {
           },
         ]
       }
+      notes: {
+        Row: {
+          color: string
+          content: string
+          created_at: string
+          id: string
+          is_important: boolean
+          is_pinned: boolean
+          position: number
+          tag: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_important?: boolean
+          is_pinned?: boolean
+          position?: number
+          tag?: string | null
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_important?: boolean
+          is_pinned?: boolean
+          position?: number
+          tag?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
