@@ -153,7 +153,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" className={`relative h-9 w-9 ${unreadCount > 0 ? 'notification-pulse' : ''}`}>
-              <Bell className="h-[18px] w-[18px]" />
+              <Bell className={`h-[18px] w-[18px] ${unreadCount > 0 ? 'fill-primary text-primary' : 'text-primary'}`} />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-card" />
+              )}
             </Button>
           </PopoverTrigger>
           <PopoverContent align="end" className="p-0 w-auto" sideOffset={8}>
