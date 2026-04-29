@@ -113,7 +113,7 @@ const AboutUsModule: React.FC<AboutUsModuleProps> = ({ onOpenFounder }) => {
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               <p className="text-justify">
                 Tamil is one of the <span className="text-foreground font-medium">oldest living languages</span> in
-                the world — a tradition of literature, logic, and learning that has
+                the world a tradition of literature, logic, and learning that has
                 flourished for more than two thousand years.
               </p>
               <p className="text-justify">
@@ -261,7 +261,7 @@ const AboutUsModule: React.FC<AboutUsModuleProps> = ({ onOpenFounder }) => {
                 <Quote className="h-5 w-5 text-primary/40 mb-2" />
                 <p className="text-sm sm:text-base leading-relaxed text-foreground/90 text-justify">
                   From a small village with limited internet to building an
-                  AI-powered testing platform — Dhayanand's journey is shaped by
+                  AI-powered testing platform as Dhayanand's journey is shaped by
                   curiosity, resilience, and a belief that great technology
                   should solve real problems. After years as an automation
                   tester, he set out to make software testing intelligent,
