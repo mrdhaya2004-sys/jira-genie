@@ -5,7 +5,7 @@ export interface Workspace {
   name: string;
   description: string | null;
   owner_id: string;
-  default_environment?: Environment | null;
+  default_environment?: Environment | string | null;
   created_at: string;
   updated_at: string;
 }
