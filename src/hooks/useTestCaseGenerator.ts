@@ -563,6 +563,32 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
       }
     }
 
+    // Environment validation (workspace mode only)
+    let envCtx: { hasBuild: boolean; domContent?: string; build?: any } = { hasBuild: false };
+    let envMetaLabel: string | undefined;
+    if (selectedMode === 'workspace' && selectedWorkspace) {
+      if (!selectedEnvironment) {
+        addMessage({
+          role: 'assistant',
+          content: '⚠️ **Please select an environment** (DEV / UAT / BETA / PROD) from the header before generating test cases.',
+          type: 'text',
+        });
+        setPhase('ready_for_query');
+        return;
+      }
+      envCtx = await loadContext(selectedWorkspace.id, selectedEnvironment);
+      envMetaLabel = getEnvironmentMeta(selectedEnvironment)?.label;
+      if (!envCtx.hasBuild && !envCtx.domContent) {
+        addMessage({
+          role: 'assistant',
+          content: `❌ **No build available for selected environment** (${envMetaLabel}).\n\nUpload a build or paste a DOM snapshot in the workspace **Environments** tab.`,
+          type: 'text',
+        });
+        setPhase('ready_for_query');
+        return;
+      }
+    }
+
     setPhase('generating');
     setIsLoading(true);
     setIsStreaming(true);
@@ -600,7 +626,11 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
         .map(f => `### Parsed Metadata — ${f.file_name}\n${JSON.stringify(f.metadata, null, 2)}`)
         .join('\n\n');
 
-      const combinedContext = [userStories, extractedContext, appFileContext, metadataContext].filter(Boolean).join('\n\n');
+      const domContext = envCtx.domContent
+        ? `### DOM Snapshot — ${envMetaLabel}\n${envCtx.domContent}`
+        : '';
+
+      const combinedContext = [userStories, extractedContext, appFileContext, metadataContext, domContext].filter(Boolean).join('\n\n');
 
       // Call edge function
       const response = await fetch(
@@ -618,6 +648,10 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
             context: {
               userStories: combinedContext,
               excelStructure,
+              environment: selectedEnvironment,
+              environmentLabel: envMetaLabel,
+              domSnapshot: envCtx.domContent || null,
+              buildName: envCtx.build?.file_name || null,
             },
             episodicMemory: episodicContext.length > 0 ? episodicContext : undefined,
           }),
