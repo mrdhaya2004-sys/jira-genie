@@ -4,6 +4,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useHistoryLogs } from '@/hooks/useHistoryLogs';
 import { useEpisodicMemory, Episode } from '@/hooks/useEpisodicMemory';
 import { automationHistoryService } from '@/lib/automationHistory';
+import { useEnvironmentContext } from '@/hooks/useEnvironmentContext';
+import { getRememberedEnv, rememberEnv, getEnvironmentMeta, type Environment } from '@/types/environment';
 import * as XLSX from 'xlsx';
 import type { Workspace } from '@/types/workspace';
 import type {
@@ -197,6 +199,13 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
   const [isStreaming, setIsStreaming] = useState(false);
   const [activeHistoryLogId, setActiveHistoryLogId] = useState<string | null>(null);
   const [episodicContext, setEpisodicContext] = useState<Array<{ role: string; content: string }>>([]);
+  const [selectedEnvironment, setSelectedEnvironmentState] = useState<Environment | null>(null);
+  const { loadContext } = useEnvironmentContext();
+
+  const setSelectedEnvironment = useCallback((env: Environment) => {
+    if (selectedWorkspace) rememberEnv(selectedWorkspace.id, env);
+    setSelectedEnvironmentState(env);
+  }, [selectedWorkspace]);
 
   // Initial greeting
   useEffect(() => {
