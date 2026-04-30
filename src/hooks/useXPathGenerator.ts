@@ -112,6 +112,10 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
     if (!workspace) return;
 
     setSelectedWorkspace(workspace);
+    // Initialize env from last selected → workspace default
+    const remembered = getRememberedEnv(workspace.id);
+    const def = (workspace.default_environment as Environment) || null;
+    setSelectedEnvironmentState(remembered || def || null);
     setIsLoading(true);
 
     // Add user's selection
