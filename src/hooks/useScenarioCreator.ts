@@ -4,6 +4,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useHistoryLogs } from '@/hooks/useHistoryLogs';
 import { useEpisodicMemory } from '@/hooks/useEpisodicMemory';
 import { automationHistoryService } from '@/lib/automationHistory';
+import { useEnvironmentContext } from '@/hooks/useEnvironmentContext';
+import { getRememberedEnv, rememberEnv, getEnvironmentMeta, type Environment } from '@/types/environment';
 import type { 
   AutomationFramework, 
   ScenarioFlowPhase, 
@@ -33,9 +35,16 @@ export const useScenarioCreator = ({ workspaces, isLoadingWorkspaces = false }: 
   const [generatedCode, setGeneratedCode] = useState<GeneratedCode | null>(null);
   const [activeHistoryLogId, setActiveHistoryLogId] = useState<string | null>(null);
   const [episodicContext, setEpisodicContext] = useState<Array<{ role: string; content: string }>>([]);
+  const [selectedEnvironment, setSelectedEnvironmentState] = useState<Environment | null>(null);
   const { toast } = useToast();
   const { addLog } = useHistoryLogs();
   const { saveEpisodePair, loadEpisodes, buildConversationContext, getNextTurnIndex } = useEpisodicMemory();
+  const { loadContext } = useEnvironmentContext();
+
+  const setSelectedEnvironment = useCallback((env: Environment) => {
+    if (selectedWorkspace) rememberEnv(selectedWorkspace.id, env);
+    setSelectedEnvironmentState(env);
+  }, [selectedWorkspace]);
 
   // Initial greeting
   useEffect(() => {
@@ -166,6 +175,9 @@ export const useScenarioCreator = ({ workspaces, isLoadingWorkspaces = false }: 
     if (!workspace) return;
 
     setSelectedWorkspace(workspace);
+    const remembered = getRememberedEnv(workspace.id);
+    const def = (workspace.default_environment as Environment) || null;
+    setSelectedEnvironmentState(remembered || def || null);
     setIsLoading(true);
 
     // Add user's selection
@@ -248,6 +260,15 @@ export const useScenarioCreator = ({ workspaces, isLoadingWorkspaces = false }: 
       return;
     }
 
+    if (!selectedEnvironment) {
+      addMessage({
+        role: 'assistant',
+        content: '⚠️ **Please select an environment** (DEV / UAT / BETA / PROD) from the header before generating scenarios.',
+        type: 'text',
+      });
+      return;
+    }
+
     // Add user message
     addMessage({
       role: 'user',
@@ -260,6 +281,21 @@ export const useScenarioCreator = ({ workspaces, isLoadingWorkspaces = false }: 
     setPhase('generating');
 
     try {
+      const envCtx = await loadContext(selectedWorkspace.id, selectedEnvironment);
+      const envMeta = getEnvironmentMeta(selectedEnvironment);
+
+      if (!envCtx.hasBuild && !envCtx.domContent) {
+        addMessage({
+          role: 'assistant',
+          content: `❌ **No build available for selected environment** (${envMeta?.label}).\n\nUpload a build or paste a DOM snapshot in the workspace **Environments** tab.`,
+          type: 'text',
+        });
+        setPhase('ready_for_query');
+        setIsLoading(false);
+        setIsStreaming(false);
+        return;
+      }
+
       // Get user's auth token
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
@@ -295,6 +331,10 @@ export const useScenarioCreator = ({ workspaces, isLoadingWorkspaces = false }: 
               hasApk,
               hasIpa,
               appFiles: appFiles.map(f => ({ name: f.file_name, type: f.file_type })),
+              environment: selectedEnvironment,
+              environmentLabel: envMeta?.label,
+              domSnapshot: envCtx.domContent || null,
+              buildName: envCtx.build?.file_name || null,
             },
             episodicMemory: episodicContext.length > 0 ? episodicContext : undefined,
           }),
@@ -846,6 +886,8 @@ export const useScenarioCreator = ({ workspaces, isLoadingWorkspaces = false }: 
     selectedWorkspace,
     selectedModule,
     selectedCodeFramework,
+    selectedEnvironment,
+    setSelectedEnvironment,
     generatedCode,
     isLoading,
     isStreaming,

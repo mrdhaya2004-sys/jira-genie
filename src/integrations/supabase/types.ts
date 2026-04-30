@@ -179,6 +179,53 @@ export type Database = {
           },
         ]
       }
+      dom_snapshots: {
+        Row: {
+          created_at: string
+          dom_content: string
+          environment: string
+          id: string
+          notes: string | null
+          platform: string
+          source: string
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          dom_content: string
+          environment: string
+          id?: string
+          notes?: string | null
+          platform: string
+          source?: string
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          dom_content?: string
+          environment?: string
+          id?: string
+          notes?: string | null
+          platform?: string
+          source?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dom_snapshots_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       episodes: {
         Row: {
           content: string
@@ -796,36 +843,42 @@ export type Database = {
         Row: {
           content_extracted: string | null
           created_at: string
+          environment: string | null
           file_name: string
           file_size: number | null
           file_type: string
           file_url: string
           id: string
           metadata: Json | null
+          platform: string | null
           uploaded_by: string
           workspace_id: string
         }
         Insert: {
           content_extracted?: string | null
           created_at?: string
+          environment?: string | null
           file_name: string
           file_size?: number | null
           file_type: string
           file_url: string
           id?: string
           metadata?: Json | null
+          platform?: string | null
           uploaded_by: string
           workspace_id: string
         }
         Update: {
           content_extracted?: string | null
           created_at?: string
+          environment?: string | null
           file_name?: string
           file_size?: number | null
           file_type?: string
           file_url?: string
           id?: string
           metadata?: Json | null
+          platform?: string | null
           uploaded_by?: string
           workspace_id?: string
         }
@@ -842,6 +895,7 @@ export type Database = {
       workspaces: {
         Row: {
           created_at: string
+          default_environment: string | null
           description: string | null
           id: string
           name: string
@@ -850,6 +904,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          default_environment?: string | null
           description?: string | null
           id?: string
           name: string
@@ -858,6 +913,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          default_environment?: string | null
           description?: string | null
           id?: string
           name?: string

@@ -9,6 +9,7 @@ import { useXPathGenerator } from '@/hooks/useXPathGenerator';
 import XPathChatMessage from './XPathChatMessage';
 import XPathChatInput from './XPathChatInput';
 import HistoryPanel from '@/components/automation/HistoryPanel';
+import EnvironmentSelector from '@/components/workspace/EnvironmentSelector';
 import type { Platform } from '@/types/xpath';
 import type { ResumeData } from '@/pages/DashboardPage';
 
@@ -24,6 +25,8 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
     selectedWorkspace,
     selectedModule,
     selectedPlatform,
+    selectedEnvironment,
+    setSelectedEnvironment,
     isLoading,
     isStreaming,
     handleWorkspaceSelect,
@@ -83,7 +86,17 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
           {selectedWorkspace && <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[140px] truncate">📁 {selectedWorkspace.name}</Badge>}
           {selectedModule && <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[120px] truncate">📦 {selectedModule}</Badge>}
           {selectedPlatform && <Badge variant="outline" className="text-xs hidden md:inline-flex">{getPlatformBadge()}</Badge>}
-          
+
+          {selectedWorkspace && (
+            <EnvironmentSelector
+              value={selectedEnvironment}
+              onChange={setSelectedEnvironment}
+              size="sm"
+              showLabel={false}
+              className="hidden md:flex"
+            />
+          )}
+
           <HistoryPanel 
             toolType="xpath" 
             moduleName="xpath-generator"

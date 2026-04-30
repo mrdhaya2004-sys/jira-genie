@@ -8,6 +8,7 @@ import { useScenarioCreator } from '@/hooks/useScenarioCreator';
 import ScenarioChatMessage from './ScenarioChatMessage';
 import ScenarioChatInput from './ScenarioChatInput';
 import HistoryPanel from '@/components/automation/HistoryPanel';
+import EnvironmentSelector from '@/components/workspace/EnvironmentSelector';
 import type { AutomationFramework, CodeFramework } from '@/types/scenario';
 import type { ResumeData } from '@/pages/DashboardPage';
 import scenarioLogo from '@/assets/xpath-generator-logo.webp';
@@ -25,6 +26,8 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
     selectedWorkspace,
     selectedModule,
     selectedCodeFramework,
+    selectedEnvironment,
+    setSelectedEnvironment,
     generatedCode,
     isLoading,
     isStreaming,
@@ -112,7 +115,17 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
           {selectedWorkspace && <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[140px] truncate">📁 {selectedWorkspace.name}</Badge>}
           {selectedModule && <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[120px] truncate">📦 {selectedModule}</Badge>}
           {selectedCodeFramework && <Badge variant="secondary" className="text-xs hidden md:inline-flex">{getCodeFrameworkBadge()}</Badge>}
-          
+
+          {selectedWorkspace && (
+            <EnvironmentSelector
+              value={selectedEnvironment}
+              onChange={setSelectedEnvironment}
+              size="sm"
+              showLabel={false}
+              className="hidden md:flex"
+            />
+          )}
+
           <HistoryPanel 
             toolType="scenario" 
             moduleName="logic-scenario-creator"
