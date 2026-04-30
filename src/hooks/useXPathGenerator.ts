@@ -537,6 +537,8 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
     selectedWorkspace,
     selectedModule,
     selectedPlatform,
+    selectedEnvironment,
+    setSelectedEnvironment,
     isLoading,
     isStreaming,
     handleWorkspaceSelect,
