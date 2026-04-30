@@ -9,6 +9,7 @@ import { useXPathGenerator } from '@/hooks/useXPathGenerator';
 import XPathChatMessage from './XPathChatMessage';
 import XPathChatInput from './XPathChatInput';
 import HistoryPanel from '@/components/automation/HistoryPanel';
+import EnvironmentSelector from '@/components/workspace/EnvironmentSelector';
 import type { Platform } from '@/types/xpath';
 import type { ResumeData } from '@/pages/DashboardPage';
 
@@ -24,6 +25,8 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
     selectedWorkspace,
     selectedModule,
     selectedPlatform,
+    selectedEnvironment,
+    setSelectedEnvironment,
     isLoading,
     isStreaming,
     handleWorkspaceSelect,
