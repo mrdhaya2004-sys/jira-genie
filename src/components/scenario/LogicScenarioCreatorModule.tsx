@@ -25,6 +25,8 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
     selectedWorkspace,
     selectedModule,
     selectedCodeFramework,
+    selectedEnvironment,
+    setSelectedEnvironment,
     generatedCode,
     isLoading,
     isStreaming,
