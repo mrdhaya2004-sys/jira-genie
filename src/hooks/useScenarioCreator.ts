@@ -260,6 +260,15 @@ export const useScenarioCreator = ({ workspaces, isLoadingWorkspaces = false }: 
       return;
     }
 
+    if (!selectedEnvironment) {
+      addMessage({
+        role: 'assistant',
+        content: '⚠️ **Please select an environment** (DEV / UAT / BETA / PROD) from the header before generating scenarios.',
+        type: 'text',
+      });
+      return;
+    }
+
     // Add user message
     addMessage({
       role: 'user',
@@ -272,6 +281,21 @@ export const useScenarioCreator = ({ workspaces, isLoadingWorkspaces = false }: 
     setPhase('generating');
 
     try {
+      const envCtx = await loadContext(selectedWorkspace.id, selectedEnvironment);
+      const envMeta = getEnvironmentMeta(selectedEnvironment);
+
+      if (!envCtx.hasBuild && !envCtx.domContent) {
+        addMessage({
+          role: 'assistant',
+          content: `❌ **No build available for selected environment** (${envMeta?.label}).\n\nUpload a build or paste a DOM snapshot in the workspace **Environments** tab.`,
+          type: 'text',
+        });
+        setPhase('ready_for_query');
+        setIsLoading(false);
+        setIsStreaming(false);
+        return;
+      }
+
       // Get user's auth token
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
@@ -307,6 +331,10 @@ export const useScenarioCreator = ({ workspaces, isLoadingWorkspaces = false }: 
               hasApk,
               hasIpa,
               appFiles: appFiles.map(f => ({ name: f.file_name, type: f.file_type })),
+              environment: selectedEnvironment,
+              environmentLabel: envMeta?.label,
+              domSnapshot: envCtx.domContent || null,
+              buildName: envCtx.build?.file_name || null,
             },
             episodicMemory: episodicContext.length > 0 ? episodicContext : undefined,
           }),
