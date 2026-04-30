@@ -1,8 +1,11 @@
+import type { Environment, BuildPlatform } from './environment';
+
 export interface Workspace {
   id: string;
   name: string;
   description: string | null;
   owner_id: string;
+  default_environment?: Environment | null;
   created_at: string;
   updated_at: string;
 }
@@ -18,6 +21,8 @@ export interface WorkspaceFile {
   metadata: Record<string, unknown>;
   uploaded_by: string;
   created_at: string;
+  environment?: Environment | null;
+  platform?: BuildPlatform | null;
 }
 
 export interface WorkspaceChatMessage {
