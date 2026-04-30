@@ -224,6 +224,20 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
       return;
     }
 
+    if (!selectedEnvironment) {
+      toast({
+        title: 'Select an environment',
+        description: 'Choose DEV, UAT, BETA or PROD before generating XPaths.',
+        variant: 'destructive',
+      });
+      addMessage({
+        role: 'assistant',
+        content: '⚠️ **Please select an environment** (DEV / UAT / BETA / PROD) from the header before generating XPaths.',
+        type: 'text',
+      });
+      return;
+    }
+
     // Add user message
     addMessage({
       role: 'user',
@@ -236,6 +250,22 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
     setPhase('generating');
 
     try {
+      // Validate environment build/dom
+      const envCtx = await loadContext(selectedWorkspace.id, selectedEnvironment, selectedPlatform);
+      const envMeta = getEnvironmentMeta(selectedEnvironment);
+
+      if (!envCtx.hasBuild && !envCtx.domContent) {
+        addMessage({
+          role: 'assistant',
+          content: `❌ **No build available for selected environment** (${envMeta?.label} / ${selectedPlatform === 'android' ? 'Android' : 'iOS'}).\n\nUpload an ${selectedPlatform === 'android' ? 'APK' : 'IPA'} or paste a DOM snapshot in the workspace **Environments** tab to continue.`,
+          type: 'text',
+        });
+        setPhase('ready_for_query');
+        setIsLoading(false);
+        setIsStreaming(false);
+        return;
+      }
+
       // Get user's auth token
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
@@ -271,6 +301,10 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
               hasApk,
               hasIpa,
               appFiles: appFiles.map(f => ({ name: f.file_name, type: f.file_type })),
+              environment: selectedEnvironment,
+              environmentLabel: envMeta?.label,
+              domSnapshot: envCtx.domContent || null,
+              buildName: envCtx.build?.file_name || null,
             },
             episodicMemory: episodicContext.length > 0 ? episodicContext : undefined,
           }),
