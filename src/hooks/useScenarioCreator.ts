@@ -175,6 +175,9 @@ export const useScenarioCreator = ({ workspaces, isLoadingWorkspaces = false }: 
     if (!workspace) return;
 
     setSelectedWorkspace(workspace);
+    const remembered = getRememberedEnv(workspace.id);
+    const def = (workspace.default_environment as Environment) || null;
+    setSelectedEnvironmentState(remembered || def || null);
     setIsLoading(true);
 
     // Add user's selection
