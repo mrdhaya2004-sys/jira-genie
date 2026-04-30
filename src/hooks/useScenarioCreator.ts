@@ -886,6 +886,8 @@ export const useScenarioCreator = ({ workspaces, isLoadingWorkspaces = false }: 
     selectedWorkspace,
     selectedModule,
     selectedCodeFramework,
+    selectedEnvironment,
+    setSelectedEnvironment,
     generatedCode,
     isLoading,
     isStreaming,
