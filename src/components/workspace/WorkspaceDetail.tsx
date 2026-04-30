@@ -291,7 +291,19 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
           )}
         </TabsContent>
 
-        <TabsContent value="ai" className="flex-1 flex flex-col overflow-hidden p-0 mt-0 min-h-0 data-[state=inactive]:hidden">
+        <TabsContent value="environments" className="flex-1 overflow-auto p-3 sm:p-4 mt-0 bg-muted/20 data-[state=inactive]:hidden">
+          <WorkspaceEnvironmentsPanel
+            workspace={workspace}
+            files={files}
+            onUploadBuild={async (file, platform, environment) => {
+              const fileType = platform === 'android' ? 'apk' : 'ipa';
+              await uploadFile(file, fileType, { environment, platform });
+            }}
+            onDeleteFile={deleteFile}
+          />
+        </TabsContent>
+
+
           <div className="flex flex-1 overflow-hidden">
             {/* Capability Sidebar */}
             <div className="w-64 border-r bg-muted/30 p-4 hidden md:block">
