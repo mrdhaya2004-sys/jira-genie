@@ -196,7 +196,8 @@ export const useWorkspaceFiles = (workspaceId: string | null) => {
 
   const uploadFile = useCallback(async (
     file: File,
-    fileType: 'user_story' | 'apk' | 'ipa'
+    fileType: 'user_story' | 'apk' | 'ipa',
+    options?: { environment?: string | null; platform?: string | null },
   ) => {
     if (!workspaceId || !user) return null;
 
@@ -222,6 +223,9 @@ export const useWorkspaceFiles = (workspaceId: string | null) => {
         contentExtracted = await file.text();
       }
 
+      // Derive platform from fileType if not provided
+      const platform = options?.platform ?? (fileType === 'apk' ? 'android' : fileType === 'ipa' ? 'ios' : null);
+
       // Store the file path for regenerating signed URLs later
       // Create database record with the file path (not the signed URL)
       const { data, error } = await supabase
@@ -234,6 +238,8 @@ export const useWorkspaceFiles = (workspaceId: string | null) => {
           file_size: file.size,
           content_extracted: contentExtracted,
           uploaded_by: user.id,
+          environment: options?.environment ?? null,
+          platform,
         })
         .select()
         .single();
