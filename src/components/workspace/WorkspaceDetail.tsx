@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Upload, FileText, Smartphone, Bot, Trash2, Send, Loader2, FolderOpen } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, Smartphone, Bot, Trash2, Send, Loader2, FolderOpen, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,7 +9,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useWorkspaceFiles } from '@/hooks/useWorkspaces';
 import { useWorkspaceAI } from '@/hooks/useWorkspaceAI';
+import WorkspaceEnvironmentsPanel from './WorkspaceEnvironmentsPanel';
+import { EnvironmentBadge } from './EnvironmentSelector';
 import type { Workspace, AICapability } from '@/types/workspace';
+import type { Environment, BuildPlatform } from '@/types/environment';
 import { cn } from '@/lib/utils';
 
 interface WorkspaceDetailProps {
@@ -88,6 +91,9 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
           )}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          {workspace.default_environment && (
+            <EnvironmentBadge env={workspace.default_environment as Environment} />
+          )}
           <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs">
             <FileText className="h-3 w-3" />
             {userStories.length} Stories
@@ -104,6 +110,9 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
         <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-3 sm:px-4 h-12 shrink-0">
           <TabsTrigger value="files" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
             Files & Stories
+          </TabsTrigger>
+          <TabsTrigger value="environments" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none gap-1.5">
+            <Layers className="h-3.5 w-3.5" /> Environments
           </TabsTrigger>
           <TabsTrigger value="ai" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
             AI Assistant
