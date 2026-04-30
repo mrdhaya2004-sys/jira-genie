@@ -4,6 +4,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useHistoryLogs } from '@/hooks/useHistoryLogs';
 import { useEpisodicMemory } from '@/hooks/useEpisodicMemory';
 import { automationHistoryService } from '@/lib/automationHistory';
+import { useEnvironmentContext } from '@/hooks/useEnvironmentContext';
+import { getRememberedEnv, rememberEnv, getEnvironmentMeta, type Environment } from '@/types/environment';
 import type { 
   XPathFlowPhase, 
   XPathChatMessage,
@@ -28,9 +30,16 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
   const [isStreaming, setIsStreaming] = useState(false);
   const [activeHistoryLogId, setActiveHistoryLogId] = useState<string | null>(null);
   const [episodicContext, setEpisodicContext] = useState<Array<{ role: string; content: string }>>([]);
+  const [selectedEnvironment, setSelectedEnvironmentState] = useState<Environment | null>(null);
   const { toast } = useToast();
   const { addLog } = useHistoryLogs();
   const { saveEpisodePair, loadEpisodes, buildConversationContext, getNextTurnIndex } = useEpisodicMemory();
+  const { loadContext } = useEnvironmentContext();
+
+  const setSelectedEnvironment = useCallback((env: Environment) => {
+    if (selectedWorkspace) rememberEnv(selectedWorkspace.id, env);
+    setSelectedEnvironmentState(env);
+  }, [selectedWorkspace]);
 
   // Initial greeting — wait for workspaces to finish loading before deciding
   useEffect(() => {
