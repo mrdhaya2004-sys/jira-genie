@@ -910,6 +910,8 @@ export const useTestCaseGenerator = ({ workspaces, isLoadingWorkspaces = false }
     phase,
     selectedMode,
     selectedWorkspace,
+    selectedEnvironment,
+    setSelectedEnvironment,
     excelStructure,
     generatedTestCases,
     isLoading,
