@@ -177,6 +177,8 @@ export const useWorkspaceFiles = (workspaceId: string | null) => {
       return;
     }
 
+    // Reset stale files from previous workspace before fetching
+    setFiles([]);
     setIsLoading(true);
     try {
       const { data, error } = await supabase
