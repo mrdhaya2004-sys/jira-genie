@@ -13,8 +13,10 @@ import {
   Sliders,
   ChevronRight,
   StickyNote,
+  Brain,
 } from 'lucide-react';
 import NotesPanel from '@/components/notes/NotesPanel';
+import QAMockTestDialog from '@/components/qatest/QAMockTestDialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -66,6 +68,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
   const [helpChatOpen, setHelpChatOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [qaTestOpen, setQaTestOpen] = useState(false);
   const {
     notifications,
     isLoading,
