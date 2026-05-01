@@ -1,59 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Upload, FileText, Smartphone, Bot, Trash2, Send, Loader2, FolderOpen, Layers } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Upload, FileText, Smartphone, Trash2, FolderOpen, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { useWorkspaceFiles } from '@/hooks/useWorkspaces';
-import { useWorkspaceAI } from '@/hooks/useWorkspaceAI';
 import WorkspaceEnvironmentsPanel from './WorkspaceEnvironmentsPanel';
 import { EnvironmentBadge } from './EnvironmentSelector';
-import type { Workspace, AICapability } from '@/types/workspace';
-import type { Environment, BuildPlatform } from '@/types/environment';
-import { cn } from '@/lib/utils';
+import type { Workspace } from '@/types/workspace';
+import type { Environment } from '@/types/environment';
 
 interface WorkspaceDetailProps {
   workspace: Workspace;
   onBack: () => void;
 }
 
-const AI_CAPABILITIES: { id: AICapability; label: string; icon: string; description: string }[] = [
-  { id: 'test_cases', label: 'Generate Test Cases', icon: '📋', description: 'Create comprehensive test cases' },
-  { id: 'code_generation', label: 'Generate Code', icon: '💻', description: 'Python, Java, Playwright' },
-  { id: 'xpath_generation', label: 'Generate XPaths', icon: '🎯', description: 'Android & iOS locators' },
-  { id: 'jira_ticket', label: 'Create Jira Ticket', icon: '🎫', description: 'Structured ticket creation' },
-  { id: 'workflow_breakdown', label: 'Workflow Analysis', icon: '🔄', description: 'Break down app modules' },
-  { id: 'explain_app', label: 'Explain App', icon: '📖', description: 'Simple app explanation' },
-];
-
 const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) => {
   const { files, isLoading: filesLoading, uploadFile, deleteFile } = useWorkspaceFiles(workspace.id);
-  const { messages, isLoading: aiLoading, isStreaming, sendMessage, fetchChatHistory, clearHistory } = useWorkspaceAI({
-    workspaceId: workspace.id,
-    files,
-  });
-  
   const [activeTab, setActiveTab] = useState('files');
-  const [chatInput, setChatInput] = useState('');
-  const [selectedCapability, setSelectedCapability] = useState<AICapability | null>(null);
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    fetchChatHistory();
-  }, [fetchChatHistory]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, fileType: 'user_story' | 'apk' | 'ipa') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file types
     if (fileType === 'apk' && !file.name.endsWith('.apk')) {
       alert('Please upload a valid APK file');
       return;
@@ -65,13 +34,6 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
 
     await uploadFile(file, fileType);
     e.target.value = '';
-  };
-
-  const handleSendMessage = async () => {
-    if (!chatInput.trim() || aiLoading) return;
-    const message = chatInput;
-    setChatInput('');
-    await sendMessage(message, selectedCapability || 'qa_chat');
   };
 
   const userStories = files.filter(f => f.file_type === 'user_story');
@@ -114,9 +76,6 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
           <TabsTrigger value="environments" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none gap-1.5">
             <Layers className="h-3.5 w-3.5" /> Environments
           </TabsTrigger>
-          <TabsTrigger value="ai" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
-            AI Assistant
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="files" className="flex-1 overflow-auto p-3 sm:p-4 mt-0 bg-muted/20 data-[state=inactive]:hidden">
@@ -128,7 +87,7 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
                 </div>
                 <h3 className="text-lg font-semibold mb-2">No files or stories yet</h3>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Upload user stories or application files (APK / IPA) to start training the AI on your project context.
+                  Upload user stories or application files (APK / IPA) to organize your project context.
                 </p>
                 <div className="flex items-center justify-center gap-2 flex-wrap">
                   <Button asChild variant="outline" size="sm" className="gap-2">
@@ -150,7 +109,6 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
                     </label>
                   </Button>
                 </div>
-                {/* Hidden inputs to back the labels above */}
                 <input type="file" id="story-upload" className="hidden" accept=".txt,.doc,.docx,.pdf" onChange={(e) => handleFileUpload(e, 'user_story')} />
                 <input type="file" id="apk-upload" className="hidden" accept=".apk" onChange={(e) => handleFileUpload(e, 'apk')} />
                 <input type="file" id="ipa-upload" className="hidden" accept=".ipa" onChange={(e) => handleFileUpload(e, 'ipa')} />
@@ -166,7 +124,7 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
                   User Stories
                 </CardTitle>
                 <CardDescription>
-                  Upload user stories to train the AI on your application requirements
+                  Upload user stories that describe your application requirements
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -223,7 +181,7 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
                   Application Files
                 </CardTitle>
                 <CardDescription>
-                  Upload APK or IPA files for AI to analyze the application structure
+                  Upload APK or IPA files to associate builds with this workspace
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -301,139 +259,6 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
             }}
             onDeleteFile={deleteFile}
           />
-        </TabsContent>
-
-        <TabsContent value="ai" className="flex-1 flex flex-col overflow-hidden p-0 mt-0 min-h-0 data-[state=inactive]:hidden">
-          <div className="flex flex-1 overflow-hidden">
-            {/* Capability Sidebar */}
-            <div className="w-64 border-r bg-muted/30 p-4 hidden md:block">
-              <h3 className="font-medium text-sm mb-3">AI Capabilities</h3>
-              <div className="space-y-2">
-                {AI_CAPABILITIES.map((cap) => (
-                  <button
-                    key={cap.id}
-                    onClick={() => setSelectedCapability(cap.id)}
-                    className={cn(
-                      "w-full text-left p-3 rounded-lg transition-colors",
-                      selectedCapability === cap.id
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted"
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span>{cap.icon}</span>
-                      <span className="text-sm font-medium">{cap.label}</span>
-                    </div>
-                    <p className={cn(
-                      "text-xs mt-1",
-                      selectedCapability === cap.id
-                        ? "text-primary-foreground/80"
-                        : "text-muted-foreground"
-                    )}>
-                      {cap.description}
-                    </p>
-                  </button>
-                ))}
-              </div>
-              <Separator className="my-4" />
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={clearHistory}
-              >
-                Clear Chat History
-              </Button>
-            </div>
-
-            {/* Chat Area */}
-            <div className="flex-1 flex flex-col">
-              <ScrollArea className="flex-1 p-4">
-                {messages.length === 0 ? (
-                  <div className="h-full flex items-center justify-center">
-                    <div className="text-center max-w-md">
-                      <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="font-medium mb-2">Start a conversation</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Select a capability from the sidebar and ask questions about your application.
-                        The AI will use your uploaded user stories and app files to provide context-aware responses.
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={cn(
-                          "flex",
-                          message.role === 'user' ? 'justify-end' : 'justify-start'
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "max-w-[80%] rounded-lg px-4 py-2",
-                            message.role === 'user'
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted'
-                          )}
-                        >
-                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        </div>
-                      </div>
-                    ))}
-                    {isStreaming && messages[messages.length - 1]?.content === '' && (
-                      <div className="flex justify-start">
-                        <div className="bg-muted rounded-lg px-4 py-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        </div>
-                      </div>
-                    )}
-                    <div ref={messagesEndRef} />
-                  </div>
-                )}
-              </ScrollArea>
-
-              {/* Input */}
-              <div className="p-4 border-t">
-                <div className="flex gap-2">
-                  <Textarea
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder={
-                      selectedCapability
-                        ? `Ask about ${AI_CAPABILITIES.find(c => c.id === selectedCapability)?.label.toLowerCase()}...`
-                        : 'Select a capability and ask a question...'
-                    }
-                    className="min-h-[60px] resize-none"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                  />
-                  <Button
-                    onClick={handleSendMessage}
-                    disabled={!chatInput.trim() || aiLoading}
-                    size="icon"
-                    className="h-auto"
-                  >
-                    {aiLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Send className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-                {selectedCapability && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Mode: {AI_CAPABILITIES.find(c => c.id === selectedCapability)?.label}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
         </TabsContent>
       </Tabs>
     </div>
