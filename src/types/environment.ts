@@ -14,7 +14,7 @@ export const ENVIRONMENTS: EnvironmentMeta[] = [
     value: 'dev',
     label: 'Developer Build',
     shortLabel: 'DEV',
-    description: 'Internal developer testing builds',
+    description: 'Live production builds',
     badgeClass: 'bg-blue-500/15 text-blue-600 border-blue-500/30',
   },
   {
