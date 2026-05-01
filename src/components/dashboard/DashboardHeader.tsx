@@ -140,6 +140,17 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
 
       {/* Right side - Actions & Profile */}
       <div className="flex items-center gap-1.5">
+        {/* QA Mock Test */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 group hover:bg-primary/10"
+          aria-label="QA Mock Test"
+          onClick={() => setQaTestOpen(true)}
+        >
+          <Brain className="h-[18px] w-[18px] text-primary" />
+        </Button>
+
         {/* Smart Notes */}
         <Popover>
           <PopoverTrigger asChild>
@@ -230,6 +241,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
       <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
       <HelpChatDialog open={helpChatOpen} onOpenChange={setHelpChatOpen} />
       <LogoutConfirmDialog open={logoutOpen} onOpenChange={setLogoutOpen} onConfirm={signOut} />
+      <QAMockTestDialog open={qaTestOpen} onOpenChange={setQaTestOpen} />
     </header>
   );
 };
