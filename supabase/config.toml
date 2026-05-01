@@ -47,3 +47,15 @@ verify_jwt = false
 
 [functions.help-chat]
 verify_jwt = false
+
+[functions.qa-get-daily-challenge]
+verify_jwt = false
+
+[functions.qa-submit-attempt]
+verify_jwt = false
+
+[functions.qa-seed-questions]
+verify_jwt = false
+
+[functions.qa-get-stats]
+verify_jwt = false
