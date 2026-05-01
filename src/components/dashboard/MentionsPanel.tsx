@@ -1,23 +1,14 @@
-import React, { useState } from 'react';
-import { useMentions, Mention } from '@/hooks/useMentions';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  AtSign, 
-  MessageSquare, 
-  Ticket, 
-  MessageCircle,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  Users
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
+import React, { useState } from "react";
+import { useMentions, Mention } from "@/hooks/useMentions";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AtSign, MessageSquare, Ticket, MessageCircle, Check, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { formatDistanceToNow } from "date-fns";
 
 const MentionsPanel: React.FC = () => {
   const { mentions, isLoading, unreadCount, markAsRead, markAllAsRead } = useMentions();
@@ -48,17 +39,12 @@ const MentionsPanel: React.FC = () => {
               <div>
                 <h1 className="text-lg font-semibold tracking-tight">Mentioned on you</h1>
                 <p className="text-xs text-muted-foreground">
-                  You have {unreadCount} unread mention{unreadCount !== 1 ? 's' : ''}
+                  You have {unreadCount} unread mention{unreadCount !== 1 ? "s" : ""}
                 </p>
               </div>
             </div>
             {unreadCount > 0 && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={markAllAsRead}
-                className="gap-2"
-              >
+              <Button variant="outline" size="sm" onClick={markAllAsRead} className="gap-2">
                 <Check className="h-4 w-4" />
                 Mark all as read
               </Button>
@@ -86,12 +72,7 @@ const MentionsPanel: React.FC = () => {
             ) : (
               <div className="space-y-3">
                 {mentions.map((mention, index) => (
-                  <MentionCard 
-                    key={mention.id} 
-                    mention={mention} 
-                    onMarkAsRead={markAsRead}
-                    index={index}
-                  />
+                  <MentionCard key={mention.id} mention={mention} onMarkAsRead={markAsRead} index={index} />
                 ))}
               </div>
             )}
@@ -113,11 +94,11 @@ const MentionCard: React.FC<MentionCardProps> = ({ mention, onMarkAsRead, index 
 
   const getSourceIcon = () => {
     switch (mention.source_type) {
-      case 'ticket':
+      case "ticket":
         return <Ticket className="h-4 w-4" />;
-      case 'comment':
+      case "comment":
         return <MessageCircle className="h-4 w-4" />;
-      case 'chat':
+      case "chat":
         return <MessageSquare className="h-4 w-4" />;
       default:
         return <MessageSquare className="h-4 w-4" />;
@@ -126,22 +107,22 @@ const MentionCard: React.FC<MentionCardProps> = ({ mention, onMarkAsRead, index 
 
   const getSourceLabel = () => {
     switch (mention.source_type) {
-      case 'ticket':
-        return 'Ticket';
-      case 'comment':
-        return 'Comment';
-      case 'chat':
-        return 'Chat';
+      case "ticket":
+        return "Ticket";
+      case "comment":
+        return "Comment";
+      case "chat":
+        return "Chat";
       default:
-        return 'Message';
+        return "Message";
     }
   };
 
   const getInitials = (name: string) => {
     return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
@@ -149,10 +130,10 @@ const MentionCard: React.FC<MentionCardProps> = ({ mention, onMarkAsRead, index 
   const timeAgo = formatDistanceToNow(new Date(mention.created_at), { addSuffix: true });
 
   return (
-    <Card 
+    <Card
       className={cn(
         "card-hover cursor-pointer border-border/60",
-        !mention.is_read && "bg-primary/[0.03] border-l-[3px] border-l-primary"
+        !mention.is_read && "bg-primary/[0.03] border-l-[3px] border-l-primary",
       )}
       style={{ animationDelay: `${index * 50}ms` }}
       onClick={() => setIsExpanded(!isExpanded)}
@@ -163,20 +144,16 @@ const MentionCard: React.FC<MentionCardProps> = ({ mention, onMarkAsRead, index 
           <Avatar className="h-10 w-10 flex-shrink-0 ring-1 ring-border/30">
             <AvatarImage src={mention.mentioned_by?.avatar_url || undefined} />
             <AvatarFallback className="bg-secondary text-secondary-foreground text-sm">
-              {mention.mentioned_by?.full_name 
-                ? getInitials(mention.mentioned_by.full_name) 
-                : 'U'}
+              {mention.mentioned_by?.full_name ? getInitials(mention.mentioned_by.full_name) : "U"}
             </AvatarFallback>
           </Avatar>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <span className="font-medium text-sm">
-                {mention.mentioned_by?.full_name || 'Unknown User'}
-              </span>
+              <span className="font-medium text-sm">{mention.mentioned_by?.full_name || "Unknown User"}</span>
               <span className="text-muted-foreground text-sm">mentioned you</span>
-              {mention.mention_type === 'everyone' && (
+              {mention.mention_type === "everyone" && (
                 <Badge variant="secondary" className="gap-1 text-xs">
                   <Users className="h-3 w-3" />
                   @everyone
@@ -199,19 +176,21 @@ const MentionCard: React.FC<MentionCardProps> = ({ mention, onMarkAsRead, index 
             </div>
 
             {/* Content snippet */}
-            <div className={cn(
-              "text-sm text-foreground/80 bg-muted/30 rounded-lg p-3 border border-border/30",
-              !isExpanded && "line-clamp-2"
-            )}>
+            <div
+              className={cn(
+                "text-sm text-foreground/80 bg-muted/30 rounded-lg p-3 border border-border/30",
+                !isExpanded && "line-clamp-2",
+              )}
+            >
               <HighlightedContent content={mention.content_snippet} />
             </div>
 
             {/* Expand indicator */}
             {mention.content_snippet.length > 100 && (
               <div className="flex items-center justify-center mt-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="h-6 text-xs text-muted-foreground hover:text-foreground"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -259,11 +238,11 @@ const MentionCard: React.FC<MentionCardProps> = ({ mention, onMarkAsRead, index 
 // Highlight @mentions in content
 const HighlightedContent: React.FC<{ content: string }> = ({ content }) => {
   const parts = content.split(/(@\w+)/g);
-  
+
   return (
     <span>
       {parts.map((part, index) => {
-        if (part.startsWith('@')) {
+        if (part.startsWith("@")) {
           return (
             <span key={index} className="text-primary font-medium">
               {part}
