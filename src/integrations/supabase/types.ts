@@ -630,6 +630,153 @@ export type Database = {
         }
         Relationships: []
       }
+      qa_answers: {
+        Row: {
+          answered_at: string
+          attempt_id: string
+          category: string
+          id: string
+          is_correct: boolean
+          question_id: string
+          selected_option: string | null
+          user_id: string
+        }
+        Insert: {
+          answered_at?: string
+          attempt_id: string
+          category: string
+          id?: string
+          is_correct?: boolean
+          question_id: string
+          selected_option?: string | null
+          user_id: string
+        }
+        Update: {
+          answered_at?: string
+          attempt_id?: string
+          category?: string
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          selected_option?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_answers_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "qa_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qa_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "qa_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qa_attempts: {
+        Row: {
+          challenge_date: string
+          completed: boolean
+          created_at: string
+          id: string
+          score: number
+          time_seconds: number
+          total: number
+          user_id: string
+        }
+        Insert: {
+          challenge_date: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          score?: number
+          time_seconds?: number
+          total?: number
+          user_id: string
+        }
+        Update: {
+          challenge_date?: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          score?: number
+          time_seconds?: number
+          total?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      qa_daily_assignments: {
+        Row: {
+          challenge_date: string
+          created_at: string
+          id: string
+          question_ids: string[]
+          user_id: string
+        }
+        Insert: {
+          challenge_date: string
+          created_at?: string
+          id?: string
+          question_ids: string[]
+          user_id: string
+        }
+        Update: {
+          challenge_date?: string
+          created_at?: string
+          id?: string
+          question_ids?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      qa_questions: {
+        Row: {
+          category: string
+          correct_option: string
+          created_at: string
+          difficulty: string
+          explanation: string
+          id: string
+          option_a: string
+          option_b: string
+          option_c: string
+          option_d: string
+          question: string
+        }
+        Insert: {
+          category: string
+          correct_option: string
+          created_at?: string
+          difficulty?: string
+          explanation: string
+          id?: string
+          option_a: string
+          option_b: string
+          option_c: string
+          option_d: string
+          question: string
+        }
+        Update: {
+          category?: string
+          correct_option?: string
+          created_at?: string
+          difficulty?: string
+          explanation?: string
+          id?: string
+          option_a?: string
+          option_b?: string
+          option_c?: string
+          option_d?: string
+          question?: string
+        }
+        Relationships: []
+      }
       teams_connections: {
         Row: {
           access_token: string | null
