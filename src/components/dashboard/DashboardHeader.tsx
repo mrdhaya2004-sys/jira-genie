@@ -64,12 +64,12 @@ interface DashboardHeaderProps {
 }
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModuleChange }) => {
+  const navigate = useNavigate();
   const { profile, signOut } = useAuth();
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [helpChatOpen, setHelpChatOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [qaTestOpen, setQaTestOpen] = useState(false);
   const {
     notifications,
     isLoading,
