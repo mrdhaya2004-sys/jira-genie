@@ -66,6 +66,14 @@ const AppRoutes = () => (
           </ProtectedRoute>
         } 
       />
+      <Route
+        path="/qa-mock-test"
+        element={
+          <ProtectedRoute>
+            <QAMockTestPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Auth Routes */}
       <Route 
