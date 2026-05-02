@@ -242,7 +242,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
       <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
       <HelpChatDialog open={helpChatOpen} onOpenChange={setHelpChatOpen} />
       <LogoutConfirmDialog open={logoutOpen} onOpenChange={setLogoutOpen} onConfirm={signOut} />
-      <QAMockTestDialog open={qaTestOpen} onOpenChange={setQaTestOpen} />
+      
     </header>
   );
 };
