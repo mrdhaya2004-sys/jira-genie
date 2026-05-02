@@ -18,6 +18,7 @@ const SignupPage = lazy(() => import("./pages/SignupPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const QAMockTestPage = lazy(() => import("./pages/QAMockTestPage"));
 
 const queryClient = new QueryClient();
 
