@@ -479,25 +479,43 @@ const QAMockTestPage: React.FC = () => {
               </span>
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{currentQ.difficulty}</span>
             </div>
-            <h2 className="text-lg sm:text-xl font-medium leading-relaxed">{currentQ.question}</h2>
-            <div className="space-y-2">
-              {OPTIONS.map((opt) => (
-                <button
-                  key={opt.key}
-                  onClick={() => submitSelection(opt.key)}
-                  className={cn(
-                    'w-full text-left flex items-start gap-3 p-3.5 rounded-lg border transition-all',
-                    'hover:border-primary hover:bg-primary/5',
-                    selected === opt.key ? 'border-primary bg-primary/5' : 'border-border bg-card',
-                  )}
-                >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-semibold">
-                    {opt.key}
-                  </span>
-                  <span className="text-sm pt-0.5">{currentQ[opt.field] as string}</span>
-                </button>
-              ))}
+            <h2 className="text-xl sm:text-2xl font-medium leading-relaxed">{currentQ.question}</h2>
+            <div className="grid gap-3">
+              {OPTIONS.map((opt, idx) => {
+                const isSelected = selected === opt.key;
+                const isLocked = !!selected;
+                return (
+                  <button
+                    key={opt.key}
+                    onClick={() => submitSelection(opt.key)}
+                    disabled={isLocked}
+                    aria-pressed={isSelected}
+                    className={cn(
+                      'group w-full text-left flex items-center gap-4 p-5 sm:p-6 rounded-xl border-2 transition-all min-h-[72px]',
+                      !isLocked && 'hover:border-primary hover:bg-primary/5 hover:shadow-sm cursor-pointer',
+                      isLocked && !isSelected && 'opacity-50 cursor-not-allowed',
+                      isSelected ? 'border-primary bg-primary/10 shadow-sm' : 'border-border bg-card',
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base font-bold transition-colors',
+                        isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted group-hover:bg-primary/15 group-hover:text-primary',
+                      )}
+                    >
+                      {opt.key}
+                    </span>
+                    <span className="text-base sm:text-[15px] flex-1 leading-relaxed">{currentQ[opt.field] as string}</span>
+                    <kbd className="hidden sm:inline-flex h-6 min-w-[24px] items-center justify-center rounded border border-border bg-muted/50 px-1.5 text-[10px] font-mono text-muted-foreground">
+                      {idx + 1}
+                    </kbd>
+                  </button>
+                );
+              })}
             </div>
+            <p className="text-[11px] text-muted-foreground text-center">
+              Press <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[10px]">1</kbd>–<kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[10px]">4</kbd> to answer
+            </p>
           </div>
         )}
 
