@@ -147,7 +147,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
           size="icon"
           className="h-9 w-9 group hover:bg-primary/10"
           aria-label="QA Mock Test"
-          onClick={() => setQaTestOpen(true)}
+          onClick={() => navigate('/qa-mock-test')}
         >
           <Brain className="h-[18px] w-[18px] text-primary" />
         </Button>
