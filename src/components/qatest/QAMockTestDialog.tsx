@@ -121,11 +121,38 @@ const QAMockTestDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         supabase.functions.invoke('qa-get-daily-challenge'),
         supabase.functions.invoke('qa-get-stats'),
       ]);
-      if (chRes.error) throw chRes.error;
+
+      setStats((statsRes.data as Stats) || null);
+
+      // Handle non-2xx (e.g., 503 when bank is empty) by reading the response body
+      if (chRes.error) {
+        let bodyMsg = '';
+        try {
+          const ctx: any = (chRes.error as any).context;
+          if (ctx?.json) {
+            const j = await ctx.json();
+            bodyMsg = j?.error || '';
+          } else if (ctx?.text) {
+            bodyMsg = await ctx.text();
+          }
+        } catch {
+          // ignore
+        }
+        const isEmptyBank = /question bank is empty/i.test(bodyMsg);
+        setQuestions([]);
+        setCompletedAttempt(null);
+        setError(
+          isEmptyBank
+            ? 'Question bank is empty. Generate questions to get started.'
+            : (bodyMsg || (chRes.error as any)?.message || 'Failed to load challenge'),
+        );
+        setStage('entry');
+        return;
+      }
+
       const data = chRes.data as { questions: Question[]; completedAttempt: CompletedAttempt | null };
       setQuestions(data.questions || []);
       setCompletedAttempt(data.completedAttempt);
-      setStats((statsRes.data as Stats) || null);
       if (!data.questions || data.questions.length === 0) {
         setError('Question bank is empty. Generate questions to get started.');
       }
