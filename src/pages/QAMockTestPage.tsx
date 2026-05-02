@@ -266,6 +266,26 @@ const QAMockTestPage: React.FC = () => {
     }
   };
 
+  // Keyboard navigation: 1-4 to select, Enter to advance during feedback
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (stage === 'question' && currentQ && !feedback) {
+        const map: Record<string, string> = { '1': 'A', '2': 'B', '3': 'C', '4': 'D' };
+        const k = map[e.key];
+        if (k) {
+          e.preventDefault();
+          submitSelection(k);
+        }
+      } else if (stage === 'feedback' && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        nextQuestion();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, currentQ, feedback, currentIdx, questions.length, answers]);
+
   const progress = useMemo(
     () => ((currentIdx + (feedback ? 1 : 0)) / Math.max(1, questions.length)) * 100,
     [currentIdx, feedback, questions.length],
