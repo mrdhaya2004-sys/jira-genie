@@ -17,7 +17,6 @@ import {
   Brain,
 } from 'lucide-react';
 import NotesPanel from '@/components/notes/NotesPanel';
-import QAMockTestDialog from '@/components/qatest/QAMockTestDialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   DropdownMenu,
