@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,7 +17,6 @@ import {
   Brain,
 } from 'lucide-react';
 import NotesPanel from '@/components/notes/NotesPanel';
-import QAMockTestDialog from '@/components/qatest/QAMockTestDialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -63,12 +63,12 @@ interface DashboardHeaderProps {
 }
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModuleChange }) => {
+  const navigate = useNavigate();
   const { profile, signOut } = useAuth();
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [helpChatOpen, setHelpChatOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [qaTestOpen, setQaTestOpen] = useState(false);
   const {
     notifications,
     isLoading,
@@ -146,7 +146,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
           size="icon"
           className="h-9 w-9 group hover:bg-primary/10"
           aria-label="QA Mock Test"
-          onClick={() => setQaTestOpen(true)}
+          onClick={() => navigate('/qa-mock-test')}
         >
           <Brain className="h-[18px] w-[18px] text-primary" />
         </Button>
@@ -241,7 +241,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
       <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
       <HelpChatDialog open={helpChatOpen} onOpenChange={setHelpChatOpen} />
       <LogoutConfirmDialog open={logoutOpen} onOpenChange={setLogoutOpen} onConfirm={signOut} />
-      <QAMockTestDialog open={qaTestOpen} onOpenChange={setQaTestOpen} />
+      
     </header>
   );
 };
