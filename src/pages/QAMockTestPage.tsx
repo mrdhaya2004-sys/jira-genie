@@ -616,7 +616,7 @@ const QAMockTestPage: React.FC = () => {
               </span>
             </div>
             <h2 className="text-lg sm:text-xl font-semibold leading-relaxed">{currentQ.question}</h2>
-            <div className="space-y-2">
+            <div className="space-y-2 sm:space-y-2.5">
               {OPTIONS.map((opt) => {
                 const isCorrect = opt.key === feedback.correctOption;
                 const isSelected = opt.key === selected;
@@ -624,7 +624,7 @@ const QAMockTestPage: React.FC = () => {
                   <div
                     key={opt.key}
                     className={cn(
-                      'w-full text-left flex items-start gap-3 p-3.5 rounded-lg border-2 transition-all',
+                      'w-full text-left flex items-start gap-3 p-3 sm:p-4 rounded-lg border-2 transition-all',
                       isCorrect && 'qa-option-correct qa-pop',
                       !isCorrect && isSelected && 'qa-option-wrong',
                       !isCorrect && !isSelected && 'border-border bg-card opacity-50',
@@ -632,7 +632,7 @@ const QAMockTestPage: React.FC = () => {
                   >
                     <span
                       className={cn(
-                        'flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold',
+                        'flex h-8 w-8 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold',
                         isCorrect && 'bg-gradient-to-br from-green-500 to-emerald-600 text-white',
                         !isCorrect && isSelected && 'bg-gradient-to-br from-red-500 to-rose-600 text-white',
                         !isCorrect && !isSelected && 'bg-muted',
@@ -640,7 +640,7 @@ const QAMockTestPage: React.FC = () => {
                     >
                       {opt.key}
                     </span>
-                    <span className="text-sm pt-0.5 flex-1">{currentQ[opt.field] as string}</span>
+                    <span className="text-sm pt-1 sm:pt-0.5 flex-1 break-words">{currentQ[opt.field] as string}</span>
                     {isCorrect && <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />}
                     {!isCorrect && isSelected && <XCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />}
                   </div>
