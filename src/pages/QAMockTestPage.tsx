@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import {
-  Brain,
+  BookOpenText,
   Trophy,
   Timer,
   Sparkles,
@@ -385,7 +385,7 @@ const QAMockTestPage: React.FC = () => {
             </Button>
             <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
               <div className="relative h-9 w-9 shrink-0 rounded-xl bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                <Brain className="h-5 w-5 text-white" />
+                <BookOpenText className="h-5 w-5 text-white" />
                 <span className="absolute inset-0 rounded-xl qa-pulse-ring border-2 border-purple-400/60" />
               </div>
               <div className="min-w-0">
