@@ -547,21 +547,21 @@ const QAMockTestPage: React.FC = () => {
         )}
 
         {stage === 'question' && currentQ && (
-          <div className="space-y-5 animate-fade-in">
+          <div className="space-y-4 sm:space-y-5 animate-fade-in">
             <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted/50">
               <div
                 className="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 transition-all duration-500"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] uppercase tracking-wide font-bold rounded bg-gradient-to-r from-purple-500/15 to-blue-500/15 text-primary px-2 py-0.5 border border-primary/20">
                 {currentQ.category}
               </span>
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{currentQ.difficulty}</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-semibold leading-relaxed">{currentQ.question}</h2>
-            <div className="grid gap-3">
+            <h2 className="text-lg sm:text-2xl font-semibold leading-snug sm:leading-relaxed">{currentQ.question}</h2>
+            <div className="grid gap-2.5 sm:gap-3">
               {OPTIONS.map((opt, idx) => {
                 const isSelected = selected === opt.key;
                 const isLocked = !!selected;
@@ -572,15 +572,15 @@ const QAMockTestPage: React.FC = () => {
                     disabled={isLocked}
                     aria-pressed={isSelected}
                     className={cn(
-                      'group relative w-full text-left flex items-center gap-4 p-5 sm:p-6 rounded-xl border-2 transition-all min-h-[72px] qa-card-glow',
-                      !isLocked && 'hover:border-primary hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 cursor-pointer',
+                      'group relative w-full text-left flex items-center gap-3 sm:gap-4 p-4 sm:p-6 rounded-xl border-2 transition-all min-h-[64px] sm:min-h-[76px] qa-card-glow active:scale-[0.99] touch-manipulation',
+                      !isLocked && 'hover:border-primary hover:shadow-lg hover:shadow-primary/20 sm:hover:-translate-y-0.5 cursor-pointer',
                       isLocked && !isSelected && 'opacity-50 cursor-not-allowed',
                       isSelected && 'border-primary shadow-lg shadow-primary/30 scale-[1.01]',
                     )}
                   >
                     <span
                       className={cn(
-                        'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-base font-bold transition-all',
+                        'flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl text-base font-bold transition-all',
                         isSelected
                           ? 'bg-gradient-to-br from-purple-500 to-blue-500 text-white shadow-md'
                           : 'bg-muted group-hover:bg-gradient-to-br group-hover:from-purple-500 group-hover:to-blue-500 group-hover:text-white',
@@ -588,7 +588,7 @@ const QAMockTestPage: React.FC = () => {
                     >
                       {opt.key}
                     </span>
-                    <span className="text-base sm:text-[15px] flex-1 leading-relaxed">{currentQ[opt.field] as string}</span>
+                    <span className="text-[15px] sm:text-base flex-1 leading-relaxed break-words">{currentQ[opt.field] as string}</span>
                     <kbd className="hidden sm:inline-flex h-7 min-w-[28px] items-center justify-center rounded-md border border-border bg-muted/70 px-1.5 text-[10px] font-mono text-muted-foreground group-hover:border-primary/40 group-hover:text-primary transition-colors">
                       {idx + 1}
                     </kbd>
@@ -596,7 +596,7 @@ const QAMockTestPage: React.FC = () => {
                 );
               })}
             </div>
-            <p className="text-[11px] text-muted-foreground text-center">
+            <p className="hidden sm:block text-[11px] text-muted-foreground text-center">
               Press <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-[10px]">1</kbd>–<kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-[10px]">4</kbd> to answer
             </p>
           </div>
