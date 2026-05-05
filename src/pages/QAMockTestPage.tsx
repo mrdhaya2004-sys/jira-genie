@@ -372,34 +372,34 @@ const QAMockTestPage: React.FC = () => {
 
       {/* Header */}
       <header className="relative z-20 sticky top-0 h-14 border-b border-border/40 bg-background/70 backdrop-blur-xl">
-        <div className="h-full max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+        <div className="h-full max-w-5xl mx-auto px-3 sm:px-6 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9"
+              className="h-9 w-9 shrink-0"
               onClick={() => navigate('/')}
               aria-label="Back"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <div className="flex items-center gap-2.5">
-              <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+              <div className="relative h-9 w-9 shrink-0 rounded-xl bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
                 <Brain className="h-5 w-5 text-white" />
                 <span className="absolute inset-0 rounded-xl qa-pulse-ring border-2 border-purple-400/60" />
               </div>
-              <div>
-                <div className="text-sm font-bold leading-tight qa-gradient-text">QA Mock Test</div>
-                <div className="text-[11px] text-muted-foreground leading-tight">Daily Skill Challenge</div>
+              <div className="min-w-0">
+                <div className="text-sm font-bold leading-tight qa-gradient-text truncate">QA Mock Test</div>
+                <div className="text-[11px] text-muted-foreground leading-tight hidden sm:block">Daily Skill Challenge</div>
               </div>
             </div>
           </div>
           {(stage === 'question' || stage === 'feedback') && (
-            <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-1.5 sm:gap-3 text-xs shrink-0">
               {combo >= 2 && (
-                <span className="flex items-center gap-1 font-bold qa-pop">
+                <span className="hidden xs:flex sm:flex items-center gap-1 font-bold qa-pop">
                   <Flame className="h-4 w-4 qa-streak-flame" />
-                  <span className="qa-streak-flame">x{combo} combo</span>
+                  <span className="qa-streak-flame">x{combo}</span>
                 </span>
               )}
               <span className="flex items-center gap-1 text-muted-foreground">
@@ -415,7 +415,7 @@ const QAMockTestPage: React.FC = () => {
       </header>
 
       {/* Body */}
-      <main className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <main className="relative z-10 max-w-3xl mx-auto px-3 sm:px-6 py-4 sm:py-10 pb-24 sm:pb-10">
         {stage === 'loading' && (
           <div className="flex flex-col items-center justify-center py-32 gap-3">
             <div className="relative">
@@ -547,21 +547,21 @@ const QAMockTestPage: React.FC = () => {
         )}
 
         {stage === 'question' && currentQ && (
-          <div className="space-y-5 animate-fade-in">
+          <div className="space-y-4 sm:space-y-5 animate-fade-in">
             <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted/50">
               <div
                 className="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 transition-all duration-500"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] uppercase tracking-wide font-bold rounded bg-gradient-to-r from-purple-500/15 to-blue-500/15 text-primary px-2 py-0.5 border border-primary/20">
                 {currentQ.category}
               </span>
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{currentQ.difficulty}</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-semibold leading-relaxed">{currentQ.question}</h2>
-            <div className="grid gap-3">
+            <h2 className="text-lg sm:text-2xl font-semibold leading-snug sm:leading-relaxed">{currentQ.question}</h2>
+            <div className="grid gap-2.5 sm:gap-3">
               {OPTIONS.map((opt, idx) => {
                 const isSelected = selected === opt.key;
                 const isLocked = !!selected;
@@ -572,15 +572,15 @@ const QAMockTestPage: React.FC = () => {
                     disabled={isLocked}
                     aria-pressed={isSelected}
                     className={cn(
-                      'group relative w-full text-left flex items-center gap-4 p-5 sm:p-6 rounded-xl border-2 transition-all min-h-[72px] qa-card-glow',
-                      !isLocked && 'hover:border-primary hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 cursor-pointer',
+                      'group relative w-full text-left flex items-center gap-3 sm:gap-4 p-4 sm:p-6 rounded-xl border-2 transition-all min-h-[64px] sm:min-h-[76px] qa-card-glow active:scale-[0.99] touch-manipulation',
+                      !isLocked && 'hover:border-primary hover:shadow-lg hover:shadow-primary/20 sm:hover:-translate-y-0.5 cursor-pointer',
                       isLocked && !isSelected && 'opacity-50 cursor-not-allowed',
                       isSelected && 'border-primary shadow-lg shadow-primary/30 scale-[1.01]',
                     )}
                   >
                     <span
                       className={cn(
-                        'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-base font-bold transition-all',
+                        'flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl text-base font-bold transition-all',
                         isSelected
                           ? 'bg-gradient-to-br from-purple-500 to-blue-500 text-white shadow-md'
                           : 'bg-muted group-hover:bg-gradient-to-br group-hover:from-purple-500 group-hover:to-blue-500 group-hover:text-white',
@@ -588,7 +588,7 @@ const QAMockTestPage: React.FC = () => {
                     >
                       {opt.key}
                     </span>
-                    <span className="text-base sm:text-[15px] flex-1 leading-relaxed">{currentQ[opt.field] as string}</span>
+                    <span className="text-[15px] sm:text-base flex-1 leading-relaxed break-words">{currentQ[opt.field] as string}</span>
                     <kbd className="hidden sm:inline-flex h-7 min-w-[28px] items-center justify-center rounded-md border border-border bg-muted/70 px-1.5 text-[10px] font-mono text-muted-foreground group-hover:border-primary/40 group-hover:text-primary transition-colors">
                       {idx + 1}
                     </kbd>
@@ -596,7 +596,7 @@ const QAMockTestPage: React.FC = () => {
                 );
               })}
             </div>
-            <p className="text-[11px] text-muted-foreground text-center">
+            <p className="hidden sm:block text-[11px] text-muted-foreground text-center">
               Press <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-[10px]">1</kbd>–<kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-[10px]">4</kbd> to answer
             </p>
           </div>
@@ -616,7 +616,7 @@ const QAMockTestPage: React.FC = () => {
               </span>
             </div>
             <h2 className="text-lg sm:text-xl font-semibold leading-relaxed">{currentQ.question}</h2>
-            <div className="space-y-2">
+            <div className="space-y-2 sm:space-y-2.5">
               {OPTIONS.map((opt) => {
                 const isCorrect = opt.key === feedback.correctOption;
                 const isSelected = opt.key === selected;
@@ -624,7 +624,7 @@ const QAMockTestPage: React.FC = () => {
                   <div
                     key={opt.key}
                     className={cn(
-                      'w-full text-left flex items-start gap-3 p-3.5 rounded-lg border-2 transition-all',
+                      'w-full text-left flex items-start gap-3 p-3 sm:p-4 rounded-lg border-2 transition-all',
                       isCorrect && 'qa-option-correct qa-pop',
                       !isCorrect && isSelected && 'qa-option-wrong',
                       !isCorrect && !isSelected && 'border-border bg-card opacity-50',
@@ -632,7 +632,7 @@ const QAMockTestPage: React.FC = () => {
                   >
                     <span
                       className={cn(
-                        'flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold',
+                        'flex h-8 w-8 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold',
                         isCorrect && 'bg-gradient-to-br from-green-500 to-emerald-600 text-white',
                         !isCorrect && isSelected && 'bg-gradient-to-br from-red-500 to-rose-600 text-white',
                         !isCorrect && !isSelected && 'bg-muted',
@@ -640,7 +640,7 @@ const QAMockTestPage: React.FC = () => {
                     >
                       {opt.key}
                     </span>
-                    <span className="text-sm pt-0.5 flex-1">{currentQ[opt.field] as string}</span>
+                    <span className="text-sm pt-1 sm:pt-0.5 flex-1 break-words">{currentQ[opt.field] as string}</span>
                     {isCorrect && <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />}
                     {!isCorrect && isSelected && <XCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />}
                   </div>
