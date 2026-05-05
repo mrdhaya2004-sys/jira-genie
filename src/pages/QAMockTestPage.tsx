@@ -415,7 +415,7 @@ const QAMockTestPage: React.FC = () => {
       </header>
 
       {/* Body */}
-      <main className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <main className="relative z-10 max-w-3xl mx-auto px-3 sm:px-6 py-4 sm:py-10 pb-24 sm:pb-10">
         {stage === 'loading' && (
           <div className="flex flex-col items-center justify-center py-32 gap-3">
             <div className="relative">
