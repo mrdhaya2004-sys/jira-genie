@@ -372,34 +372,34 @@ const QAMockTestPage: React.FC = () => {
 
       {/* Header */}
       <header className="relative z-20 sticky top-0 h-14 border-b border-border/40 bg-background/70 backdrop-blur-xl">
-        <div className="h-full max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+        <div className="h-full max-w-5xl mx-auto px-3 sm:px-6 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9"
+              className="h-9 w-9 shrink-0"
               onClick={() => navigate('/')}
               aria-label="Back"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <div className="flex items-center gap-2.5">
-              <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+              <div className="relative h-9 w-9 shrink-0 rounded-xl bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
                 <Brain className="h-5 w-5 text-white" />
                 <span className="absolute inset-0 rounded-xl qa-pulse-ring border-2 border-purple-400/60" />
               </div>
-              <div>
-                <div className="text-sm font-bold leading-tight qa-gradient-text">QA Mock Test</div>
-                <div className="text-[11px] text-muted-foreground leading-tight">Daily Skill Challenge</div>
+              <div className="min-w-0">
+                <div className="text-sm font-bold leading-tight qa-gradient-text truncate">QA Mock Test</div>
+                <div className="text-[11px] text-muted-foreground leading-tight hidden sm:block">Daily Skill Challenge</div>
               </div>
             </div>
           </div>
           {(stage === 'question' || stage === 'feedback') && (
-            <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-1.5 sm:gap-3 text-xs shrink-0">
               {combo >= 2 && (
-                <span className="flex items-center gap-1 font-bold qa-pop">
+                <span className="hidden xs:flex sm:flex items-center gap-1 font-bold qa-pop">
                   <Flame className="h-4 w-4 qa-streak-flame" />
-                  <span className="qa-streak-flame">x{combo} combo</span>
+                  <span className="qa-streak-flame">x{combo}</span>
                 </span>
               )}
               <span className="flex items-center gap-1 text-muted-foreground">
