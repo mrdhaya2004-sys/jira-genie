@@ -14,7 +14,7 @@ import {
   Sliders,
   ChevronRight,
   StickyNote,
-  Brain,
+  BookOpenText,
 } from 'lucide-react';
 import NotesPanel from '@/components/notes/NotesPanel';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -148,7 +148,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
           aria-label="QA Mock Test"
           onClick={() => navigate('/qa-mock-test')}
         >
-          <Brain className="h-[18px] w-[18px] text-primary" />
+          <BookOpenText className="h-[18px] w-[18px] text-primary" />
         </Button>
 
         {/* Smart Notes */}
