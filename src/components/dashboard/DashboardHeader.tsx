@@ -101,7 +101,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
   };
 
   return (
-    <header className="h-12 border-b border-border/60 bg-card/80 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6 relative">
+    <header className="h-12 border-b border-border/60 bg-gradient-to-r from-primary/5 via-card/90 to-primary/5 backdrop-blur-md flex items-center justify-between px-4 lg:px-6 relative">
       {/* Subtle bottom gradient accent */}
       <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       
