@@ -134,15 +134,13 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-[hsl(var(--chart-2))] flex items-center justify-center shadow-md shadow-primary/30">
                     <FileText className="h-4 w-4 text-primary-foreground" />
                   </div>
-                  <span>
-                  <FileText className="h-5 w-5" />
-                  User Stories
+                  <span>User Stories</span>
                 </CardTitle>
                 <CardDescription>
                   Upload user stories that describe your application requirements
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="relative space-y-4">
                 <div className="flex items-center gap-2">
                   <input
                     type="file"
@@ -189,12 +187,15 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
             </Card>
 
             {/* Application Files */}
-            <Card>
-              <CardHeader>
+            <Card className="relative overflow-hidden border-[hsl(var(--chart-2))]/20 hover:border-[hsl(var(--chart-2))]/40 hover:shadow-lg hover:shadow-[hsl(var(--chart-2))]/10 transition-all">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[hsl(var(--chart-2))] to-success" />
+              <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-[hsl(var(--chart-2))]/10 blur-2xl pointer-events-none" />
+              <CardHeader className="relative">
                 <CardTitle className="flex items-center gap-2">
-                  <Smartphone className="h-5 w-5" />
-                  Application Files
-                </CardTitle>
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[hsl(var(--chart-2))] to-success flex items-center justify-center shadow-md shadow-[hsl(var(--chart-2))]/30">
+                    <Smartphone className="h-4 w-4 text-primary-foreground" />
+                  </div>
+                  <span>Application Files</span>
                 <CardDescription>
                   Upload APK or IPA files to associate builds with this workspace
                 </CardDescription>
