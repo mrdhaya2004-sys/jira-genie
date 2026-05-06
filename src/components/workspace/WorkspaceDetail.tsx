@@ -266,7 +266,7 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
           )}
         </TabsContent>
 
-        <TabsContent value="environments" className="flex-1 overflow-auto p-3 sm:p-4 mt-0 bg-muted/20 data-[state=inactive]:hidden">
+        <TabsContent value="environments" className="flex-1 overflow-auto p-3 sm:p-4 mt-0 bg-gradient-to-b from-transparent via-background to-[hsl(var(--chart-2))]/5 data-[state=inactive]:hidden">
           <WorkspaceEnvironmentsPanel
             workspace={workspace}
             files={files}
