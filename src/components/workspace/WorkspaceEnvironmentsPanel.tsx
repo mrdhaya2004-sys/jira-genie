@@ -90,13 +90,35 @@ const WorkspaceEnvironmentsPanel: React.FC<WorkspaceEnvironmentsPanelProps> = ({
         </CardHeader>
         <CardContent className="relative">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Environment)}>
-            <TabsList className="grid grid-cols-4 w-full">
-              {ENVIRONMENTS.map(e => (
-                <TabsTrigger key={e.value} value={e.value} className="text-xs gap-1.5">
-                  <EnvironmentBadge env={e.value} />
-                  <span className="hidden sm:inline">{e.label}</span>
-                </TabsTrigger>
-              ))}
+            <TabsList className="grid grid-cols-4 w-full h-auto p-1.5 bg-gradient-to-r from-primary/10 via-muted/40 to-[hsl(var(--chart-2))]/10 rounded-xl border border-border/60 gap-1">
+              {ENVIRONMENTS.map(e => {
+                const activeStyles: Record<string, string> = {
+                  dev: 'data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/30',
+                  uat: 'data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-amber-500/30',
+                  beta: 'data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-500 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-purple-500/30',
+                  prod: 'data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-emerald-500/30',
+                };
+                const dotColor: Record<string, string> = {
+                  dev: 'bg-blue-500',
+                  uat: 'bg-amber-500',
+                  beta: 'bg-purple-500',
+                  prod: 'bg-emerald-500',
+                };
+                return (
+                  <TabsTrigger
+                    key={e.value}
+                    value={e.value}
+                    className={cn(
+                      'group relative flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-semibold rounded-lg py-2 px-2 transition-all duration-200 hover:bg-card/70 data-[state=active]:scale-[1.02]',
+                      activeStyles[e.value]
+                    )}
+                  >
+                    <span className={cn('h-2 w-2 rounded-full ring-2 ring-white/40 group-data-[state=active]:ring-white/70 group-data-[state=active]:animate-pulse', dotColor[e.value])} />
+                    <span className="font-bold tracking-wide">{e.shortLabel}</span>
+                    <span className="hidden md:inline opacity-80 font-normal">— {e.label.replace(e.shortLabel, '').trim() || e.label}</span>
+                  </TabsTrigger>
+                );
+              })}
             </TabsList>
 
             {ENVIRONMENTS.map(envMeta => {
