@@ -40,40 +40,46 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
   const appFiles = files.filter(f => f.file_type === 'apk' || f.file_type === 'ipa');
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-gradient-to-b from-primary/5 via-background to-background">
       {/* Header */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 p-3 sm:p-4 border-b bg-background">
-        <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9 shrink-0">
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-base sm:text-xl font-semibold truncate">{workspace.name}</h1>
-          {workspace.description && (
-            <p className="text-xs sm:text-sm text-muted-foreground truncate">{workspace.description}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {workspace.default_environment && (
-            <EnvironmentBadge env={workspace.default_environment as Environment} />
-          )}
-          <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs">
-            <FileText className="h-3 w-3" />
-            {userStories.length} Stories
-          </Badge>
-          <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs">
-            <Smartphone className="h-3 w-3" />
-            {appFiles.length} Apps
-          </Badge>
+      <div className="relative overflow-hidden border-b bg-gradient-to-r from-primary/10 via-card/95 to-[hsl(var(--chart-2))]/10 dark:from-primary/15 dark:via-card/90 dark:to-[hsl(var(--chart-2))]/15 backdrop-blur-md">
+        <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+        <div className="relative flex flex-wrap items-center gap-x-3 gap-y-2 p-3 sm:p-4">
+          <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9 shrink-0 hover:bg-primary/10">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-[hsl(var(--chart-2))] flex items-center justify-center shadow-md shadow-primary/30 shrink-0">
+            <FolderOpen className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-base sm:text-xl font-bold truncate text-foreground">{workspace.name}</h1>
+            {workspace.description && (
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">{workspace.description}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {workspace.default_environment && (
+              <EnvironmentBadge env={workspace.default_environment as Environment} />
+            )}
+            <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs bg-card/80 border-primary/30">
+              <FileText className="h-3 w-3 text-primary" />
+              {userStories.length} Stories
+            </Badge>
+            <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs bg-card/80 border-[hsl(var(--chart-2))]/30">
+              <Smartphone className="h-3 w-3 text-[hsl(var(--chart-2))]" />
+              {appFiles.length} Apps
+            </Badge>
+          </div>
         </div>
       </div>
 
       {/* Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden min-h-0">
-        <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-3 sm:px-4 h-12 shrink-0">
-          <TabsTrigger value="files" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
-            Files & Stories
+        <TabsList className="w-full justify-start rounded-none border-b bg-card/50 backdrop-blur-sm px-3 sm:px-4 h-12 shrink-0 gap-2">
+          <TabsTrigger value="files" className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-primary/5 rounded-none gap-1.5 font-medium">
+            <FileText className="h-3.5 w-3.5" /> Files & Stories
           </TabsTrigger>
-          <TabsTrigger value="environments" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none gap-1.5">
+          <TabsTrigger value="environments" className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-primary/5 rounded-none gap-1.5 font-medium">
             <Layers className="h-3.5 w-3.5" /> Environments
           </TabsTrigger>
         </TabsList>
