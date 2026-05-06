@@ -73,18 +73,22 @@ const WorkspaceEnvironmentsPanel: React.FC<WorkspaceEnvironmentsPanelProps> = ({
   };
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader className="pb-3">
+    <div className="space-y-4 max-w-6xl mx-auto w-full">
+      <Card className="relative overflow-hidden border-primary/20 shadow-sm">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-[hsl(var(--chart-2))] to-success" />
+        <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+        <CardHeader className="relative pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-primary" />
-            Environments
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-[hsl(var(--chart-2))] flex items-center justify-center shadow-md shadow-primary/30">
+              <Sparkles className="h-4 w-4 text-primary-foreground" />
+            </div>
+            <span className="font-bold">Environments</span>
           </CardTitle>
           <CardDescription className="text-xs">
             Manage builds and DOM snapshots per environment. Modules will use the data from the selected environment.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Environment)}>
             <TabsList className="grid grid-cols-4 w-full">
               {ENVIRONMENTS.map(e => (
