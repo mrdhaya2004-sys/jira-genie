@@ -84,7 +84,7 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="files" className="flex-1 overflow-auto p-3 sm:p-4 mt-0 bg-muted/20 data-[state=inactive]:hidden">
+        <TabsContent value="files" className="flex-1 overflow-auto p-3 sm:p-4 mt-0 bg-gradient-to-b from-transparent via-background to-primary/5 data-[state=inactive]:hidden">
           {files.length === 0 && !filesLoading ? (
             <div className="min-h-full flex items-center justify-center py-8">
               <div className="text-center max-w-md mx-auto">
@@ -124,11 +124,17 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
               </div>
             </div>
           ) : (
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 min-h-full content-start">
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 min-h-full content-start max-w-6xl mx-auto w-full">
             {/* User Stories */}
-            <Card>
-              <CardHeader>
+            <Card className="relative overflow-hidden border-primary/20 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 transition-all">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-[hsl(var(--chart-2))]" />
+              <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
+              <CardHeader className="relative">
                 <CardTitle className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-[hsl(var(--chart-2))] flex items-center justify-center shadow-md shadow-primary/30">
+                    <FileText className="h-4 w-4 text-primary-foreground" />
+                  </div>
+                  <span>
                   <FileText className="h-5 w-5" />
                   User Stories
                 </CardTitle>
