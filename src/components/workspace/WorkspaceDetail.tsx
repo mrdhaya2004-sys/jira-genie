@@ -88,13 +88,16 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
           {files.length === 0 && !filesLoading ? (
             <div className="min-h-full flex items-center justify-center py-8">
               <div className="text-center max-w-md mx-auto">
-                <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                  <FolderOpen className="h-8 w-8 text-primary" />
+              <div className="relative mx-auto h-20 w-20 mb-4">
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-[hsl(var(--chart-2))] blur-lg opacity-50" />
+                <div className="relative h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-[hsl(var(--chart-2))] flex items-center justify-center shadow-lg shadow-primary/30">
+                  <FolderOpen className="h-10 w-10 text-primary-foreground" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">No files or stories yet</h3>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Upload user stories or application files (APK / IPA) to organize your project context.
-                </p>
+              </div>
+              <h3 className="text-xl font-bold mb-2">No files or stories yet</h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                Upload user stories or application files (APK / IPA) to organize your project context.
+              </p>
                 <div className="flex items-center justify-center gap-2 flex-wrap">
                   <Button asChild variant="outline" size="sm" className="gap-2">
                     <label htmlFor="story-upload" className="cursor-pointer">
