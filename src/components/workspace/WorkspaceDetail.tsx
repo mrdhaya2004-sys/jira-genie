@@ -196,11 +196,12 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
                     <Smartphone className="h-4 w-4 text-primary-foreground" />
                   </div>
                   <span>Application Files</span>
+                </CardTitle>
                 <CardDescription>
                   Upload APK or IPA files to associate builds with this workspace
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="relative space-y-4">
                 <div className="flex items-center gap-2 flex-wrap">
                   <input
                     type="file"
