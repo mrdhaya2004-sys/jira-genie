@@ -40,55 +40,64 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
   const appFiles = files.filter(f => f.file_type === 'apk' || f.file_type === 'ipa');
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-gradient-to-b from-primary/5 via-background to-background">
       {/* Header */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 p-3 sm:p-4 border-b bg-background">
-        <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9 shrink-0">
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-base sm:text-xl font-semibold truncate">{workspace.name}</h1>
-          {workspace.description && (
-            <p className="text-xs sm:text-sm text-muted-foreground truncate">{workspace.description}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {workspace.default_environment && (
-            <EnvironmentBadge env={workspace.default_environment as Environment} />
-          )}
-          <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs">
-            <FileText className="h-3 w-3" />
-            {userStories.length} Stories
-          </Badge>
-          <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs">
-            <Smartphone className="h-3 w-3" />
-            {appFiles.length} Apps
-          </Badge>
+      <div className="relative overflow-hidden border-b bg-gradient-to-r from-primary/10 via-card/95 to-[hsl(var(--chart-2))]/10 dark:from-primary/15 dark:via-card/90 dark:to-[hsl(var(--chart-2))]/15 backdrop-blur-md">
+        <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+        <div className="relative flex flex-wrap items-center gap-x-3 gap-y-2 p-3 sm:p-4">
+          <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9 shrink-0 hover:bg-primary/10">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-[hsl(var(--chart-2))] flex items-center justify-center shadow-md shadow-primary/30 shrink-0">
+            <FolderOpen className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-base sm:text-xl font-bold truncate text-foreground">{workspace.name}</h1>
+            {workspace.description && (
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">{workspace.description}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {workspace.default_environment && (
+              <EnvironmentBadge env={workspace.default_environment as Environment} />
+            )}
+            <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs bg-card/80 border-primary/30">
+              <FileText className="h-3 w-3 text-primary" />
+              {userStories.length} Stories
+            </Badge>
+            <Badge variant="outline" className="gap-1 text-[11px] sm:text-xs bg-card/80 border-[hsl(var(--chart-2))]/30">
+              <Smartphone className="h-3 w-3 text-[hsl(var(--chart-2))]" />
+              {appFiles.length} Apps
+            </Badge>
+          </div>
         </div>
       </div>
 
       {/* Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden min-h-0">
-        <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-3 sm:px-4 h-12 shrink-0">
-          <TabsTrigger value="files" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
-            Files & Stories
+        <TabsList className="w-full justify-start rounded-none border-b bg-card/50 backdrop-blur-sm px-3 sm:px-4 h-12 shrink-0 gap-2">
+          <TabsTrigger value="files" className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-primary/5 rounded-none gap-1.5 font-medium">
+            <FileText className="h-3.5 w-3.5" /> Files & Stories
           </TabsTrigger>
-          <TabsTrigger value="environments" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none gap-1.5">
+          <TabsTrigger value="environments" className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-primary/5 rounded-none gap-1.5 font-medium">
             <Layers className="h-3.5 w-3.5" /> Environments
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="files" className="flex-1 overflow-auto p-3 sm:p-4 mt-0 bg-muted/20 data-[state=inactive]:hidden">
+        <TabsContent value="files" className="flex-1 overflow-auto p-3 sm:p-4 mt-0 bg-gradient-to-b from-transparent via-background to-primary/5 data-[state=inactive]:hidden">
           {files.length === 0 && !filesLoading ? (
             <div className="min-h-full flex items-center justify-center py-8">
               <div className="text-center max-w-md mx-auto">
-                <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                  <FolderOpen className="h-8 w-8 text-primary" />
+              <div className="relative mx-auto h-20 w-20 mb-4">
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-[hsl(var(--chart-2))] blur-lg opacity-50" />
+                <div className="relative h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-[hsl(var(--chart-2))] flex items-center justify-center shadow-lg shadow-primary/30">
+                  <FolderOpen className="h-10 w-10 text-primary-foreground" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">No files or stories yet</h3>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Upload user stories or application files (APK / IPA) to organize your project context.
-                </p>
+              </div>
+              <h3 className="text-xl font-bold mb-2">No files or stories yet</h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                Upload user stories or application files (APK / IPA) to organize your project context.
+              </p>
                 <div className="flex items-center justify-center gap-2 flex-wrap">
                   <Button asChild variant="outline" size="sm" className="gap-2">
                     <label htmlFor="story-upload" className="cursor-pointer">
@@ -115,19 +124,23 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
               </div>
             </div>
           ) : (
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 min-h-full content-start">
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 min-h-full content-start max-w-6xl mx-auto w-full">
             {/* User Stories */}
-            <Card>
-              <CardHeader>
+            <Card className="relative overflow-hidden border-primary/20 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 transition-all">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-[hsl(var(--chart-2))]" />
+              <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
+              <CardHeader className="relative">
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  User Stories
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-[hsl(var(--chart-2))] flex items-center justify-center shadow-md shadow-primary/30">
+                    <FileText className="h-4 w-4 text-primary-foreground" />
+                  </div>
+                  <span>User Stories</span>
                 </CardTitle>
                 <CardDescription>
                   Upload user stories that describe your application requirements
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="relative space-y-4">
                 <div className="flex items-center gap-2">
                   <input
                     type="file"
@@ -174,17 +187,21 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
             </Card>
 
             {/* Application Files */}
-            <Card>
-              <CardHeader>
+            <Card className="relative overflow-hidden border-[hsl(var(--chart-2))]/20 hover:border-[hsl(var(--chart-2))]/40 hover:shadow-lg hover:shadow-[hsl(var(--chart-2))]/10 transition-all">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[hsl(var(--chart-2))] to-success" />
+              <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-[hsl(var(--chart-2))]/10 blur-2xl pointer-events-none" />
+              <CardHeader className="relative">
                 <CardTitle className="flex items-center gap-2">
-                  <Smartphone className="h-5 w-5" />
-                  Application Files
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[hsl(var(--chart-2))] to-success flex items-center justify-center shadow-md shadow-[hsl(var(--chart-2))]/30">
+                    <Smartphone className="h-4 w-4 text-primary-foreground" />
+                  </div>
+                  <span>Application Files</span>
                 </CardTitle>
                 <CardDescription>
                   Upload APK or IPA files to associate builds with this workspace
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="relative space-y-4">
                 <div className="flex items-center gap-2 flex-wrap">
                   <input
                     type="file"
@@ -249,7 +266,7 @@ const WorkspaceDetail: React.FC<WorkspaceDetailProps> = ({ workspace, onBack }) 
           )}
         </TabsContent>
 
-        <TabsContent value="environments" className="flex-1 overflow-auto p-3 sm:p-4 mt-0 bg-muted/20 data-[state=inactive]:hidden">
+        <TabsContent value="environments" className="flex-1 overflow-auto p-3 sm:p-4 mt-0 bg-gradient-to-b from-transparent via-background to-[hsl(var(--chart-2))]/5 data-[state=inactive]:hidden">
           <WorkspaceEnvironmentsPanel
             workspace={workspace}
             files={files}
