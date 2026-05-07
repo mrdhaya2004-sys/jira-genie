@@ -112,9 +112,13 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
 
   return (
     <div className="h-full flex flex-col bg-background">
-      <div className="border-b border-border/60 bg-card/50 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-white flex items-center justify-center shrink-0 overflow-hidden ring-1 ring-border/50">
+      <div className="relative overflow-hidden border-b border-border/60 bg-gradient-to-r from-primary/10 via-card/80 to-[hsl(var(--chart-2))]/10 dark:from-primary/15 dark:via-card/70 dark:to-[hsl(var(--chart-2))]/15 backdrop-blur-md px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary via-[hsl(var(--chart-2))] to-success" />
+        <div className="absolute -top-12 -left-12 h-32 w-32 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 h-32 w-32 rounded-full bg-[hsl(var(--chart-2))]/20 blur-3xl pointer-events-none" />
+
+        <div className="relative flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-white flex items-center justify-center shrink-0 overflow-hidden ring-1 ring-primary/30 shadow-md shadow-primary/20">
             <img
               src={testCaseLogo}
               alt="Test Case Generator logo"
@@ -128,8 +132,8 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
           </div>
           <div className="min-w-0 flex-1">
             <h2 className="font-semibold tracking-tight flex items-center gap-2 text-sm sm:text-base truncate">
-              <span className="truncate">Test Case Generator</span>
-              <Badge variant="secondary" className="text-[10px] sm:text-xs hidden sm:inline-flex shrink-0">AI-Powered</Badge>
+              <span className="truncate bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">Test Case Generator</span>
+              <Badge className="text-[10px] sm:text-xs hidden sm:inline-flex shrink-0 border-0 bg-gradient-to-r from-primary to-[hsl(var(--chart-2))] text-primary-foreground shadow-sm">AI-Powered</Badge>
             </h2>
             <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
               Generate test cases using AI and workspace brain data
@@ -137,29 +141,36 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="relative flex items-center gap-1.5 sm:gap-2 shrink-0">
           {selectedMode && (
-            <Badge variant="outline" className="text-xs hidden md:inline-flex">{getModeLabel()}</Badge>
+            <Badge variant="outline" className="text-xs hidden md:inline-flex border-primary/40 bg-primary/10 text-foreground">{getModeLabel()}</Badge>
           )}
           {selectedWorkspace && (
-            <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[160px] truncate">📁 {selectedWorkspace.name}</Badge>
+            <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[160px] truncate border-[hsl(var(--chart-2))]/40 bg-[hsl(var(--chart-2))]/10 text-foreground">📁 {selectedWorkspace.name}</Badge>
           )}
           {excelStructure && (
-            <Badge variant="outline" className="text-xs hidden md:inline-flex">
+            <Badge variant="outline" className="text-xs hidden md:inline-flex border-success/40 bg-success/10 text-foreground">
               <FileSpreadsheet className="h-3 w-3 mr-1" />
               {excelStructure.columns.length} cols
             </Badge>
           )}
-          
-          <HistoryPanel 
-            toolType="testcase" 
-            moduleName="test-case-generator"
-            onResumePrompt={handleResumeFromPanel}
-          />
-          
-          <Button variant="outline" size="sm" onClick={resetFlow} className="px-2 sm:px-3">
-            <RotateCcw className="h-4 w-4 sm:mr-1" />
-            <span className="hidden sm:inline">Start Over</span>
+
+          <div className="[&_button]:bg-card/70 [&_button]:backdrop-blur-sm [&_button]:border-primary/30 [&_button]:hover:bg-primary/10 [&_button]:hover:border-primary/50 [&_button]:transition-all">
+            <HistoryPanel
+              toolType="testcase"
+              moduleName="test-case-generator"
+              onResumePrompt={handleResumeFromPanel}
+            />
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={resetFlow}
+            className="px-2 sm:px-3 bg-card/70 backdrop-blur-sm border-destructive/30 text-foreground hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive transition-all group"
+          >
+            <RotateCcw className="h-4 w-4 sm:mr-1 group-hover:-rotate-180 transition-transform duration-500" />
+            <span className="hidden sm:inline font-medium">Start Over</span>
           </Button>
         </div>
       </div>
