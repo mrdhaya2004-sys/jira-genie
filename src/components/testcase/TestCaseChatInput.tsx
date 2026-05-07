@@ -87,26 +87,25 @@ const TestCaseChatInput: React.FC<TestCaseChatInputProps> = ({
   }, [input]);
 
   return (
-    <div className="border-t bg-card p-4">
+    <div className="relative border-t border-border/60 bg-gradient-to-b from-card/40 via-card/70 to-card backdrop-blur-md p-3 sm:p-4">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
       {/* Selected file indicator */}
       {selectedFile && (
-        <div className="mb-2 flex items-center gap-2 p-2 bg-muted rounded-lg">
-          <FileSpreadsheet className="h-4 w-4 text-green-600" />
-          <span className="text-sm flex-1 truncate">{selectedFile.name}</span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={removeFile}
-          >
+        <div className="mb-2 flex items-center gap-2 p-2 rounded-lg border border-success/30 bg-gradient-to-r from-success/10 via-success/5 to-transparent animate-fade-in">
+          <div className="h-7 w-7 rounded-md bg-gradient-to-br from-success to-emerald-600 flex items-center justify-center shadow-sm shadow-success/30">
+            <FileSpreadsheet className="h-4 w-4 text-white" />
+          </div>
+          <span className="text-sm flex-1 truncate font-medium">{selectedFile.name}</span>
+          <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-destructive/10 hover:text-destructive" onClick={removeFile}>
             <X className="h-3 w-3" />
           </Button>
         </div>
       )}
 
-      <form 
+      <form
         onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
-        className="flex items-end gap-2"
+        className="group/input relative flex items-end gap-2 rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm p-1.5 shadow-sm transition-all focus-within:border-primary/50 focus-within:shadow-lg focus-within:shadow-primary/10 focus-within:ring-2 focus-within:ring-primary/20"
       >
         {/* Excel Upload Button */}
         {showExcelUpload && (
@@ -120,11 +119,11 @@ const TestCaseChatInput: React.FC<TestCaseChatInputProps> = ({
             />
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled}
-              className="flex-shrink-0"
+              className="flex-shrink-0 h-9 w-9 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
               title="Upload reference Excel file"
             >
               <Upload className="h-4 w-4" />
@@ -141,7 +140,7 @@ const TestCaseChatInput: React.FC<TestCaseChatInputProps> = ({
           placeholder={placeholder}
           disabled={disabled}
           className={cn(
-            "min-h-[44px] max-h-[120px] resize-none",
+            "min-h-[40px] max-h-[120px] resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-2 text-sm placeholder:text-muted-foreground/70",
             "flex-1"
           )}
           rows={1}
@@ -152,16 +151,16 @@ const TestCaseChatInput: React.FC<TestCaseChatInputProps> = ({
           type="submit"
           size="icon"
           disabled={!input.trim() || disabled}
-          className="flex-shrink-0"
+          className="flex-shrink-0 h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-[hsl(var(--chart-2))] text-primary-foreground shadow-md shadow-primary/30 hover:shadow-lg hover:shadow-primary/40 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 disabled:shadow-none"
         >
           <Send className="h-4 w-4" />
         </Button>
       </form>
 
-      <p className="text-xs text-muted-foreground mt-2">
-        {showExcelUpload 
-          ? "Upload an Excel file to define test case format, or just describe what you need."
-          : "Press Enter to send, Shift+Enter for new line"
+      <p className="text-[11px] text-muted-foreground/80 mt-2 text-center">
+        {showExcelUpload
+          ? <>📊 Upload an Excel file to define format, or just describe what you need</>
+          : <>Press <kbd className="px-1.5 py-0.5 rounded border border-border/60 bg-muted/60 text-[10px] font-mono">Enter</kbd> to send · <kbd className="px-1.5 py-0.5 rounded border border-border/60 bg-muted/60 text-[10px] font-mono">Shift+Enter</kbd> for new line</>
         }
       </p>
     </div>
