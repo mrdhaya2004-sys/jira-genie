@@ -109,7 +109,7 @@ const WorkspaceEnvironmentsPanel: React.FC<WorkspaceEnvironmentsPanelProps> = ({
                     key={e.value}
                     value={e.value}
                     className={cn(
-                      'group relative flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-semibold rounded-lg py-2 px-2 transition-all duration-200 hover:bg-card/70 data-[state=active]:scale-[1.02]',
+                      'group relative flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-semibold rounded-lg py-2 px-2 transition-all duration-200 text-foreground/80 hover:text-foreground hover:bg-card/80 data-[state=active]:scale-[1.02]',
                       activeStyles[e.value]
                     )}
                   >
