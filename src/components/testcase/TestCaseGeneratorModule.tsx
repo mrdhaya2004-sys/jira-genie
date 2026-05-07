@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, RotateCcw, ClipboardList, FileSpreadsheet, ArrowDown } from 'lucide-react';
+import { Loader2, RotateCcw, ClipboardList, FileSpreadsheet, ArrowDown, Sparkles } from 'lucide-react';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useTestCaseGenerator } from '@/hooks/useTestCaseGenerator';
 import TestCaseChatMessage from './TestCaseChatMessage';
@@ -111,31 +111,34 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
   const showUploadButton = phase === 'ready_for_query' && !excelStructure;
 
   return (
-    <div className="h-full flex flex-col bg-background">
-      <div className="relative overflow-hidden border-b border-border/60 bg-gradient-to-r from-primary/10 via-card/80 to-[hsl(var(--chart-2))]/10 dark:from-primary/15 dark:via-card/70 dark:to-[hsl(var(--chart-2))]/15 backdrop-blur-md px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary via-[hsl(var(--chart-2))] to-success" />
-        <div className="absolute -top-12 -left-12 h-32 w-32 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-12 -right-12 h-32 w-32 rounded-full bg-[hsl(var(--chart-2))]/20 blur-3xl pointer-events-none" />
+    <div className="h-full flex flex-col bg-gradient-to-b from-primary/5 via-background to-background">
+      <div className="relative overflow-hidden border-b border-border/60 bg-gradient-to-r from-primary/10 via-card to-[hsl(var(--chart-2))]/10 dark:from-primary/15 dark:via-card dark:to-[hsl(var(--chart-2))]/15 backdrop-blur-md px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-[hsl(var(--chart-2))] to-success" />
+        <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[hsl(var(--chart-2))]/10 blur-3xl pointer-events-none animate-pulse" />
 
         <div className="relative flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-white flex items-center justify-center shrink-0 overflow-hidden ring-1 ring-primary/30 shadow-md shadow-primary/20">
-            <img
-              src={testCaseLogo}
-              alt="Test Case Generator logo"
-              loading="eager"
-              decoding="async"
-              fetchPriority="high"
-              width={40}
-              height={40}
-              className="h-full w-full object-contain"
-            />
+          <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-gradient-to-br from-primary to-[hsl(var(--chart-2))] flex items-center justify-center shrink-0 shadow-lg shadow-primary/30 ring-1 ring-white/20 p-1.5">
+            <div className="h-full w-full rounded-md bg-white flex items-center justify-center overflow-hidden">
+              <img
+                src={testCaseLogo}
+                alt="Test Case Generator logo"
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
+                width={40}
+                height={40}
+                className="h-full w-full object-contain"
+              />
+            </div>
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="font-semibold tracking-tight flex items-center gap-2 text-sm sm:text-base truncate">
-              <span className="truncate bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">Test Case Generator</span>
-              <Badge className="text-[10px] sm:text-xs hidden sm:inline-flex shrink-0 border-0 bg-gradient-to-r from-primary to-[hsl(var(--chart-2))] text-primary-foreground shadow-sm">AI-Powered</Badge>
+            <h2 className="font-bold tracking-tight flex items-center gap-2 text-sm sm:text-base truncate">
+              <span className="truncate text-foreground">Test Case Generator</span>
+              <Sparkles className="h-4 w-4 text-primary shrink-0 hidden sm:inline-block" />
+              <Badge className="text-[10px] sm:text-xs hidden md:inline-flex shrink-0 border-0 bg-gradient-to-r from-primary to-[hsl(var(--chart-2))] text-primary-foreground shadow-sm">AI-Powered</Badge>
             </h2>
-            <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
+            <p className="text-[11px] sm:text-xs text-muted-foreground truncate mt-0.5">
               Generate test cases using AI and workspace brain data
             </p>
           </div>
