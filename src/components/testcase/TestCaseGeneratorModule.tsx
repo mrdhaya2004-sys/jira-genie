@@ -119,7 +119,7 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
 
         <div className="relative flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           <div className="h-10 w-10 sm:h-11 sm:w-11 bg-gradient-to-br from-primary to-[hsl(var(--chart-2))] flex items-center justify-center shrink-0 shadow-primary/30 ring-1 ring-white/20 p-1.5 rounded-sm shadow-sm">
-            <div className="h-full w-full rounded-md bg-white flex items-center justify-center overflow-hidden">
+            <div className="h-full w-full rounded-sm bg-white flex items-center justify-center overflow-hidden">
               <img
                 src={testCaseLogo}
                 alt="Test Case Generator logo"
