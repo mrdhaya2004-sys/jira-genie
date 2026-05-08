@@ -101,12 +101,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         <button
           key={item.label}
           onClick={() => navigate(item.module)}
-          className={cn(
-            "menu-item-shine w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-200",
-            activeModule === item.module
-            ? "bg-sidebar-accent text-sidebar-accent-foreground sidebar-active-indicator"
-            : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5 hover:shadow-[0_2px_12px_-4px_hsl(var(--sidebar-primary)/0.45)]"
-          )}>
+          className={cn("menu-item", activeModule === item.module && "is-active")}>
 
             <item.icon className="h-4 w-4 flex-shrink-0" />
             <span className="flex-1 text-left">{item.label}</span>
@@ -129,13 +124,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           <button
             key={item.label}
             onClick={() => navigate(item.module)}
-            className={cn("menu-item-shine w-full gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-200 flex items-center justify-start",
+            className={cn("menu-item", activeModule === item.module && "is-active")}>
 
-            activeModule === item.module
-            ? "bg-sidebar-accent text-sidebar-accent-foreground sidebar-active-indicator"
-            : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5 hover:shadow-[0_2px_12px_-4px_hsl(var(--sidebar-primary)/0.45)]"
-            )}>
-            
               <item.icon className="h-4 w-4 flex-shrink-0" />
               <span className="flex-1 text-left">{item.label}</span>
             </button>
@@ -149,42 +139,26 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       <div className="px-3 py-2 space-y-0.5 relative z-10">
         <button
           onClick={() => navigate("ai-settings")}
-          className={cn(
-            "menu-item-shine w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-200",
-            activeModule === 'ai-settings'
-            ? "bg-sidebar-accent text-sidebar-accent-foreground sidebar-active-indicator"
-            : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5 hover:shadow-[0_2px_12px_-4px_hsl(var(--sidebar-primary)/0.45)]"
-          )}>
-          
+          className={cn("menu-item", activeModule === 'ai-settings' && "is-active")}>
           <Brain className="h-4 w-4" />
           AI Configuration
         </button>
         <button
           onClick={() => setHelpChatOpen(true)}
-          className="menu-item-shine w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5 hover:shadow-[0_2px_12px_-4px_hsl(var(--sidebar-primary)/0.45)] transition-all duration-200"
+          className="menu-item"
         >
           <HelpCircle className="h-4 w-4" />
           Help & Support
         </button>
         <button
           onClick={() => navigate("about")}
-          className={cn(
-            "menu-item-shine w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-200",
-            activeModule === 'about'
-              ? "bg-sidebar-accent text-sidebar-accent-foreground sidebar-active-indicator"
-              : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5 hover:shadow-[0_2px_12px_-4px_hsl(var(--sidebar-primary)/0.45)]"
-          )}>
+          className={cn("menu-item", activeModule === 'about' && "is-active")}>
           <Info className="h-4 w-4" />
           About Us
         </button>
         <button
           onClick={() => navigate("account-settings")}
-          className={cn(
-            "menu-item-shine w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-200",
-            activeModule === 'account-settings'
-              ? "bg-sidebar-accent text-sidebar-accent-foreground sidebar-active-indicator"
-              : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5 hover:shadow-[0_2px_12px_-4px_hsl(var(--sidebar-primary)/0.45)]"
-          )}>
+          className={cn("menu-item", activeModule === 'account-settings' && "is-active")}>
           <Settings className="h-4 w-4" />
           Settings
         </button>
