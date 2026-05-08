@@ -128,7 +128,7 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
                 fetchPriority="high"
                 width={40}
                 height={40}
-                className="h-full w-full object-contain rounded-lg"
+                className="h-full w-full object-contain rounded-full"
               />
             </div>
           </div>
