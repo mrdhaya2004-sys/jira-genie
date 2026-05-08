@@ -129,11 +129,11 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           <button
             key={item.label}
             onClick={() => navigate(item.module)}
-            className={cn("w-full gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150 flex items-center justify-start",
+            className={cn("menu-item-shine w-full gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-200 flex items-center justify-start",
 
             activeModule === item.module
             ? "bg-sidebar-accent text-sidebar-accent-foreground sidebar-active-indicator"
-            : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5"
+            : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground hover:translate-x-0.5 hover:shadow-[0_2px_12px_-4px_hsl(var(--sidebar-primary)/0.45)]"
             )}>
             
               <item.icon className="h-4 w-4 flex-shrink-0" />
