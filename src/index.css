@@ -233,23 +233,61 @@
     animation: fadeInPage 0.25s ease-out;
   }
 
-  /* Active sidebar indicator */
-  .sidebar-active-indicator {
+  /* ================================================================
+     Shared menu styling tokens + classes
+     Reused across the dashboard sidebar and any other menu surface so
+     every menu page renders with the same shine, hover and active feel.
+     Override the --menu-* variables on a parent element to retheme.
+     ================================================================ */
+  :where(.menu-scope, .menu-item, .menu-item-shine, .sidebar-active-indicator) {
+    --menu-fg: var(--sidebar-foreground);
+    --menu-fg-muted: var(--sidebar-foreground);
+    --menu-accent: var(--sidebar-accent);
+    --menu-accent-fg: var(--sidebar-accent-foreground);
+    --menu-primary: var(--sidebar-primary);
+    --menu-shine-opacity: 0.18;
+    --menu-hover-bg-opacity: 0.4;
+    --menu-hover-shadow: 0 2px 12px -4px hsl(var(--menu-primary) / 0.45);
+  }
+
+  /* Shared menu item: base + hover + shine. Add `is-active` for active. */
+  .menu-item {
+    @apply menu-item-shine w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-200;
+    color: hsl(var(--menu-fg-muted) / 0.6);
+  }
+  .menu-item:hover {
+    background-color: hsl(var(--menu-accent) / var(--menu-hover-bg-opacity));
+    color: hsl(var(--menu-fg));
+    transform: translateX(2px);
+    box-shadow: var(--menu-hover-shadow);
+  }
+  .menu-item.is-active {
+    background-color: hsl(var(--menu-accent));
+    color: hsl(var(--menu-accent-fg));
+  }
+  .menu-item.is-active:hover {
+    transform: none;
+  }
+
+  /* Active indicator: gradient sheen + left bar */
+  .sidebar-active-indicator,
+  .menu-item.is-active {
     position: relative;
     background: linear-gradient(
       90deg,
-      hsl(var(--sidebar-accent)) 0%,
-      hsl(var(--sidebar-primary) / 0.18) 50%,
-      hsl(var(--sidebar-accent)) 100%
+      hsl(var(--menu-accent)) 0%,
+      hsl(var(--menu-primary) / 0.18) 50%,
+      hsl(var(--menu-accent)) 100%
     );
     background-size: 200% 100%;
     box-shadow:
-      inset 0 1px 0 hsl(var(--sidebar-foreground) / 0.06),
-      0 1px 2px hsl(var(--sidebar-primary) / 0.18),
-      0 0 18px -6px hsl(var(--sidebar-primary) / 0.55);
-    animation: sidebar-active-sheen 6s ease-in-out infinite;
+      inset 0 1px 0 hsl(var(--menu-fg) / 0.06),
+      0 1px 2px hsl(var(--menu-primary) / 0.18),
+      0 0 18px -6px hsl(var(--menu-primary) / 0.55);
+    animation: menu-active-sheen 6s ease-in-out infinite;
   }
-  .sidebar-active-indicator::before {
+  .sidebar-active-indicator::before,
+  .menu-item.is-active::before {
     content: '';
     position: absolute;
     left: 0;
@@ -260,15 +298,16 @@
     border-radius: 0 3px 3px 0;
     background: linear-gradient(
       180deg,
-      hsl(var(--sidebar-primary) / 0.4),
-      hsl(var(--sidebar-primary)) 50%,
-      hsl(var(--sidebar-primary) / 0.4)
+      hsl(var(--menu-primary) / 0.4),
+      hsl(var(--menu-primary)) 50%,
+      hsl(var(--menu-primary) / 0.4)
     );
-    box-shadow: 0 0 10px hsl(var(--sidebar-primary) / 0.7);
+    box-shadow: 0 0 10px hsl(var(--menu-primary) / 0.7);
     animation: scaleIn 0.2s ease-out;
+    z-index: 2;
   }
 
-  /* Professional shine sweep on hover for menu items */
+  /* Professional shine sweep on hover */
   .menu-item-shine {
     position: relative;
     overflow: hidden;
@@ -284,9 +323,9 @@
     background: linear-gradient(
       115deg,
       transparent 0%,
-      hsl(var(--sidebar-foreground) / 0) 30%,
-      hsl(var(--sidebar-foreground) / 0.18) 50%,
-      hsl(var(--sidebar-foreground) / 0) 70%,
+      hsl(var(--menu-fg) / 0) 30%,
+      hsl(var(--menu-fg) / var(--menu-shine-opacity)) 50%,
+      hsl(var(--menu-fg) / 0) 70%,
       transparent 100%
     );
     transform: skewX(-20deg);
@@ -302,6 +341,11 @@
     z-index: 2;
   }
 
+@keyframes menu-active-sheen {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+/* Back-compat alias */
 @keyframes sidebar-active-sheen {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
