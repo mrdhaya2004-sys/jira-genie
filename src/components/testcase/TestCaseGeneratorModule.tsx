@@ -158,7 +158,7 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
             </Badge>
           )}
 
-          <div className="[&_button]:bg-card/70 [&_button]:backdrop-blur-sm [&_button]:border-primary/30 [&_button]:hover:bg-primary/10 [&_button]:hover:border-primary/50 [&_button]:transition-all">
+          <div className="[&_button]:relative [&_button]:bg-card/70 [&_button]:backdrop-blur-sm [&_button]:border [&_button]:border-primary/30 [&_button]:text-foreground [&_button]:shadow-sm [&_button]:transition-all [&_button]:duration-300 [&_button]:hover:bg-primary/10 [&_button]:hover:border-primary/60 [&_button]:hover:text-primary [&_button]:hover:shadow-[0_0_18px_-2px_hsl(var(--primary)/0.45)] [&_button]:hover:-translate-y-px [&_button]:active:translate-y-0 [&_button]:active:scale-[0.97] [&_button]:active:shadow-inner [&_button]:disabled:opacity-50 [&_button]:disabled:hover:translate-y-0 [&_button]:disabled:hover:shadow-none [&_button]:disabled:cursor-not-allowed">
             <HistoryPanel
               toolType="testcase"
               moduleName="test-case-generator"
@@ -170,9 +170,9 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
             variant="outline"
             size="sm"
             onClick={resetFlow}
-            className="px-2 sm:px-3 bg-card/70 backdrop-blur-sm border-destructive/30 text-foreground hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive transition-all group"
+            className="relative px-2 sm:px-3 bg-card/70 backdrop-blur-sm border-destructive/30 text-foreground shadow-sm transition-all duration-300 hover:bg-destructive/10 hover:border-destructive/60 hover:text-destructive hover:shadow-[0_0_18px_-2px_hsl(var(--destructive)/0.5)] hover:-translate-y-px active:translate-y-0 active:scale-[0.97] active:shadow-inner disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:cursor-not-allowed group"
           >
-            <RotateCcw className="h-4 w-4 sm:mr-1 group-hover:-rotate-180 transition-transform duration-500" />
+            <RotateCcw className="h-4 w-4 sm:mr-1 group-hover:-rotate-180 group-active:rotate-0 transition-transform duration-500" />
             <span className="hidden sm:inline font-medium">Start Over</span>
           </Button>
         </div>

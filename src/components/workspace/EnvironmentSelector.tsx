@@ -25,13 +25,16 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({
         <span className="text-xs font-medium text-muted-foreground">Environment:</span>
       )}
       <Tabs value={value || ''} onValueChange={(v) => onChange(v as Environment)}>
-        <TabsList className={cn('h-auto', size === 'sm' ? 'p-0.5' : 'p-1')}>
+        <TabsList className={cn('h-auto bg-card/70 backdrop-blur-sm border border-primary/20 shadow-sm', size === 'sm' ? 'p-0.5' : 'p-1')}>
           {ENVIRONMENTS.map((env) => (
             <TabsTrigger
               key={env.value}
               value={env.value}
               className={cn(
-                'data-[state=active]:shadow-sm',
+                'relative font-medium text-foreground/70 transition-all duration-300',
+                'hover:text-primary hover:bg-primary/5',
+                'data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary data-[state=active]:to-[hsl(var(--chart-2))] data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_0_14px_-2px_hsl(var(--primary)/0.55)]',
+                'active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed',
                 size === 'sm' ? 'text-[10px] px-2 py-1' : 'text-xs px-3 py-1.5'
               )}
             >
