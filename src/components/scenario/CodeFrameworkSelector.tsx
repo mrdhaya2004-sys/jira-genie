@@ -17,7 +17,7 @@ const CodeFrameworkSelector: React.FC<CodeFrameworkSelectorProps> = ({
       {CODE_FRAMEWORKS.map((framework) => (
         <Card
           key={framework.id}
-          className="cursor-pointer transition-all hover:border-primary hover:shadow-md group"
+          className="menu-item-shine cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-[0_8px_24px_-12px_hsl(var(--primary)/0.45)] group"
           onClick={() => onSelect(framework.id)}
         >
           <CardContent className="p-3 flex items-start gap-3">
