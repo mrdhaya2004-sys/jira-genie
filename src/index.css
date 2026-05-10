@@ -269,9 +269,12 @@
     transform: none;
   }
 
-  /* Active indicator: gradient sheen + left bar */
+  /* Active indicator: gradient sheen + left bar.
+     Triggered by: .is-active class OR [data-state="active"] (Radix Tabs/etc.) */
   .sidebar-active-indicator,
-  .menu-item.is-active {
+  .menu-item.is-active,
+  .menu-item-shine.is-active,
+  .menu-item-shine[data-state="active"] {
     position: relative;
     background: linear-gradient(
       90deg,
@@ -280,6 +283,7 @@
       hsl(var(--menu-accent)) 100%
     );
     background-size: 200% 100%;
+    color: hsl(var(--menu-accent-fg));
     box-shadow:
       inset 0 1px 0 hsl(var(--menu-fg) / 0.06),
       0 1px 2px hsl(var(--menu-primary) / 0.18),
@@ -287,7 +291,9 @@
     animation: menu-active-sheen 6s ease-in-out infinite;
   }
   .sidebar-active-indicator::before,
-  .menu-item.is-active::before {
+  .menu-item.is-active::before,
+  .menu-item-shine.is-active::before,
+  .menu-item-shine[data-state="active"]::before {
     content: '';
     position: absolute;
     left: 0;
