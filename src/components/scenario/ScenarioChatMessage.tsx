@@ -20,7 +20,9 @@ interface ScenarioChatMessageProps {
   onCodeFrameworkSelect?: (framework: CodeFramework) => void;
   onCodeAction?: (action: string) => void;
   selectedFramework?: AutomationFramework;
+  selectedWorkspaceId?: string;
   selectedModule?: string;
+  selectedCodeFramework?: CodeFramework | null;
 }
 
 const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
@@ -31,7 +33,9 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
   onCodeFrameworkSelect,
   onCodeAction,
   selectedFramework,
+  selectedWorkspaceId,
   selectedModule,
+  selectedCodeFramework,
 }) => {
   const isBot = message.role === 'assistant';
 
@@ -110,6 +114,7 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
               <FrameworkCard
                 key={framework.id}
                 framework={framework}
+                isSelected={selectedFramework === framework.id}
                 onClick={() => onFrameworkSelect(framework.id, framework.name)}
               />
             ))}
@@ -120,6 +125,7 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
         {message.type === 'code_framework_select' && onCodeFrameworkSelect && (
           <CodeFrameworkSelector
             onSelect={onCodeFrameworkSelect}
+            selected={selectedCodeFramework}
             className="w-full mt-2"
           />
         )}
@@ -127,34 +133,46 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
         {/* Workspace Selection */}
         {message.type === 'workspace_select' && message.options && onWorkspaceSelect && (
           <div className="flex flex-wrap gap-2 mt-2">
-            {message.options.map((option) => (
-              <Button
-                key={option.id}
-                variant="outline"
-                size="sm"
-                onClick={() => onWorkspaceSelect(option.id, option.label)}
-                className="menu-item-shine text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5 hover:shadow-[0_6px_18px_-10px_hsl(var(--primary)/0.5)]"
-              >
-                📁 {option.label}
-              </Button>
-            ))}
+            {message.options.map((option) => {
+              const isActive = selectedWorkspaceId === option.id;
+              return (
+                <Button
+                  key={option.id}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onWorkspaceSelect(option.id, option.label)}
+                  className={cn(
+                    "menu-item-shine text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5 hover:shadow-[0_6px_18px_-10px_hsl(var(--primary)/0.5)]",
+                    isActive && "is-active border-primary/70"
+                  )}
+                >
+                  📁 {option.label}
+                </Button>
+              );
+            })}
           </div>
         )}
 
         {/* Module Selection */}
         {message.type === 'module_select' && message.options && onModuleSelect && (
           <div className="flex flex-wrap gap-2 mt-2">
-            {message.options.map((option) => (
-              <Button
-                key={option.id}
-                variant="outline"
-                size="sm"
-                onClick={() => onModuleSelect(option.value)}
-                className="menu-item-shine text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5 hover:shadow-[0_6px_18px_-10px_hsl(var(--primary)/0.5)]"
-              >
-                {option.label}
-              </Button>
-            ))}
+            {message.options.map((option) => {
+              const isActive = selectedModule === option.value;
+              return (
+                <Button
+                  key={option.id}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onModuleSelect(option.value)}
+                  className={cn(
+                    "menu-item-shine text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5 hover:shadow-[0_6px_18px_-10px_hsl(var(--primary)/0.5)]",
+                    isActive && "is-active border-primary/70"
+                  )}
+                >
+                  {option.label}
+                </Button>
+              );
+            })}
           </div>
         )}
 

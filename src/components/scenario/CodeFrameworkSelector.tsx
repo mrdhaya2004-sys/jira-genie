@@ -5,34 +5,45 @@ import { CODE_FRAMEWORKS, type CodeFramework } from '@/types/scenario';
 
 interface CodeFrameworkSelectorProps {
   onSelect: (framework: CodeFramework) => void;
+  selected?: CodeFramework | null;
   className?: string;
 }
 
 const CodeFrameworkSelector: React.FC<CodeFrameworkSelectorProps> = ({
   onSelect,
+  selected,
   className,
 }) => {
   return (
     <div className={cn("grid grid-cols-1 sm:grid-cols-2 gap-2", className)}>
-      {CODE_FRAMEWORKS.map((framework) => (
-        <Card
-          key={framework.id}
-          className="menu-item-shine cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-[0_8px_24px_-12px_hsl(var(--primary)/0.45)] group"
-          onClick={() => onSelect(framework.id)}
-        >
-          <CardContent className="p-3 flex items-start gap-3">
-            <span className="text-2xl flex-shrink-0">{framework.icon}</span>
-            <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-sm group-hover:text-primary transition-colors">
-                {framework.name}
-              </h4>
-              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                {framework.description}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+      {CODE_FRAMEWORKS.map((framework) => {
+        const isSelected = selected === framework.id;
+        return (
+          <Card
+            key={framework.id}
+            className={cn(
+              "menu-item-shine cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-[0_8px_24px_-12px_hsl(var(--primary)/0.45)] group",
+              isSelected && "is-active border-primary/70"
+            )}
+            onClick={() => onSelect(framework.id)}
+          >
+            <CardContent className="p-3 flex items-start gap-3">
+              <span className="text-2xl flex-shrink-0">{framework.icon}</span>
+              <div className="flex-1 min-w-0">
+                <h4 className={cn(
+                  "font-medium text-sm transition-colors",
+                  isSelected ? "text-primary" : "group-hover:text-primary"
+                )}>
+                  {framework.name}
+                </h4>
+                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                  {framework.description}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };

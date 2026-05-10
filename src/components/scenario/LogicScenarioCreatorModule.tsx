@@ -152,7 +152,9 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
               onCodeFrameworkSelect={phase === 'code_framework_selection' ? handleCodeFrameworkSelect : undefined}
               onCodeAction={phase === 'code_generated' ? handleCodeAction : undefined}
               selectedFramework={selectedFramework}
+              selectedWorkspaceId={selectedWorkspace?.id}
               selectedModule={selectedModule}
+              selectedCodeFramework={selectedCodeFramework}
             />
           ))}
 
