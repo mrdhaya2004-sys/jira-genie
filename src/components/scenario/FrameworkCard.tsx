@@ -14,7 +14,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({ framework, isSelected, on
     <Card
       className={cn(
         "menu-item-shine cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-12px_hsl(var(--primary)/0.45)] hover:border-primary/60",
-        isSelected && "border-primary bg-gradient-to-br from-primary/10 via-primary/5 to-transparent shadow-[0_4px_18px_-6px_hsl(var(--primary)/0.45)] ring-1 ring-primary/30"
+        isSelected && "is-active border-primary/70"
       )}
       onClick={() => onClick(framework.id, framework.name)}
     >
