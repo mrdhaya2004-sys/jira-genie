@@ -20,7 +20,9 @@ interface ScenarioChatMessageProps {
   onCodeFrameworkSelect?: (framework: CodeFramework) => void;
   onCodeAction?: (action: string) => void;
   selectedFramework?: AutomationFramework;
+  selectedWorkspaceId?: string;
   selectedModule?: string;
+  selectedCodeFramework?: CodeFramework | null;
 }
 
 const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
@@ -31,7 +33,9 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
   onCodeFrameworkSelect,
   onCodeAction,
   selectedFramework,
+  selectedWorkspaceId,
   selectedModule,
+  selectedCodeFramework,
 }) => {
   const isBot = message.role === 'assistant';
 
