@@ -144,7 +144,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 group hover:bg-primary/10"
+          className="menu-item-shine h-9 w-9 group hover:bg-primary/10"
           aria-label="QA Mock Test"
           onClick={() => navigate('/qa-mock-test')}
         >
@@ -154,7 +154,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
         {/* Smart Notes */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-9 w-9 group note-glow" aria-label="Smart Notes">
+            <Button variant="ghost" size="icon" className="menu-item-shine h-9 w-9 group note-glow" aria-label="Smart Notes">
               <StickyNote className="h-[18px] w-[18px] note-amber" />
             </Button>
           </PopoverTrigger>
@@ -166,7 +166,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
         {/* Notifications Bell */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className={`relative h-9 w-9 group bell-glow ${unreadCount > 0 ? 'notification-pulse' : ''}`}>
+            <Button variant="ghost" size="icon" className={`menu-item-shine relative h-9 w-9 group bell-glow ${unreadCount > 0 ? 'notification-pulse' : ''}`}>
               <Bell className="h-[18px] w-[18px] bell-golden" />
               <span className="bell-shine" aria-hidden="true" />
               {unreadCount > 0 && (
@@ -191,7 +191,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
         {/* Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2 h-9 px-2 hover:bg-accent/60">
+            <Button variant="ghost" className="menu-item-shine flex items-center gap-2 h-9 px-2 hover:bg-accent/60">
               <Avatar className="h-7 w-7 ring-1 ring-border/50">
                 <AvatarImage src={profile?.avatar_url || undefined} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
