@@ -22,7 +22,7 @@ const CodeFrameworkSelector: React.FC<CodeFrameworkSelectorProps> = ({
           <Card
             key={framework.id}
             className={cn(
-              "menu-item-shine cursor-pointer group",
+              "glass-shine menu-item-shine cursor-pointer group",
               isSelected && "is-active border-primary/70"
             )}
             onClick={() => onSelect(framework.id)}

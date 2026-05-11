@@ -93,7 +93,7 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
   return (
     <div className="h-full flex flex-col bg-background">
       {/* Header */}
-      <div className="border-b bg-card px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+      <div className="glass-shine border-b px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg overflow-hidden bg-background ring-1 ring-border flex items-center justify-center shrink-0">
             <img src={scenarioLogo} alt="Logic Scenario Creator logo" loading="eager" decoding="async" fetchPriority="high" width={40} height={40} className="h-full w-full object-contain" />

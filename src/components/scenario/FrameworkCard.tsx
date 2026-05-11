@@ -13,7 +13,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({ framework, isSelected, on
   return (
     <Card
       className={cn(
-        "menu-item-shine cursor-pointer",
+        "glass-shine menu-item-shine cursor-pointer",
         isSelected && "is-active border-primary/70"
       )}
       onClick={() => onClick(framework.id, framework.name)}
