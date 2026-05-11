@@ -96,7 +96,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
               variant="ghost"
               size="sm"
               onClick={() => setIsReadOnly(!isReadOnly)}
-              className="h-8 px-2"
+              className="menu-item-shine h-8 px-2 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/5 hover:text-primary hover:shadow-[0_4px_14px_-8px_hsl(var(--primary)/0.5)]"
               title={isReadOnly ? 'Enable editing' : 'Set read-only'}
             >
               {isReadOnly ? (
@@ -110,7 +110,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
               variant="ghost"
               size="sm"
               onClick={handleCopy}
-              className="h-8 px-2"
+              className="menu-item-shine h-8 px-2 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/5 hover:text-primary hover:shadow-[0_4px_14px_-8px_hsl(var(--primary)/0.5)]"
             >
               {copied ? (
                 <>
@@ -129,7 +129,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
               variant="ghost"
               size="sm"
               onClick={handleDownload}
-              className="h-8 px-2"
+              className="menu-item-shine h-8 px-2 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/5 hover:text-primary hover:shadow-[0_4px_14px_-8px_hsl(var(--primary)/0.5)]"
             >
               <Download className="h-4 w-4 mr-1" />
               Download
@@ -140,7 +140,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onRegenerate(generatedCode.framework)}
-                className="h-8 px-2"
+                className="menu-item-shine h-8 px-2 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/5 hover:text-primary hover:shadow-[0_4px_14px_-8px_hsl(var(--primary)/0.5)]"
               >
                 <RefreshCw className="h-4 w-4 mr-1" />
                 Regenerate
@@ -190,7 +190,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onAskAI('Refactor this code to be more maintainable')}
-                className="text-xs"
+                className="menu-item-shine text-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5 hover:shadow-[0_6px_18px_-10px_hsl(var(--primary)/0.5)]"
               >
                 <MessageSquare className="h-3 w-3 mr-1" />
                 Refactor
@@ -199,7 +199,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onAskAI('Add more assertions and validations')}
-                className="text-xs"
+                className="menu-item-shine text-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5 hover:shadow-[0_6px_18px_-10px_hsl(var(--primary)/0.5)]"
               >
                 <MessageSquare className="h-3 w-3 mr-1" />
                 Add Assertions
@@ -208,7 +208,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onAskAI('Explain this code step by step')}
-                className="text-xs"
+                className="menu-item-shine text-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5 hover:shadow-[0_6px_18px_-10px_hsl(var(--primary)/0.5)]"
               >
                 <MessageSquare className="h-3 w-3 mr-1" />
                 Explain Code
