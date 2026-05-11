@@ -132,7 +132,7 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
             onResumePrompt={handleResumeFromPanel}
           />
           
-          <Button variant="outline" size="sm" onClick={resetFlow} className="menu-item-shine px-2 sm:px-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5 hover:shadow-[0_6px_18px_-10px_hsl(var(--primary)/0.5)]">
+          <Button variant="outline" size="sm" onClick={resetFlow} className="menu-item-shine px-2 sm:px-3">
             <RotateCcw className="h-4 w-4 sm:mr-1" />
             <span className="hidden sm:inline">Start Over</span>
           </Button>
