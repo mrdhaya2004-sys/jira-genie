@@ -67,7 +67,7 @@ const ScenarioChatInput: React.FC<ScenarioChatInputProps> = ({
           type="submit" 
           size="icon"
           disabled={disabled || !input.trim()}
-          className="menu-item-shine h-11 w-11 flex-shrink-0 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-12px_hsl(var(--primary)/0.6)]"
+          className="menu-item-shine h-11 w-11 flex-shrink-0"
         >
           <Send className="h-4 w-4" />
         </Button>
