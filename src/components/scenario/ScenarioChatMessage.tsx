@@ -142,7 +142,7 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
                   size="sm"
                   onClick={() => onWorkspaceSelect(option.id, option.label)}
                   className={cn(
-                    "menu-item-shine text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5 hover:shadow-[0_6px_18px_-10px_hsl(var(--primary)/0.5)]",
+                    "menu-item-shine text-sm",
                     isActive && "is-active border-primary/70"
                   )}
                 >
@@ -165,7 +165,7 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
                   size="sm"
                   onClick={() => onModuleSelect(option.value)}
                   className={cn(
-                    "menu-item-shine text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5 hover:shadow-[0_6px_18px_-10px_hsl(var(--primary)/0.5)]",
+                    "menu-item-shine text-sm",
                     isActive && "is-active border-primary/70"
                   )}
                 >

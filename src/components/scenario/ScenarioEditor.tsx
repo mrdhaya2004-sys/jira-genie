@@ -84,7 +84,7 @@ const ScenarioEditor: React.FC<ScenarioEditorProps> = ({
               variant="ghost"
               size="sm"
               onClick={handleCopy}
-              className="menu-item-shine h-8 px-2 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/5 hover:text-primary hover:shadow-[0_4px_14px_-8px_hsl(var(--primary)/0.5)]"
+              className="menu-item-shine h-8 px-2"
             >
               {copied ? (
                 <>
@@ -103,7 +103,7 @@ const ScenarioEditor: React.FC<ScenarioEditorProps> = ({
               variant="ghost"
               size="sm"
               onClick={handleDownload}
-              className="menu-item-shine h-8 px-2 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/5 hover:text-primary hover:shadow-[0_4px_14px_-8px_hsl(var(--primary)/0.5)]"
+              className="menu-item-shine h-8 px-2"
             >
               <Download className="h-4 w-4 mr-1" />
               Download
