@@ -313,11 +313,18 @@
     z-index: 2;
   }
 
-  /* Professional shine sweep on hover */
+  /* Professional shine sweep + unified hover treatment.
+     One source of truth for buttons, pills, cards, and tab triggers. */
   .menu-item-shine {
     position: relative;
     overflow: hidden;
     isolation: isolate;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      color 0.2s ease;
   }
   .menu-item-shine::after {
     content: '';
@@ -345,6 +352,18 @@
   .menu-item-shine > * {
     position: relative;
     z-index: 2;
+  }
+  /* Unified hover lift — skipped on the sidebar's .menu-item (which slides X
+     instead) and on already-active surfaces. */
+  .menu-item-shine:not(.menu-item):not(.is-active):not([data-state="active"]):hover {
+    transform: translateY(-2px);
+    border-color: hsl(var(--primary) / 0.6);
+    background-color: hsl(var(--primary) / 0.05);
+    box-shadow: 0 6px 18px -10px hsl(var(--primary) / 0.5);
+  }
+  .menu-item-shine:not(.menu-item):not(.is-active):not([data-state="active"]):active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px -4px hsl(var(--primary) / 0.4);
   }
 
 @keyframes menu-active-sheen {
