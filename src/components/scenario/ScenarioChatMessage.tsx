@@ -72,8 +72,8 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
         {/* Don't show card for code_display or scenario types - show editor instead */}
         {message.type !== 'code_display' && message.type !== 'scenario' && (
           <Card className={cn(
-            "shadow-sm",
-            isBot ? "bg-card" : "bg-primary text-primary-foreground"
+            "menu-item-shine shadow-sm",
+            isBot ? "glass-shine" : "bg-primary text-primary-foreground"
           )}>
             <CardContent className="p-3">
               <div 

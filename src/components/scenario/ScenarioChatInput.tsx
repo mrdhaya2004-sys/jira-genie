@@ -51,7 +51,7 @@ const ScenarioChatInput: React.FC<ScenarioChatInputProps> = ({
   }, [input]);
 
   return (
-    <form onSubmit={handleSubmit} className="border-t bg-background p-4">
+    <form onSubmit={handleSubmit} className="glass-shine border-t p-4">
       <div className="flex gap-2 items-end">
         <Textarea
           ref={textareaRef}

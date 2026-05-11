@@ -76,8 +76,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   };
 
   return (
-    <Card className={cn("w-full overflow-hidden", className)}>
-      <CardHeader className="pb-3 bg-muted/50 border-b">
+    <Card className={cn("glass-shine w-full overflow-hidden", className)}>
+      <CardHeader className="glass-shine pb-3 border-b rounded-none">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <CardTitle className="text-base flex items-center gap-2">
