@@ -27,7 +27,7 @@ import {
 'lucide-react';
 
 const AIConfigurationModule: React.FC = () => {
-  const { config, isLoading, isTesting, saveConfig, testConnection, removeConfig } = useAIConfig();
+  const { config, isLoading, isTesting, isDetecting, saveConfig, testConnection, detectModels, removeConfig } = useAIConfig();
   const { hiveEnabled, setHiveEnabled } = useHiveAISettings();
   const [showDisableDialog, setShowDisableDialog] = useState(false);
 
@@ -37,8 +37,10 @@ const AIConfigurationModule: React.FC = () => {
   const [endpointUrl, setEndpointUrl] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [detectedModels, setDetectedModels] = useState<string[] | null>(null);
 
   const selectedProvider = AI_PROVIDERS.find((p) => p.value === provider);
+  const availableModels = detectedModels ?? selectedProvider?.defaultModels ?? [];
 
   useEffect(() => {
     if (config) {
