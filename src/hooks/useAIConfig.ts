@@ -7,6 +7,7 @@ export const useAIConfig = () => {
   const [config, setConfig] = useState<AIProviderConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isTesting, setIsTesting] = useState(false);
+  const [isDetecting, setIsDetecting] = useState(false);
   const { toast } = useToast();
 
   const fetchConfig = useCallback(async () => {
@@ -130,6 +131,58 @@ export const useAIConfig = () => {
     }
   }, [toast]);
 
+  const detectModels = useCallback(async (values: {
+    provider: AIProvider;
+    apiKey: string;
+    endpointUrl?: string;
+  }): Promise<string[] | null> => {
+    setIsDetecting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/list-ai-models`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            provider: values.provider,
+            apiKey: values.apiKey,
+            endpointUrl: values.endpointUrl,
+          }),
+        }
+      );
+
+      const result = await response.json();
+      if (result.success && Array.isArray(result.models)) {
+        toast({
+          title: 'Models detected',
+          description: `Found ${result.models.length} model${result.models.length === 1 ? '' : 's'} for this provider`,
+        });
+        return result.models as string[];
+      }
+      toast({
+        title: 'Could not detect models',
+        description: result.error || 'Provider did not return a model list',
+        variant: 'destructive',
+      });
+      return null;
+    } catch (error) {
+      toast({
+        title: 'Detection failed',
+        description: error instanceof Error ? error.message : 'Could not reach provider',
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      setIsDetecting(false);
+    }
+  }, [toast]);
+
   const removeConfig = useCallback(async () => {
     if (!config) return;
     try {
@@ -154,8 +207,10 @@ export const useAIConfig = () => {
     config,
     isLoading,
     isTesting,
+    isDetecting,
     saveConfig,
     testConnection,
+    detectModels,
     removeConfig,
     refetch: fetchConfig,
   };

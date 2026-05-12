@@ -27,7 +27,7 @@ import {
 'lucide-react';
 
 const AIConfigurationModule: React.FC = () => {
-  const { config, isLoading, isTesting, saveConfig, testConnection, removeConfig } = useAIConfig();
+  const { config, isLoading, isTesting, isDetecting, saveConfig, testConnection, detectModels, removeConfig } = useAIConfig();
   const { hiveEnabled, setHiveEnabled } = useHiveAISettings();
   const [showDisableDialog, setShowDisableDialog] = useState(false);
 
@@ -37,8 +37,10 @@ const AIConfigurationModule: React.FC = () => {
   const [endpointUrl, setEndpointUrl] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [detectedModels, setDetectedModels] = useState<string[] | null>(null);
 
   const selectedProvider = AI_PROVIDERS.find((p) => p.value === provider);
+  const availableModels = detectedModels ?? selectedProvider?.defaultModels ?? [];
 
   useEffect(() => {
     if (config) {
@@ -217,6 +219,7 @@ const AIConfigurationModule: React.FC = () => {
             <Select value={provider} onValueChange={(val) => {
               setProvider(val as AIProvider);
               setModel('');
+              setDetectedModels(null);
             }}>
               <SelectTrigger className="menu-item-shine">
                 <SelectValue placeholder="Select provider" />
@@ -241,7 +244,17 @@ const AIConfigurationModule: React.FC = () => {
               className="menu-item-shine"
               placeholder={config ? '••••••••  (leave empty to keep current)' : 'Enter your API key'}
               value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)} />
+              onChange={(e) => setApiKey(e.target.value)}
+              onBlur={async () => {
+                if (apiKey.length < 8) return;
+                if (provider === 'azure_openai') return;
+                if ((provider === 'custom' || provider === 'local_llm') && !endpointUrl) return;
+                const list = await detectModels({ provider, apiKey, endpointUrl: endpointUrl || undefined });
+                if (list && list.length) {
+                  setDetectedModels(list);
+                  if (!list.includes(model)) setModel(list[0]);
+                }
+              }} />
 
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Shield className="h-3 w-3" />
@@ -251,14 +264,41 @@ const AIConfigurationModule: React.FC = () => {
 
           {/* Model */}
           <div className="space-y-2">
-            <Label htmlFor="model">Model Name</Label>
-            {selectedProvider && selectedProvider.defaultModels.length > 0 ?
+            <div className="flex items-center justify-between">
+              <Label htmlFor="model">
+                Model Name
+                {detectedModels && (
+                  <span className="ml-2 text-xs text-muted-foreground font-normal">
+                    ({detectedModels.length} auto-detected)
+                  </span>
+                )}
+              </Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="menu-item-shine h-7 text-xs"
+                disabled={isDetecting || (!apiKey && !config) || (selectedProvider?.requiresEndpoint && !endpointUrl) || provider === 'azure_openai'}
+                onClick={async () => {
+                  const key = apiKey || config?.api_key_encrypted || '';
+                  if (!key) return;
+                  const list = await detectModels({ provider, apiKey: key, endpointUrl: endpointUrl || undefined });
+                  if (list && list.length) {
+                    setDetectedModels(list);
+                    if (!list.includes(model)) setModel(list[0]);
+                  }
+                }}>
+                {isDetecting ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Zap className="h-3 w-3 mr-1" />}
+                Auto-detect
+              </Button>
+            </div>
+            {availableModels.length > 0 ?
             <Select value={model} onValueChange={setModel}>
                 <SelectTrigger className="menu-item-shine">
                   <SelectValue placeholder="Select model" />
                 </SelectTrigger>
-                <SelectContent>
-                  {selectedProvider.defaultModels.map((m) =>
+                <SelectContent className="max-h-[300px]">
+                  {availableModels.map((m) =>
                 <SelectItem key={m} value={m}>{m}</SelectItem>
                 )}
                 </SelectContent>
