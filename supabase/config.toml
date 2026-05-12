@@ -63,5 +63,3 @@ verify_jwt = false
 [functions.list-ai-models]
 verify_jwt = false
 
-[functions.jira-validate-connection]
-verify_jwt = false
