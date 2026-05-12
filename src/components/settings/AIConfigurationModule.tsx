@@ -46,7 +46,6 @@ const AIConfigurationModule: React.FC = () => {
       setModel(config.model_name);
       setEndpointUrl(config.endpoint_url || '');
       setDisplayName(config.display_name || '');
-      // Don't populate API key for security
     }
   }, [config]);
 
@@ -85,8 +84,10 @@ const AIConfigurationModule: React.FC = () => {
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6 overflow-y-auto h-full">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <img src={aiConfigLogo} alt="AI Configuration" className="h-10 w-10 object-contain rounded-none shadow-none border-0 border-none" />
+      <div className="glass-shine flex items-center gap-3 p-4 rounded-xl">
+        <div className="glass-shine flex items-center justify-center h-12 w-12 rounded-xl">
+          <img src={aiConfigLogo} alt="AI Configuration" className="h-8 w-8 object-contain" />
+        </div>
         <div>
           <h2 className="text-xl font-semibold text-foreground">AI Configuration</h2>
           <p className="text-sm text-muted-foreground">
@@ -96,19 +97,20 @@ const AIConfigurationModule: React.FC = () => {
       </div>
 
       {/* Hive Mind Architecture Info */}
-      <Card className="border-primary/20 bg-primary/5">
+      <Card className="glass-shine border-primary/20">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
-            <Network className="h-5 w-5 text-primary mt-0.5" />
+            <div className="glass-shine flex items-center justify-center h-9 w-9 rounded-lg shrink-0">
+              <Network className="h-4 w-4 text-primary" />
+            </div>
             <div className="space-y-2">
               <h3 className="font-medium text-foreground">Hive Mind Architecture</h3>
               <p className="text-sm text-muted-foreground">
                 All AI requests are orchestrated through the Hive Mind controller. Custom AI providers are routed through specialized agents your API keys never bypass the Hive Mind layer.
-              
               </p>
-              <div className="flex-wrap gap-2 mt-3 border-0 items-start justify-start flex flex-row rounded-sm">
+              <div className="flex flex-wrap gap-2 mt-3">
                 {['Test Case Agent', 'Scenario Agent', 'Automation Agent', 'DOM Agent', 'Ticket Agent'].map((agent) =>
-                <Badge key={agent} variant="secondary" className="text-xs">
+                <Badge key={agent} variant="secondary" className="menu-item-shine text-xs cursor-default">
                     <Zap className="h-3 w-3 mr-1" />
                     {agent}
                   </Badge>
@@ -120,11 +122,13 @@ const AIConfigurationModule: React.FC = () => {
       </Card>
 
       {/* Hive AI Toggle */}
-      <Card>
+      <Card className="glass-shine">
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-lg">🐝</span>
+              <div className="glass-shine flex items-center justify-center h-10 w-10 rounded-lg text-lg">
+                🐝
+              </div>
               <div>
                 <h3 className="font-medium text-foreground">Hive AI Chat</h3>
                 <p className="text-sm text-muted-foreground">
@@ -151,14 +155,16 @@ const AIConfigurationModule: React.FC = () => {
 
       {/* Current Status */}
       {config &&
-      <Card>
+      <Card className="glass-shine">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-success" />
+                <div className="glass-shine flex items-center justify-center h-8 w-8 rounded-lg">
+                  <CheckCircle2 className="h-4 w-4 text-success" />
+                </div>
                 Active Configuration
               </CardTitle>
-              <Button variant="ghost" size="sm" className="text-destructive" onClick={removeConfig}>
+              <Button variant="ghost" size="sm" className="menu-item-shine text-destructive hover:text-destructive" onClick={removeConfig}>
                 <Trash2 className="h-4 w-4 mr-1" />
                 Remove
               </Button>
@@ -192,10 +198,12 @@ const AIConfigurationModule: React.FC = () => {
       <Separator />
 
       {/* Configuration Form */}
-      <Card>
+      <Card className="glass-shine">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Plug className="h-4 w-4" />
+            <div className="glass-shine flex items-center justify-center h-8 w-8 rounded-lg">
+              <Plug className="h-4 w-4 text-primary" />
+            </div>
             {config ? 'Update Configuration' : 'Connect AI Provider'}
           </CardTitle>
           <CardDescription>
@@ -210,7 +218,7 @@ const AIConfigurationModule: React.FC = () => {
               setProvider(val as AIProvider);
               setModel('');
             }}>
-              <SelectTrigger>
+              <SelectTrigger className="menu-item-shine">
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
               <SelectContent>
@@ -230,10 +238,11 @@ const AIConfigurationModule: React.FC = () => {
             <Input
               id="apiKey"
               type="password"
+              className="menu-item-shine"
               placeholder={config ? '••••••••  (leave empty to keep current)' : 'Enter your API key'}
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)} />
-            
+
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Shield className="h-3 w-3" />
               Keys are stored securely and never exposed to the frontend
@@ -245,7 +254,7 @@ const AIConfigurationModule: React.FC = () => {
             <Label htmlFor="model">Model Name</Label>
             {selectedProvider && selectedProvider.defaultModels.length > 0 ?
             <Select value={model} onValueChange={setModel}>
-                <SelectTrigger>
+                <SelectTrigger className="menu-item-shine">
                   <SelectValue placeholder="Select model" />
                 </SelectTrigger>
                 <SelectContent>
@@ -257,6 +266,7 @@ const AIConfigurationModule: React.FC = () => {
 
             <Input
               id="model"
+              className="menu-item-shine"
               placeholder="e.g., llama-3.1-70b"
               value={model}
               onChange={(e) => setModel(e.target.value)} />
@@ -270,10 +280,11 @@ const AIConfigurationModule: React.FC = () => {
               <Label htmlFor="endpointUrl">Endpoint URL</Label>
               <Input
               id="endpointUrl"
+              className="menu-item-shine"
               placeholder="https://your-endpoint.com/v1/chat/completions"
               value={endpointUrl}
               onChange={(e) => setEndpointUrl(e.target.value)} />
-            
+
             </div>
           }
 
@@ -282,19 +293,21 @@ const AIConfigurationModule: React.FC = () => {
             <Label htmlFor="displayName">Display Name (optional)</Label>
             <Input
               id="displayName"
+              className="menu-item-shine"
               placeholder="e.g., Production GPT-4"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)} />
-            
+
           </div>
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
             <Button
               variant="outline"
+              className="menu-item-shine"
               onClick={handleTest}
               disabled={isTesting || !apiKey && !config}>
-              
+
               {isTesting ?
               <Loader2 className="h-4 w-4 mr-2 animate-spin" /> :
 
@@ -303,9 +316,10 @@ const AIConfigurationModule: React.FC = () => {
               Test Connection
             </Button>
             <Button
+              className="menu-item-shine"
               onClick={handleSave}
               disabled={isSaving || !apiKey && !config || !model}>
-              
+
               {isSaving ?
               <Loader2 className="h-4 w-4 mr-2 animate-spin" /> :
 
