@@ -365,6 +365,14 @@ const QAMockTestPage: React.FC = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
+      <Helmet>
+        <title>QA Mock Test — Daily Skill Challenge | Test Zone</title>
+        <meta name="description" content="Sharpen your QA skills with Test Zone's daily mock test — 10 multiple-choice questions on testing fundamentals, automation, and APIs with instant feedback." />
+        <link rel="canonical" href="https://www.testzoneai.com/qa-mock-test" />
+        <meta property="og:title" content="QA Mock Test — Daily Skill Challenge | Test Zone" />
+        <meta property="og:description" content="Daily QA mock test with 10 multiple-choice questions across testing, automation, and APIs." />
+        <meta property="og:url" content="https://www.testzoneai.com/qa-mock-test" />
+      </Helmet>
       {/* Animated background */}
       <div className="qa-aurora-bg">
         <div className="qa-aurora-3" />
