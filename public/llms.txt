@@ -1,0 +1,17 @@
+# Test Zone
+
+> AI-powered testing platform that streamlines automation workflows using Hive Mind intelligence, smart script generation, and bug tracking.
+
+Test Zone helps QA engineers and developers create Jira tickets, generate test cases, build logic scenarios, generate XPath selectors, and run automated workflows — powered by an integrated AI assistant.
+
+## Pages
+
+- [Dashboard](/): Hive Mind workspace, automation tools, history, mentions, and tickets.
+- [Current Chat](/chat): AI-powered Jira ticket creation chat.
+- [QA Mock Test](/qa-mock-test): Daily QA skill challenge with multiple-choice questions.
+
+## Optional
+
+- [Sign In](/auth/login): Account sign-in.
+- [Sign Up](/auth/signup): Create a Test Zone account.
+- [Forgot Password](/auth/forgot-password): Reset your password.
