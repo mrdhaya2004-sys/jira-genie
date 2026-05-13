@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { Helmet } from 'react-helmet-async';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import MentionsPanel from '@/components/dashboard/MentionsPanel';
@@ -47,6 +48,14 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-background">
+      <Helmet>
+        <title>Test Zone — AI Testing & Jira Automation Dashboard</title>
+        <meta name="description" content="Hive Mind workspace for AI-powered test case generation, logic scenarios, XPath selectors, and Jira ticket automation." />
+        <link rel="canonical" href="https://www.testzoneai.com/" />
+        <meta property="og:title" content="Test Zone — AI Testing & Jira Automation Dashboard" />
+        <meta property="og:description" content="Hive Mind workspace for AI-powered test case generation, logic scenarios, XPath selectors, and Jira ticket automation." />
+        <meta property="og:url" content="https://www.testzoneai.com/" />
+      </Helmet>
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex w-[260px] flex-shrink-0 border-r border-sidebar-border relative">
         <DashboardSidebar 
