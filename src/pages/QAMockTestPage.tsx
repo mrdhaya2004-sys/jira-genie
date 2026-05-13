@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import confetti from 'canvas-confetti';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
