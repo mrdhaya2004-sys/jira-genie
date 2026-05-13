@@ -80,7 +80,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
       </div>
 
       {/* Right side - Auth Form */}
-      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-8 xl:px-12">
+      <main className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-8 xl:px-12">
         {/* Mobile Logo */}
         <div className="flex justify-center mb-8 lg:hidden">
           <div className="flex items-center gap-3">
@@ -98,7 +98,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="w-full max-w-md mx-auto">
           {children}
         </div>
-      </div>
+      </main>
     </div>;
 };
 export default AuthLayout;
