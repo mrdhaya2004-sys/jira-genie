@@ -407,7 +407,7 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onPlatformSelect(option.value as Platform)}
-                className="text-sm flex items-center gap-2 glass-shine menu-item-shine hover:border-primary/50"
+                className="text-sm flex items-center gap-2 menu-item-shine bg-background/60 backdrop-blur-sm border-border/60 hover:border-primary/50 hover:text-primary"
               >
                 <span className="text-base">{option.icon}</span>
                 <span>{option.label}</span>
