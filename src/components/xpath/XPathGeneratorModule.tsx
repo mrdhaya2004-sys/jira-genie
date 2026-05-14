@@ -153,9 +153,9 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
       )}
 
       {phase !== 'ready_for_query' && phase !== 'xpath_generated' && phase !== 'generating' && (
-        <div className="border-t bg-muted/50 p-4">
-          <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
-            <Sparkles className="h-4 w-4" />
+        <div className="border-t border-border/60 backdrop-blur-xl bg-muted/30 p-4">
+          <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm glass-effect rounded-full px-4 py-2 w-fit mx-auto">
+            <Sparkles className="h-4 w-4 text-primary animate-pulse" />
             <span>Complete the setup above to start generating XPaths</span>
           </div>
         </div>
