@@ -209,6 +209,8 @@ const HelpChatDialog: React.FC<HelpChatDialogProps> = ({ open, onOpenChange }) =
               ))}
             </div>
           )}
+          </div>
+          <ScrollToBottomButton visible={!isAtBottom} onClick={() => scrollToBottom('smooth')} />
         </div>
 
         {/* Input */}
