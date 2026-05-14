@@ -63,17 +63,8 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
     setPendingPrompt(prompt);
   };
 
-  // Auto-scroll on new messages / streaming updates when user is at bottom
-  useEffect(() => {
-    if (autoScroll) scrollToBottom(true);
-  }, [messages, isStreaming, isLoading, autoScroll, scrollToBottom]);
+  // Auto-scroll handled by useAutoScroll hook above
 
-  // Continuous scroll during streaming
-  useEffect(() => {
-    if (!isStreaming || !autoScroll) return;
-    const interval = setInterval(() => scrollToBottom(false), 150);
-    return () => clearInterval(interval);
-  }, [isStreaming, autoScroll, scrollToBottom]);
 
   const getModeLabel = () => {
     if (!selectedMode) return null;
@@ -177,17 +168,8 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
           </div>
         </ScrollArea>
 
-        {showScrollButton && (
-          <Button
-            size="icon"
-            variant="secondary"
-            onClick={() => { setAutoScroll(true); scrollToBottom(true); }}
-            className="absolute bottom-4 right-6 h-9 w-9 rounded-full shadow-lg border border-border/60 z-10 animate-fade-in"
-            aria-label="Scroll to bottom"
-          >
-            <ArrowDown className="h-4 w-4" />
-          </Button>
-        )}
+        <ScrollToBottomButton visible={!isAtBottom} onClick={() => scrollToBottom('smooth')} />
+
       </div>
 
       <TemplateBuilderDialog
