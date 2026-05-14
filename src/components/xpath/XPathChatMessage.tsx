@@ -311,7 +311,7 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
             variant="outline"
             size="sm"
             onClick={handleCopyAll}
-            className="h-8 px-3 text-xs glass-shine menu-item-shine"
+            className="h-8 px-3 text-xs menu-item-shine bg-background/60 backdrop-blur-sm border-border/60 hover:border-primary/50 hover:text-primary"
           >
             {copiedAll ? (
               <>
@@ -373,7 +373,7 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onWorkspaceSelect(option.id, option.label)}
-                className="text-sm glass-shine menu-item-shine"
+                className="text-sm menu-item-shine bg-background/60 backdrop-blur-sm border-border/60 hover:border-primary/50 hover:text-primary"
               >
                 📁 {option.label}
               </Button>
@@ -390,7 +390,7 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onModuleSelect(option.value)}
-                className="text-sm glass-shine menu-item-shine"
+                className="text-sm menu-item-shine bg-background/60 backdrop-blur-sm border-border/60 hover:border-primary/50 hover:text-primary"
               >
                 {option.label}
               </Button>
@@ -407,7 +407,7 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onPlatformSelect(option.value as Platform)}
-                className="text-sm flex items-center gap-2 glass-shine menu-item-shine hover:border-primary/50"
+                className="text-sm flex items-center gap-2 menu-item-shine bg-background/60 backdrop-blur-sm border-border/60 hover:border-primary/50 hover:text-primary"
               >
                 <span className="text-base">{option.icon}</span>
                 <span>{option.label}</span>
