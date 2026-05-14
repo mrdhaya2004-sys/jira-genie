@@ -223,30 +223,34 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
 
             {/* Recommended XPath */}
             {section.recommendedXPath && (
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                  <span className="text-xs font-semibold text-primary">Recommended XPath</span>
+              <div className="relative bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border border-primary/30 rounded-xl p-3 space-y-2 overflow-hidden shadow-[0_0_30px_-10px_hsl(var(--primary)/0.4)]">
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-primary/5 to-transparent pointer-events-none" />
+                <div className="relative flex items-center gap-2">
+                  <div className="relative">
+                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                    <div className="absolute inset-0 h-4 w-4 bg-yellow-500/40 blur-md" />
+                  </div>
+                  <span className="text-xs font-semibold text-primary tracking-wide uppercase">Recommended XPath</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 text-xs bg-background/50 px-2 py-1.5 rounded font-mono break-all">
+                <div className="relative flex items-center gap-2">
+                  <code className="flex-1 text-xs bg-background/70 backdrop-blur-sm border border-border/40 px-2.5 py-2 rounded-lg font-mono break-all">
                     {section.recommendedXPath}
                   </code>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 shrink-0"
+                    className="h-8 w-8 shrink-0 glass-effect hover:bg-primary/10 hover:text-primary transition-all"
                     onClick={() => handleCopyXPath(section.recommendedXPath!, -1)}
                   >
                     {copiedIndex === -1 ? (
-                      <Check className="h-3 w-3 text-green-500" />
+                      <Check className="h-3.5 w-3.5 text-green-500" />
                     ) : (
-                      <Copy className="h-3 w-3" />
+                      <Copy className="h-3.5 w-3.5" />
                     )}
                   </Button>
                 </div>
                 {section.recommendedReason && (
-                  <p className="text-xs text-muted-foreground italic">{section.recommendedReason}</p>
+                  <p className="relative text-xs text-muted-foreground italic">{section.recommendedReason}</p>
                 )}
               </div>
             )}
@@ -282,7 +286,7 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6"
+                            className="h-7 w-7 glass-effect hover:bg-primary/10 hover:text-primary transition-all"
                             onClick={() => handleCopyXPath(xp.xpath, sectionIdx * 100 + idx)}
                           >
                             {copiedIndex === sectionIdx * 100 + idx ? (
@@ -302,21 +306,21 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
         ))}
 
         {/* Copy All Button */}
-        <div className="flex justify-end pt-2 border-t">
+        <div className="flex justify-end pt-2 border-t border-border/40">
           <Button
             variant="outline"
             size="sm"
             onClick={handleCopyAll}
-            className="h-7 px-3 text-xs"
+            className="h-8 px-3 text-xs glass-shine menu-item-shine"
           >
             {copiedAll ? (
               <>
-                <Check className="h-3 w-3 mr-1" />
+                <Check className="h-3 w-3 mr-1.5 text-green-500" />
                 Copied All!
               </>
             ) : (
               <>
-                <Copy className="h-3 w-3 mr-1" />
+                <Copy className="h-3 w-3 mr-1.5" />
                 Copy All XPaths
               </>
             )}
@@ -331,22 +335,29 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
       "flex gap-3 max-w-4xl",
       isBot ? "mr-auto" : "ml-auto flex-row-reverse"
     )}>
-      <Avatar className={cn(
-        "h-8 w-8 flex-shrink-0",
-        isBot ? "bg-primary" : "bg-muted"
-      )}>
-        <AvatarFallback className={isBot ? "bg-primary text-primary-foreground" : "bg-muted"}>
-          {isBot ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
-        </AvatarFallback>
-      </Avatar>
+      <div className="relative flex-shrink-0">
+        {isBot && (
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/50 to-primary/10 blur-md" />
+        )}
+        <Avatar className={cn(
+          "relative h-8 w-8 ring-1",
+          isBot ? "ring-primary/30" : "ring-border/60"
+        )}>
+          <AvatarFallback className={cn(
+            isBot ? "bg-gradient-to-br from-primary to-primary/70 text-primary-foreground" : "bg-muted"
+          )}>
+            {isBot ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
+          </AvatarFallback>
+        </Avatar>
+      </div>
 
       <div className={cn(
         "flex flex-col gap-2 max-w-[85%]",
         !isBot && "items-end"
       )}>
         <Card className={cn(
-          "shadow-sm",
-          isBot ? "bg-card" : "bg-primary text-primary-foreground"
+          "shadow-soft border-border/60 backdrop-blur-sm",
+          isBot ? "bg-card/80" : "bg-gradient-to-br from-primary to-primary/85 text-primary-foreground border-primary/30 shadow-[0_0_20px_-8px_hsl(var(--primary)/0.5)]"
         )}>
           <CardContent className="p-3">
             {renderXPathContent()}
@@ -362,7 +373,7 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onWorkspaceSelect(option.id, option.label)}
-                className="text-sm"
+                className="text-sm glass-shine menu-item-shine"
               >
                 📁 {option.label}
               </Button>
@@ -379,7 +390,7 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onModuleSelect(option.value)}
-                className="text-sm"
+                className="text-sm glass-shine menu-item-shine"
               >
                 {option.label}
               </Button>
@@ -396,9 +407,9 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onPlatformSelect(option.value as Platform)}
-                className="text-sm flex items-center gap-2"
+                className="text-sm flex items-center gap-2 glass-shine menu-item-shine hover:border-primary/50"
               >
-                <span>{option.icon}</span>
+                <span className="text-base">{option.icon}</span>
                 <span>{option.label}</span>
               </Button>
             ))}

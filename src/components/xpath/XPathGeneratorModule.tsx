@@ -66,15 +66,22 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
   };
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
       {/* Header */}
-      <div className="border-b bg-card px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          <img src={xpathLogo} alt="XPath Generator" className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg object-contain shrink-0" />
+      <div className="relative border-b border-border/60 backdrop-blur-xl bg-card/70 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 pointer-events-none" />
+        <div className="relative flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+          <div className="relative shrink-0">
+            <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary/40 to-primary/10 blur-md" />
+            <img src={xpathLogo} alt="XPath Generator" className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-lg object-contain ring-1 ring-border/60 bg-background/40 backdrop-blur-sm" />
+          </div>
           <div className="min-w-0 flex-1">
             <h2 className="font-semibold flex items-center gap-2 text-sm sm:text-base truncate">
               <span className="truncate">🧬 XPath Generator</span>
-              <Badge variant="secondary" className="text-[10px] sm:text-xs hidden sm:inline-flex shrink-0">AI-Powered</Badge>
+              <Badge variant="secondary" className="text-[10px] sm:text-xs hidden sm:inline-flex shrink-0 glass-effect border-primary/20">
+                <Sparkles className="h-2.5 w-2.5 mr-1 text-primary" />
+                AI-Powered
+              </Badge>
             </h2>
             <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
               Generate accurate Android & iOS XPaths from DOM analysis
@@ -82,10 +89,10 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {selectedWorkspace && <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[140px] truncate">📁 {selectedWorkspace.name}</Badge>}
-          {selectedModule && <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[120px] truncate">📦 {selectedModule}</Badge>}
-          {selectedPlatform && <Badge variant="outline" className="text-xs hidden md:inline-flex">{getPlatformBadge()}</Badge>}
+        <div className="relative flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {selectedWorkspace && <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[140px] truncate glass-effect">📁 {selectedWorkspace.name}</Badge>}
+          {selectedModule && <Badge variant="outline" className="text-xs hidden lg:inline-flex max-w-[120px] truncate glass-effect">📦 {selectedModule}</Badge>}
+          {selectedPlatform && <Badge variant="outline" className="text-xs hidden md:inline-flex glass-effect">{getPlatformBadge()}</Badge>}
 
           {selectedWorkspace && (
             <EnvironmentSelector
@@ -103,7 +110,7 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
             onResumePrompt={handleResumeFromPanel}
           />
           
-          <Button variant="outline" size="sm" onClick={resetFlow} className="px-2 sm:px-3">
+          <Button variant="outline" size="sm" onClick={resetFlow} className="px-2 sm:px-3 glass-shine menu-item-shine">
             <RotateCcw className="h-4 w-4 sm:mr-1" />
             <span className="hidden sm:inline">Start Over</span>
           </Button>
@@ -124,9 +131,12 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
           ))}
 
           {(isLoading || isStreaming) && phase === 'generating' && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Generating XPaths...</span>
+            <div className="flex items-center gap-3 text-muted-foreground glass-effect rounded-xl px-4 py-3 w-fit">
+              <div className="relative">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <div className="absolute inset-0 h-4 w-4 rounded-full bg-primary/30 blur-md animate-pulse" />
+              </div>
+              <span className="text-sm font-medium">Generating XPaths...</span>
             </div>
           )}
         </div>
@@ -143,9 +153,9 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
       )}
 
       {phase !== 'ready_for_query' && phase !== 'xpath_generated' && phase !== 'generating' && (
-        <div className="border-t bg-muted/50 p-4">
-          <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
-            <Sparkles className="h-4 w-4" />
+        <div className="border-t border-border/60 backdrop-blur-xl bg-muted/30 p-4">
+          <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm glass-effect rounded-full px-4 py-2 w-fit mx-auto">
+            <Sparkles className="h-4 w-4 text-primary animate-pulse" />
             <span>Complete the setup above to start generating XPaths</span>
           </div>
         </div>
