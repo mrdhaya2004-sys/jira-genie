@@ -8,78 +8,89 @@
 
 @layer base {
   :root {
-    /* Modern Enterprise Teal/Blue Theme */
-    --background: 210 40% 97.5%;
-    --foreground: 222 47% 11%;
+    /* iOS 26 inspired sky-blue glass theme */
+    --background: 205 60% 97%;
+    --foreground: 215 30% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 215 30% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 215 30% 12%;
 
-    --primary: 200 98% 39%;
+    /* Sky / cyan primary */
+    --primary: 205 95% 52%;
     --primary-foreground: 0 0% 100%;
+    --primary-glow: 195 100% 62%;
 
-    --secondary: 215 24% 26%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 215 25% 22%;
 
-    --muted: 215 20% 65%;
+    --muted: 210 30% 92%;
     --muted-foreground: 215 16% 46%;
 
-    --accent: 210 40% 96%;
-    --accent-foreground: 215 19% 34%;
+    --accent: 195 100% 95%;
+    --accent-foreground: 205 95% 30%;
 
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 85% 97%;
 
-    --success: 142 76% 36%;
+    --success: 152 70% 42%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 214 20% 90%;
-    --input: 214 20% 90%;
-    --ring: 200 98% 39%;
+    --border: 210 30% 88%;
+    --input: 210 30% 88%;
+    --ring: 205 95% 52%;
 
-    --radius: 0.5rem;
+    --radius: 0.875rem;
 
-    /* Glass effects */
-    --glass-bg: 0 0% 100% / 0.7;
-    --glass-border: 214 20% 90% / 0.5;
+    /* Glass effects — soft frosted white with sky tint */
+    --glass-bg: 0 0% 100% / 0.55;
+    --glass-bg-strong: 0 0% 100% / 0.78;
+    --glass-border: 205 60% 88% / 0.6;
+    --glass-highlight: 0 0% 100% / 0.55;
+    --glass-shadow: 205 60% 30% / 0.18;
+    --glow-primary: 205 95% 55% / 0.45;
+
+    /* Ambient page gradient (iOS 26 wallpaper feel) */
+    --ambient-1: 205 100% 92%;
+    --ambient-2: 195 100% 88%;
+    --ambient-3: 215 100% 95%;
 
     /* Sidebar - Dark theme */
-    --sidebar-background: 222 47% 11%;
+    --sidebar-background: 215 35% 12%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 200 98% 39%;
+    --sidebar-primary: 205 95% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 24% 20%;
+    --sidebar-accent: 215 30% 18%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 215 19% 20%;
-    --sidebar-ring: 200 98% 39%;
+    --sidebar-border: 215 28% 22%;
+    --sidebar-ring: 205 95% 58%;
 
     /* Chat specific */
-    --chat-user-bg: 199 89% 48%;
+    --chat-user-bg: 205 95% 52%;
     --chat-user-fg: 0 0% 100%;
-    --chat-bot-bg: 210 20% 96%;
-    --chat-bot-fg: 222 47% 11%;
-    --chat-system-bg: 173 80% 95%;
-    --chat-system-fg: 173 80% 25%;
+    --chat-bot-bg: 210 30% 96%;
+    --chat-bot-fg: 215 30% 12%;
+    --chat-system-bg: 195 100% 95%;
+    --chat-system-fg: 205 95% 28%;
 
     /* Status colors */
     --status-bug: 0 84% 60%;
-    --status-task: 199 89% 48%;
-    --status-story: 142 76% 36%;
+    --status-task: 205 95% 52%;
+    --status-story: 152 70% 42%;
     --status-incident: 38 92% 50%;
 
     /* Priority colors */
     --priority-critical: 0 84% 60%;
     --priority-high: 38 92% 50%;
-    --priority-medium: 199 89% 48%;
-    --priority-low: 142 76% 36%;
-    --chart-1: 198 93% 59%;
-    --chart-2: 213 93% 67%;
+    --priority-medium: 205 95% 52%;
+    --priority-low: 152 70% 42%;
+    --chart-1: 205 95% 58%;
+    --chart-2: 195 100% 62%;
     --chart-3: 215 20% 65%;
     --chart-4: 215 16% 46%;
     --chart-5: 215 19% 34%;
@@ -92,9 +103,9 @@
     --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.06), 0 1px 2px -1px hsl(0 0% 0% / 0.06);
     --shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.08), 0 1px 2px -1px hsl(0 0% 0% / 0.08);
     --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.07), 0 2px 4px -2px hsl(0 0% 0% / 0.05);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.07), 0 4px 6px -4px hsl(0 0% 0% / 0.05);
-    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.08), 0 8px 10px -6px hsl(0 0% 0% / 0.04);
-    --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.2);
+    --shadow-lg: 0 10px 15px -3px hsl(var(--glass-shadow)), 0 4px 6px -4px hsl(0 0% 0% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(var(--glass-shadow)), 0 8px 10px -6px hsl(0 0% 0% / 0.04);
+    --shadow-2xl: 0 25px 50px -12px hsl(var(--glass-shadow));
     --tracking-normal: 0em;
     --spacing: 0.25rem;
   }
