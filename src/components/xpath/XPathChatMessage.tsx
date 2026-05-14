@@ -223,30 +223,34 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
 
             {/* Recommended XPath */}
             {section.recommendedXPath && (
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                  <span className="text-xs font-semibold text-primary">Recommended XPath</span>
+              <div className="relative bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border border-primary/30 rounded-xl p-3 space-y-2 overflow-hidden shadow-[0_0_30px_-10px_hsl(var(--primary)/0.4)]">
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-primary/5 to-transparent pointer-events-none" />
+                <div className="relative flex items-center gap-2">
+                  <div className="relative">
+                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                    <div className="absolute inset-0 h-4 w-4 bg-yellow-500/40 blur-md" />
+                  </div>
+                  <span className="text-xs font-semibold text-primary tracking-wide uppercase">Recommended XPath</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 text-xs bg-background/50 px-2 py-1.5 rounded font-mono break-all">
+                <div className="relative flex items-center gap-2">
+                  <code className="flex-1 text-xs bg-background/70 backdrop-blur-sm border border-border/40 px-2.5 py-2 rounded-lg font-mono break-all">
                     {section.recommendedXPath}
                   </code>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 shrink-0"
+                    className="h-8 w-8 shrink-0 glass-effect hover:bg-primary/10 hover:text-primary transition-all"
                     onClick={() => handleCopyXPath(section.recommendedXPath!, -1)}
                   >
                     {copiedIndex === -1 ? (
-                      <Check className="h-3 w-3 text-green-500" />
+                      <Check className="h-3.5 w-3.5 text-green-500" />
                     ) : (
-                      <Copy className="h-3 w-3" />
+                      <Copy className="h-3.5 w-3.5" />
                     )}
                   </Button>
                 </div>
                 {section.recommendedReason && (
-                  <p className="text-xs text-muted-foreground italic">{section.recommendedReason}</p>
+                  <p className="relative text-xs text-muted-foreground italic">{section.recommendedReason}</p>
                 )}
               </div>
             )}
