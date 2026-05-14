@@ -286,7 +286,7 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6"
+                            className="h-7 w-7 glass-effect hover:bg-primary/10 hover:text-primary transition-all"
                             onClick={() => handleCopyXPath(xp.xpath, sectionIdx * 100 + idx)}
                           >
                             {copiedIndex === sectionIdx * 100 + idx ? (
