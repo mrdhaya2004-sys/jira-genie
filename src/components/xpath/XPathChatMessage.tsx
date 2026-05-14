@@ -335,22 +335,29 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
       "flex gap-3 max-w-4xl",
       isBot ? "mr-auto" : "ml-auto flex-row-reverse"
     )}>
-      <Avatar className={cn(
-        "h-8 w-8 flex-shrink-0",
-        isBot ? "bg-primary" : "bg-muted"
-      )}>
-        <AvatarFallback className={isBot ? "bg-primary text-primary-foreground" : "bg-muted"}>
-          {isBot ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
-        </AvatarFallback>
-      </Avatar>
+      <div className="relative flex-shrink-0">
+        {isBot && (
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/50 to-primary/10 blur-md" />
+        )}
+        <Avatar className={cn(
+          "relative h-8 w-8 ring-1",
+          isBot ? "ring-primary/30" : "ring-border/60"
+        )}>
+          <AvatarFallback className={cn(
+            isBot ? "bg-gradient-to-br from-primary to-primary/70 text-primary-foreground" : "bg-muted"
+          )}>
+            {isBot ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
+          </AvatarFallback>
+        </Avatar>
+      </div>
 
       <div className={cn(
         "flex flex-col gap-2 max-w-[85%]",
         !isBot && "items-end"
       )}>
         <Card className={cn(
-          "shadow-sm",
-          isBot ? "bg-card" : "bg-primary text-primary-foreground"
+          "shadow-soft border-border/60 backdrop-blur-sm",
+          isBot ? "bg-card/80" : "bg-gradient-to-br from-primary to-primary/85 text-primary-foreground border-primary/30 shadow-[0_0_20px_-8px_hsl(var(--primary)/0.5)]"
         )}>
           <CardContent className="p-3">
             {renderXPathContent()}
@@ -366,7 +373,7 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onWorkspaceSelect(option.id, option.label)}
-                className="text-sm"
+                className="text-sm glass-shine menu-item-shine"
               >
                 📁 {option.label}
               </Button>
@@ -383,7 +390,7 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onModuleSelect(option.value)}
-                className="text-sm"
+                className="text-sm glass-shine menu-item-shine"
               >
                 {option.label}
               </Button>
@@ -400,9 +407,9 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onPlatformSelect(option.value as Platform)}
-                className="text-sm flex items-center gap-2"
+                className="text-sm flex items-center gap-2 glass-shine menu-item-shine hover:border-primary/50"
               >
-                <span>{option.icon}</span>
+                <span className="text-base">{option.icon}</span>
                 <span>{option.label}</span>
               </Button>
             ))}
