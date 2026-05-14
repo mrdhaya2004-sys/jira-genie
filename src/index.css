@@ -111,51 +111,60 @@
   }
 
   .dark {
-    --background: 222 47% 11%;
+    --background: 218 35% 8%;
     --foreground: 210 40% 98%;
 
-    --card: 217 32% 17%;
+    --card: 217 32% 14%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 217 32% 17%;
+    --popover: 217 32% 14%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 198 93% 59%;
-    --primary-foreground: 204 80% 15%;
+    --primary: 198 100% 62%;
+    --primary-foreground: 215 35% 8%;
+    --primary-glow: 190 100% 65%;
 
-    --secondary: 212 26% 83%;
-    --secondary-foreground: 228 84% 4%;
+    --secondary: 217 28% 22%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 215 16% 46%;
-    --muted-foreground: 210 40% 98%;
+    --muted: 217 28% 22%;
+    --muted-foreground: 215 20% 70%;
 
-    --accent: 228 84% 4%;
-    --accent-foreground: 215 20% 65%;
+    --accent: 205 80% 18%;
+    --accent-foreground: 198 100% 75%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 85% 97%;
 
-    --border: 215 19% 25%;
-    --input: 215 19% 25%;
-    --ring: 198 93% 59%;
+    --border: 217 28% 22%;
+    --input: 217 28% 22%;
+    --ring: 198 100% 62%;
 
-    --glass-bg: 217 32% 17% / 0.7;
-    --glass-border: 215 19% 25% / 0.5;
+    --glass-bg: 217 32% 16% / 0.55;
+    --glass-bg-strong: 217 32% 16% / 0.78;
+    --glass-border: 205 50% 40% / 0.35;
+    --glass-highlight: 0 0% 100% / 0.08;
+    --glass-shadow: 215 60% 4% / 0.55;
+    --glow-primary: 198 100% 62% / 0.55;
 
-    --sidebar-background: 222 47% 6%;
+    --ambient-1: 215 60% 12%;
+    --ambient-2: 205 70% 14%;
+    --ambient-3: 220 50% 10%;
+
+    --sidebar-background: 218 40% 6%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 198 93% 59%;
-    --sidebar-primary-foreground: 204 80% 15%;
-    --sidebar-accent: 215 20% 15%;
+    --sidebar-primary: 198 100% 62%;
+    --sidebar-primary-foreground: 215 35% 8%;
+    --sidebar-accent: 217 28% 16%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 215 19% 20%;
-    --sidebar-ring: 198 93% 59%;
-    --chart-1: 199 95% 73%;
-    --chart-2: 211 96% 78%;
+    --sidebar-border: 217 28% 18%;
+    --sidebar-ring: 198 100% 62%;
+    --chart-1: 198 100% 70%;
+    --chart-2: 190 100% 65%;
     --chart-3: 215 20% 65%;
     --chart-4: 215 16% 46%;
     --chart-5: 215 19% 34%;
-    --sidebar: 217 32% 17%;
+    --sidebar: 217 32% 14%;
     --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
     --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
     --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
