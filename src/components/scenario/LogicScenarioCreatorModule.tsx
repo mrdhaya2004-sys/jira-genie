@@ -138,34 +138,37 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
       </div>
 
       {/* Chat Area */}
-      <ScrollArea className="flex-1" ref={scrollRef}>
-        <div className="p-4 space-y-4 max-w-5xl mx-auto">
-          {messages.map((message) => (
-            <ScenarioChatMessage
-              key={message.id}
-              message={message}
-              onFrameworkSelect={phase === 'framework_selection' ? handleFrameworkSelect : undefined}
-              onWorkspaceSelect={phase === 'workspace_selection' ? handleWorkspaceSelect : undefined}
-              onModuleSelect={phase === 'module_selection' ? handleModuleSelect : undefined}
-              onCodeFrameworkSelect={phase === 'code_framework_selection' ? handleCodeFrameworkSelect : undefined}
-              onCodeAction={phase === 'code_generated' ? handleCodeAction : undefined}
-              selectedFramework={selectedFramework}
-              selectedWorkspaceId={selectedWorkspace?.id}
-              selectedModule={selectedModule}
-              selectedCodeFramework={selectedCodeFramework}
-            />
-          ))}
+      <div className="relative flex-1 min-h-0">
+        <ScrollArea className="h-full" ref={scrollRef}>
+          <div className="p-4 space-y-4 max-w-5xl mx-auto">
+            {messages.map((message) => (
+              <ScenarioChatMessage
+                key={message.id}
+                message={message}
+                onFrameworkSelect={phase === 'framework_selection' ? handleFrameworkSelect : undefined}
+                onWorkspaceSelect={phase === 'workspace_selection' ? handleWorkspaceSelect : undefined}
+                onModuleSelect={phase === 'module_selection' ? handleModuleSelect : undefined}
+                onCodeFrameworkSelect={phase === 'code_framework_selection' ? handleCodeFrameworkSelect : undefined}
+                onCodeAction={phase === 'code_generated' ? handleCodeAction : undefined}
+                selectedFramework={selectedFramework}
+                selectedWorkspaceId={selectedWorkspace?.id}
+                selectedModule={selectedModule}
+                selectedCodeFramework={selectedCodeFramework}
+              />
+            ))}
 
-          {(isLoading || isStreaming) && (phase === 'generating' || phase === 'code_generating') && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">
-                {phase === 'code_generating' ? 'Generating automation code...' : 'Generating scenarios...'}
-              </span>
-            </div>
-          )}
-        </div>
-      </ScrollArea>
+            {(isLoading || isStreaming) && (phase === 'generating' || phase === 'code_generating') && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">
+                  {phase === 'code_generating' ? 'Generating automation code...' : 'Generating scenarios...'}
+                </span>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+        <ScrollToBottomButton visible={!isAtBottom} onClick={() => scrollToBottom('smooth')} />
+      </div>
 
       {/* Input Area */}
       {(phase === 'ready_for_query' || phase === 'scenario_generated' || phase === 'code_generated') && (
