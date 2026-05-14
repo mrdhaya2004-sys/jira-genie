@@ -311,7 +311,7 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
             variant="outline"
             size="sm"
             onClick={handleCopyAll}
-            className="h-8 px-3 text-xs glass-shine menu-item-shine"
+            className="h-8 px-3 text-xs menu-item-shine bg-background/60 backdrop-blur-sm border-border/60 hover:border-primary/50 hover:text-primary"
           >
             {copiedAll ? (
               <>
