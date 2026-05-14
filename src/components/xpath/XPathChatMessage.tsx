@@ -373,7 +373,7 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onWorkspaceSelect(option.id, option.label)}
-                className="text-sm glass-shine menu-item-shine"
+                className="text-sm menu-item-shine bg-background/60 backdrop-blur-sm border-border/60 hover:border-primary/50 hover:text-primary"
               >
                 📁 {option.label}
               </Button>
