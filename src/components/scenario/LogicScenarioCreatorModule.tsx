@@ -1,10 +1,12 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, RotateCcw, FileCode, Code2 } from 'lucide-react';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useScenarioCreator } from '@/hooks/useScenarioCreator';
+import { useAutoScroll } from '@/hooks/useAutoScroll';
+import ScrollToBottomButton from '@/components/common/ScrollToBottomButton';
 import ScenarioChatMessage from './ScenarioChatMessage';
 import ScenarioChatInput from './ScenarioChatInput';
 import HistoryPanel from '@/components/automation/HistoryPanel';
@@ -41,7 +43,9 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
     resumeFromHistory,
   } = useScenarioCreator({ workspaces, isLoadingWorkspaces: workspacesLoading });
 
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const { containerRef: scrollRef, scrollToBottom, isAtBottom } = useAutoScroll<HTMLDivElement>({
+    dependencies: [messages, isStreaming, isLoading],
+  });
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
   useEffect(() => {
@@ -61,12 +65,6 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
       setPendingPrompt(prompt);
     }
   };
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, isStreaming]);
 
   const getFrameworkBadge = () => {
     if (!selectedFramework) return null;
