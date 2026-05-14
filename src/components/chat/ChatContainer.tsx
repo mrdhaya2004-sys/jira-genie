@@ -4,10 +4,14 @@ import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import TypingIndicator from './TypingIndicator';
 import DynamicInputForm from './DynamicInputForm';
+import { useAutoScroll } from '@/hooks/useAutoScroll';
+import ScrollToBottomButton from '@/components/common/ScrollToBottomButton';
 
 const ChatContainer: React.FC = () => {
   const { messages, isTyping, handleUserInput, handleOptionSelect, handleDynamicInputSubmit, startNewTicket, handleEditTicket, currentPhase, dynamicInputs } = useChat();
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const { containerRef: scrollRef, scrollToBottom, isAtBottom } = useAutoScroll<HTMLDivElement>({
+    dependencies: [messages, isTyping],
+  });
   const hasStarted = useRef(false);
 
   useEffect(() => {
@@ -16,12 +20,6 @@ const ChatContainer: React.FC = () => {
       startNewTicket();
     }
   }, [startNewTicket]);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, isTyping]);
 
   const handleConfirm = () => {
     handleUserInput('confirm');
