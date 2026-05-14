@@ -1,10 +1,12 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, RotateCcw, ClipboardList, FileSpreadsheet, ArrowDown, Sparkles } from 'lucide-react';
+import { Loader2, RotateCcw, ClipboardList, FileSpreadsheet, Sparkles } from 'lucide-react';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useTestCaseGenerator } from '@/hooks/useTestCaseGenerator';
+import { useAutoScroll } from '@/hooks/useAutoScroll';
+import ScrollToBottomButton from '@/components/common/ScrollToBottomButton';
 import TestCaseChatMessage from './TestCaseChatMessage';
 import TestCaseChatInput from './TestCaseChatInput';
 import TemplateBuilderDialog from './TemplateBuilderDialog';
@@ -41,40 +43,11 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
     resumeFromHistory,
   } = useTestCaseGenerator({ workspaces, isLoadingWorkspaces: workspacesLoading });
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const { containerRef: scrollRef, scrollToBottom, isAtBottom } = useAutoScroll<HTMLDivElement>({
+    dependencies: [messages, isStreaming, isLoading],
+    enabled: true,
+  });
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
-  const [autoScroll, setAutoScroll] = useState(true);
-  const [showScrollButton, setShowScrollButton] = useState(false);
-
-  // Resolve the actual scrollable viewport inside Radix ScrollArea
-  useEffect(() => {
-    if (scrollRef.current) {
-      viewportRef.current = scrollRef.current.querySelector(
-        '[data-radix-scroll-area-viewport]'
-      ) as HTMLDivElement | null;
-    }
-  }, []);
-
-  const scrollToBottom = useCallback((smooth = true) => {
-    const vp = viewportRef.current;
-    if (!vp) return;
-    vp.scrollTo({ top: vp.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
-  }, []);
-
-  // Track user scroll to enable smart auto-scroll
-  useEffect(() => {
-    const vp = viewportRef.current;
-    if (!vp) return;
-    const onScroll = () => {
-      const distance = vp.scrollHeight - vp.scrollTop - vp.clientHeight;
-      const atBottom = distance < 80;
-      setAutoScroll(atBottom);
-      setShowScrollButton(!atBottom);
-    };
-    vp.addEventListener('scroll', onScroll, { passive: true });
-    return () => vp.removeEventListener('scroll', onScroll);
-  }, []);
 
   useEffect(() => {
     if (resumeData && resumeData.module === 'test-case-generator') {
@@ -90,17 +63,8 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
     setPendingPrompt(prompt);
   };
 
-  // Auto-scroll on new messages / streaming updates when user is at bottom
-  useEffect(() => {
-    if (autoScroll) scrollToBottom(true);
-  }, [messages, isStreaming, isLoading, autoScroll, scrollToBottom]);
+  // Auto-scroll handled by useAutoScroll hook above
 
-  // Continuous scroll during streaming
-  useEffect(() => {
-    if (!isStreaming || !autoScroll) return;
-    const interval = setInterval(() => scrollToBottom(false), 150);
-    return () => clearInterval(interval);
-  }, [isStreaming, autoScroll, scrollToBottom]);
 
   const getModeLabel = () => {
     if (!selectedMode) return null;
@@ -204,17 +168,8 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
           </div>
         </ScrollArea>
 
-        {showScrollButton && (
-          <Button
-            size="icon"
-            variant="secondary"
-            onClick={() => { setAutoScroll(true); scrollToBottom(true); }}
-            className="absolute bottom-4 right-6 h-9 w-9 rounded-full shadow-lg border border-border/60 z-10 animate-fade-in"
-            aria-label="Scroll to bottom"
-          >
-            <ArrowDown className="h-4 w-4" />
-          </Button>
-        )}
+        <ScrollToBottomButton visible={!isAtBottom} onClick={() => scrollToBottom('smooth')} />
+
       </div>
 
       <TemplateBuilderDialog

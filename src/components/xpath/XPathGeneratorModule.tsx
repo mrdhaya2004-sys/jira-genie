@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -6,6 +6,8 @@ import { Loader2, RotateCcw, Sparkles } from 'lucide-react';
 import xpathLogo from '@/assets/xpath-logo.png';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useXPathGenerator } from '@/hooks/useXPathGenerator';
+import { useAutoScroll } from '@/hooks/useAutoScroll';
+import ScrollToBottomButton from '@/components/common/ScrollToBottomButton';
 import XPathChatMessage from './XPathChatMessage';
 import XPathChatInput from './XPathChatInput';
 import HistoryPanel from '@/components/automation/HistoryPanel';
@@ -37,7 +39,9 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
     resumeFromHistory,
   } = useXPathGenerator({ workspaces, isLoadingWorkspaces: workspacesLoading });
 
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const { containerRef: scrollRef, scrollToBottom, isAtBottom } = useAutoScroll<HTMLDivElement>({
+    dependencies: [messages, isStreaming, isLoading],
+  });
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
   useEffect(() => {
@@ -53,12 +57,6 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
   const handleResumeFromPanel = (prompt: string) => {
     setPendingPrompt(prompt);
   };
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, isStreaming]);
 
   const getPlatformBadge = () => {
     if (!selectedPlatform) return null;
@@ -118,29 +116,32 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
       </div>
 
       {/* Chat Area */}
-      <ScrollArea className="flex-1" ref={scrollRef}>
-        <div className="p-4 space-y-4 max-w-4xl mx-auto">
-          {messages.map((message) => (
-            <XPathChatMessage
-              key={message.id}
-              message={message}
-              onWorkspaceSelect={phase === 'workspace_selection' ? handleWorkspaceSelect : undefined}
-              onModuleSelect={phase === 'module_selection' ? handleModuleSelect : undefined}
-              onPlatformSelect={phase === 'platform_selection' ? handlePlatformSelect : undefined}
-            />
-          ))}
+      <div className="relative flex-1 min-h-0">
+        <ScrollArea className="h-full" ref={scrollRef}>
+          <div className="p-4 space-y-4 max-w-4xl mx-auto">
+            {messages.map((message) => (
+              <XPathChatMessage
+                key={message.id}
+                message={message}
+                onWorkspaceSelect={phase === 'workspace_selection' ? handleWorkspaceSelect : undefined}
+                onModuleSelect={phase === 'module_selection' ? handleModuleSelect : undefined}
+                onPlatformSelect={phase === 'platform_selection' ? handlePlatformSelect : undefined}
+              />
+            ))}
 
-          {(isLoading || isStreaming) && phase === 'generating' && (
-            <div className="flex items-center gap-3 text-muted-foreground glass-effect rounded-xl px-4 py-3 w-fit">
-              <div className="relative">
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                <div className="absolute inset-0 h-4 w-4 rounded-full bg-primary/30 blur-md animate-pulse" />
+            {(isLoading || isStreaming) && phase === 'generating' && (
+              <div className="flex items-center gap-3 text-muted-foreground glass-effect rounded-xl px-4 py-3 w-fit">
+                <div className="relative">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <div className="absolute inset-0 h-4 w-4 rounded-full bg-primary/30 blur-md animate-pulse" />
+                </div>
+                <span className="text-sm font-medium">Generating XPaths...</span>
               </div>
-              <span className="text-sm font-medium">Generating XPaths...</span>
-            </div>
-          )}
-        </div>
-      </ScrollArea>
+            )}
+          </div>
+        </ScrollArea>
+        <ScrollToBottomButton visible={!isAtBottom} onClick={() => scrollToBottom('smooth')} />
+      </div>
 
       {/* Input Area */}
       {(phase === 'ready_for_query' || phase === 'xpath_generated') && (

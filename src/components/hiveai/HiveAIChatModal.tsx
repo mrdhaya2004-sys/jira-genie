@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import CodePlayground from './CodePlayground';
+import { useAutoScroll } from '@/hooks/useAutoScroll';
+import ScrollToBottomButton from '@/components/common/ScrollToBottomButton';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 
@@ -74,18 +76,10 @@ const HiveAIChatModal: React.FC<HiveAIChatModalProps> = ({ open, onClose }) => {
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [playground, setPlayground] = useState<{ code: string; language?: string } | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const { containerRef: scrollRef, scrollToBottom, isAtBottom } = useAutoScroll<HTMLDivElement>({
+    dependencies: [messages, isStreaming],
+  });
   const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  const scrollToBottom = useCallback(() => {
-    setTimeout(() => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-      }
-    }, 50);
-  }, []);
-
-  useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 200);
@@ -222,7 +216,8 @@ const HiveAIChatModal: React.FC<HiveAIChatModalProps> = ({ open, onClose }) => {
         </div>
 
         {/* Messages */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3">
+        <div className="relative flex-1 min-h-0">
+          <div ref={scrollRef} className="absolute inset-0 overflow-y-auto p-3 space-y-3">
           {messages.map((msg, i) => (
             <div key={i} className={cn('flex gap-2.5', msg.role === 'user' && 'flex-row-reverse')}>
               <div className={cn(
@@ -289,6 +284,8 @@ const HiveAIChatModal: React.FC<HiveAIChatModalProps> = ({ open, onClose }) => {
               </div>
             </div>
           )}
+          </div>
+          <ScrollToBottomButton visible={!isAtBottom} onClick={() => scrollToBottom('smooth')} />
         </div>
 
         {/* Input */}

@@ -1,10 +1,12 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, RotateCcw, FileCode, Code2 } from 'lucide-react';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useScenarioCreator } from '@/hooks/useScenarioCreator';
+import { useAutoScroll } from '@/hooks/useAutoScroll';
+import ScrollToBottomButton from '@/components/common/ScrollToBottomButton';
 import ScenarioChatMessage from './ScenarioChatMessage';
 import ScenarioChatInput from './ScenarioChatInput';
 import HistoryPanel from '@/components/automation/HistoryPanel';
@@ -41,7 +43,9 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
     resumeFromHistory,
   } = useScenarioCreator({ workspaces, isLoadingWorkspaces: workspacesLoading });
 
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const { containerRef: scrollRef, scrollToBottom, isAtBottom } = useAutoScroll<HTMLDivElement>({
+    dependencies: [messages, isStreaming, isLoading],
+  });
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
   useEffect(() => {
@@ -61,12 +65,6 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
       setPendingPrompt(prompt);
     }
   };
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, isStreaming]);
 
   const getFrameworkBadge = () => {
     if (!selectedFramework) return null;
@@ -140,34 +138,37 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
       </div>
 
       {/* Chat Area */}
-      <ScrollArea className="flex-1" ref={scrollRef}>
-        <div className="p-4 space-y-4 max-w-5xl mx-auto">
-          {messages.map((message) => (
-            <ScenarioChatMessage
-              key={message.id}
-              message={message}
-              onFrameworkSelect={phase === 'framework_selection' ? handleFrameworkSelect : undefined}
-              onWorkspaceSelect={phase === 'workspace_selection' ? handleWorkspaceSelect : undefined}
-              onModuleSelect={phase === 'module_selection' ? handleModuleSelect : undefined}
-              onCodeFrameworkSelect={phase === 'code_framework_selection' ? handleCodeFrameworkSelect : undefined}
-              onCodeAction={phase === 'code_generated' ? handleCodeAction : undefined}
-              selectedFramework={selectedFramework}
-              selectedWorkspaceId={selectedWorkspace?.id}
-              selectedModule={selectedModule}
-              selectedCodeFramework={selectedCodeFramework}
-            />
-          ))}
+      <div className="relative flex-1 min-h-0">
+        <ScrollArea className="h-full" ref={scrollRef}>
+          <div className="p-4 space-y-4 max-w-5xl mx-auto">
+            {messages.map((message) => (
+              <ScenarioChatMessage
+                key={message.id}
+                message={message}
+                onFrameworkSelect={phase === 'framework_selection' ? handleFrameworkSelect : undefined}
+                onWorkspaceSelect={phase === 'workspace_selection' ? handleWorkspaceSelect : undefined}
+                onModuleSelect={phase === 'module_selection' ? handleModuleSelect : undefined}
+                onCodeFrameworkSelect={phase === 'code_framework_selection' ? handleCodeFrameworkSelect : undefined}
+                onCodeAction={phase === 'code_generated' ? handleCodeAction : undefined}
+                selectedFramework={selectedFramework}
+                selectedWorkspaceId={selectedWorkspace?.id}
+                selectedModule={selectedModule}
+                selectedCodeFramework={selectedCodeFramework}
+              />
+            ))}
 
-          {(isLoading || isStreaming) && (phase === 'generating' || phase === 'code_generating') && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">
-                {phase === 'code_generating' ? 'Generating automation code...' : 'Generating scenarios...'}
-              </span>
-            </div>
-          )}
-        </div>
-      </ScrollArea>
+            {(isLoading || isStreaming) && (phase === 'generating' || phase === 'code_generating') && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">
+                  {phase === 'code_generating' ? 'Generating automation code...' : 'Generating scenarios...'}
+                </span>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+        <ScrollToBottomButton visible={!isAtBottom} onClick={() => scrollToBottom('smooth')} />
+      </div>
 
       {/* Input Area */}
       {(phase === 'ready_for_query' || phase === 'scenario_generated' || phase === 'code_generated') && (
