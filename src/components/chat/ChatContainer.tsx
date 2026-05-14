@@ -36,31 +36,34 @@ const ChatContainer: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Messages Area */}
-      <div 
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto p-4 scrollbar-thin"
-      >
-        <div className="max-w-3xl mx-auto space-y-4 pb-4">
-          {messages.map((message) => (
-            <ChatMessage
-              key={message.id}
-              message={message}
-              onOptionSelect={handleOptionSelect}
-              onConfirm={handleConfirm}
-              onCancel={handleCancel}
-              onEdit={handleEdit}
-            />
-          ))}
-          {isTyping && <TypingIndicator />}
-          
-          {/* Dynamic Input Form */}
-          {currentPhase === 'dynamic_questions' && dynamicInputs.length > 0 && (
-            <DynamicInputForm 
-              inputs={dynamicInputs}
-              onSubmit={handleDynamicInputSubmit}
-            />
-          )}
+      <div className="relative flex-1 min-h-0">
+        <div
+          ref={scrollRef}
+          className="absolute inset-0 overflow-y-auto p-4 scrollbar-thin"
+        >
+          <div className="max-w-3xl mx-auto space-y-4 pb-4">
+            {messages.map((message) => (
+              <ChatMessage
+                key={message.id}
+                message={message}
+                onOptionSelect={handleOptionSelect}
+                onConfirm={handleConfirm}
+                onCancel={handleCancel}
+                onEdit={handleEdit}
+              />
+            ))}
+            {isTyping && <TypingIndicator />}
+
+            {/* Dynamic Input Form */}
+            {currentPhase === 'dynamic_questions' && dynamicInputs.length > 0 && (
+              <DynamicInputForm
+                inputs={dynamicInputs}
+                onSubmit={handleDynamicInputSubmit}
+              />
+            )}
+          </div>
         </div>
+        <ScrollToBottomButton visible={!isAtBottom} onClick={() => scrollToBottom('smooth')} />
       </div>
 
       {/* Input Area */}
