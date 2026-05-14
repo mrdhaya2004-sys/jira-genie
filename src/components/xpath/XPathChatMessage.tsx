@@ -306,21 +306,21 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
         ))}
 
         {/* Copy All Button */}
-        <div className="flex justify-end pt-2 border-t">
+        <div className="flex justify-end pt-2 border-t border-border/40">
           <Button
             variant="outline"
             size="sm"
             onClick={handleCopyAll}
-            className="h-7 px-3 text-xs"
+            className="h-8 px-3 text-xs glass-shine menu-item-shine"
           >
             {copiedAll ? (
               <>
-                <Check className="h-3 w-3 mr-1" />
+                <Check className="h-3 w-3 mr-1.5 text-green-500" />
                 Copied All!
               </>
             ) : (
               <>
-                <Copy className="h-3 w-3 mr-1" />
+                <Copy className="h-3 w-3 mr-1.5" />
                 Copy All XPaths
               </>
             )}
