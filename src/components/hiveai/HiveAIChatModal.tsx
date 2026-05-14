@@ -216,7 +216,8 @@ const HiveAIChatModal: React.FC<HiveAIChatModalProps> = ({ open, onClose }) => {
         </div>
 
         {/* Messages */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3">
+        <div className="relative flex-1 min-h-0">
+          <div ref={scrollRef} className="absolute inset-0 overflow-y-auto p-3 space-y-3">
           {messages.map((msg, i) => (
             <div key={i} className={cn('flex gap-2.5', msg.role === 'user' && 'flex-row-reverse')}>
               <div className={cn(
@@ -283,6 +284,8 @@ const HiveAIChatModal: React.FC<HiveAIChatModalProps> = ({ open, onClose }) => {
               </div>
             </div>
           )}
+          </div>
+          <ScrollToBottomButton visible={!isAtBottom} onClick={() => scrollToBottom('smooth')} />
         </div>
 
         {/* Input */}
