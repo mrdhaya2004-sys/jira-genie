@@ -110,7 +110,7 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
             onResumePrompt={handleResumeFromPanel}
           />
           
-          <Button variant="outline" size="sm" onClick={resetFlow} className="px-2 sm:px-3 glass-shine menu-item-shine">
+          <Button variant="outline" size="sm" onClick={resetFlow} className="px-2 sm:px-3 menu-item-shine bg-background/60 backdrop-blur-sm border-border/60 hover:border-primary/50 hover:text-primary">
             <RotateCcw className="h-4 w-4 sm:mr-1" />
             <span className="hidden sm:inline">Start Over</span>
           </Button>
