@@ -8,6 +8,7 @@ import JiraTicketRaiserModule from '@/components/jira/JiraTicketRaiserModule';
 import LogicScenarioCreatorModule from '@/components/scenario/LogicScenarioCreatorModule';
 import TestCaseGeneratorModule from '@/components/testcase/TestCaseGeneratorModule';
 import XPathGeneratorModule from '@/components/xpath/XPathGeneratorModule';
+import DefectAnalyzerModule from '@/components/defect/DefectAnalyzerModule';
 import MyTicketsModule from '@/components/tickets/MyTicketsModule';
 import HistoryModule from '@/components/automation/HistoryModule';
 import CurrentChatModule from '@/components/currentchat/CurrentChatModule';
@@ -17,7 +18,7 @@ import AccountSettingsModule from '@/components/settings/AccountSettingsModule';
 import AboutUsModule from '@/components/about/AboutUsModule';
 import FounderPage from '@/components/about/FounderPage';
 
-export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'ai-settings' | 'profile' | 'account-settings' | 'about' | 'founder';
+export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'defect-analyzer' | 'ai-settings' | 'profile' | 'account-settings' | 'about' | 'founder';
 
 const MODULE_MAP: Record<string, ActiveModule> = {
   'test-case-generator': 'test-case-generator',
@@ -79,6 +80,7 @@ const DashboardPage: React.FC = () => {
             {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule resumeData={resumeData} />}
             {activeModule === 'test-case-generator' && <TestCaseGeneratorModule resumeData={resumeData} />}
             {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
+            {activeModule === 'defect-analyzer' && <DefectAnalyzerModule />}
             {activeModule === 'ai-settings' && <AIConfigurationModule />}
             {activeModule === 'profile' && <ProfileModule />}
             {activeModule === 'account-settings' && <AccountSettingsModule />}

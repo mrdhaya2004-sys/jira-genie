@@ -15,7 +15,8 @@ import {
   ClipboardList,
   FileCode2,
   Brain,
-  Info } from
+  Info,
+  ShieldAlert } from
 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
@@ -72,6 +73,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   { icon: ClipboardList, label: 'Test Case Generator', module: 'test-case-generator' as ActiveModule },
   { icon: Code2, label: 'Logic Scenario Creator', module: 'logic-scenario-creator' as ActiveModule },
   { icon: FileCode2, label: 'XPath Generator', module: 'xpath-generator' as ActiveModule },
+  { icon: ShieldAlert, label: 'AI Defect Analyzer', module: 'defect-analyzer' as ActiveModule },
   { icon: Ticket, label: 'Jira Ticket Raiser', module: 'jira-ticket-raiser' as ActiveModule }];
 
 

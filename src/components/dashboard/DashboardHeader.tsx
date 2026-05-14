@@ -50,6 +50,7 @@ const MODULE_LABELS: Record<ActiveModule, string> = {
   'logic-scenario-creator': 'Scenario Creator',
   'test-case-generator': 'Test Case Generator',
   'xpath-generator': 'XPath Generator',
+  'defect-analyzer': 'AI Defect Analyzer',
   'ai-settings': 'AI Configuration',
   'profile': 'Profile',
   'account-settings': 'Account Settings',
