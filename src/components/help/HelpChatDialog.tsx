@@ -151,7 +151,8 @@ const HelpChatDialog: React.FC<HelpChatDialogProps> = ({ open, onOpenChange }) =
         </DialogHeader>
 
         {/* Messages */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="relative flex-1 min-h-0">
+          <div ref={scrollRef} className="absolute inset-0 overflow-y-auto p-4 space-y-4">
           {messages.map((msg, i) => (
             <div key={i} className={cn('flex gap-3', msg.role === 'user' && 'flex-row-reverse')}>
               <div className={cn(
