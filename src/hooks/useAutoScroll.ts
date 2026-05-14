@@ -78,19 +78,41 @@ export function useAutoScroll<T extends HTMLElement = HTMLDivElement>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, smooth, getViewport, ...dependencies]);
 
-  // Observe inner content size changes for streaming responses
+  // Observe inner content size changes for streaming responses.
+  // High-frequency token streaming can fire ResizeObserver dozens of times per
+  // second; coalesce into a single rAF tick and additionally throttle smooth
+  // scrolls to ~60ms so the browser isn't fighting an in-flight smooth animation.
   useEffect(() => {
     if (!enabled) return;
     const v = getViewport();
     if (!v) return;
     const target = v.firstElementChild ?? v;
-    const ro = new ResizeObserver(() => {
+
+    let rafId: number | null = null;
+    let lastSmoothAt = 0;
+    const SMOOTH_MIN_INTERVAL = 60; // ms — caps smooth-scroll dispatches
+
+    const flush = () => {
+      rafId = null;
       if (!stickRef.current) return;
-      v.scrollTo({ top: v.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+      const now = performance.now();
+      const useSmooth = smooth && now - lastSmoothAt >= SMOOTH_MIN_INTERVAL;
+      if (useSmooth) lastSmoothAt = now;
+      v.scrollTo({ top: v.scrollHeight, behavior: useSmooth ? 'smooth' : 'auto' });
+    };
+
+    const ro = new ResizeObserver(() => {
+      if (rafId !== null) return; // coalesce bursts within one frame
+      rafId = requestAnimationFrame(flush);
     });
     ro.observe(target);
-    return () => ro.disconnect();
+
+    return () => {
+      ro.disconnect();
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
   }, [enabled, smooth, getViewport]);
+
 
   return { containerRef, scrollToBottom, isAtBottom };
 }
