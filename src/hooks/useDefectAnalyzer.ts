@@ -77,9 +77,20 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
     [workspaces, addMessage],
   );
 
+  const [isParsing, setIsParsing] = useState(false);
+
   const handleFilesAccepted = useCallback(
     async (files: File[]) => {
+      const totalMb = files.reduce((s, f) => s + f.size, 0) / (1024 * 1024);
+      const isHuge = totalMb > 50;
       try {
+        setIsParsing(true);
+        if (isHuge) {
+          toast({
+            title: 'Large report detected',
+            description: `Parsing ${totalMb.toFixed(1)}MB — extracting failure-relevant sections. This may take a moment...`,
+          });
+        }
         const { digest, summaries } = await parseReportFiles(files);
         if (!digest.trim()) {
           toast({
@@ -93,7 +104,9 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
         setReportSummaries(summaries);
         addMessage({
           role: 'user',
-          content: `Uploaded **${summaries.length}** report file${summaries.length > 1 ? 's' : ''}.`,
+          content: `Uploaded **${summaries.length}** report file${summaries.length > 1 ? 's' : ''}${
+            isHuge ? ` (${totalMb.toFixed(1)}MB — smart-extracted)` : ''
+          }.`,
           type: 'report_uploaded',
           reportSummary: summaries,
         });
@@ -110,9 +123,14 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
         console.error(e);
         toast({
           title: 'Could not read report',
-          description: e instanceof Error ? e.message : 'Unknown parse error',
+          description:
+            e instanceof Error
+              ? `${e.message}. For files > 500MB, try splitting them or uploading only the failure logs.`
+              : 'Unknown parse error',
           variant: 'destructive',
         });
+      } finally {
+        setIsParsing(false);
       }
     },
     [addMessage, toast],
