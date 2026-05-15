@@ -89,8 +89,8 @@ serve(async (req) => {
       });
     }
 
-    // Hard cap to keep prompt safe
-    const MAX_CHARS = 180_000;
+    // Hard cap to keep prompt safe (raised — client now smart-extracts huge reports)
+    const MAX_CHARS = 400_000;
     const trimmedDigest = reportDigest.length > MAX_CHARS
       ? reportDigest.slice(0, MAX_CHARS) + `\n\n[...truncated ${reportDigest.length - MAX_CHARS} chars...]`
       : reportDigest;
