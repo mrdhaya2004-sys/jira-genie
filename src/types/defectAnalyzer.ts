@@ -35,14 +35,49 @@ export interface ReportFileSummary {
   kind: 'html' | 'json' | 'log' | 'text' | 'zip' | 'unknown';
 }
 
+export type FailureType =
+  | 'xpath_locator'
+  | 'assertion'
+  | 'timeout'
+  | 'element_not_interactable'
+  | 'element_not_found'
+  | 'api_failure'
+  | 'network'
+  | 'data_mismatch'
+  | 'environment'
+  | 'app_crash'
+  | 'unexpected_popup'
+  | 'session_expired'
+  | 'dependency'
+  | 'slow_loading'
+  | 'validation'
+  | 'permission'
+  | 'flaky'
+  | 'build_mismatch'
+  | 'configuration'
+  | 'authentication'
+  | 'ui_change'
+  | 'unknown';
+
+export type FailureLayer = 'ui' | 'api' | 'network' | 'data' | 'environment' | 'framework' | 'auth' | 'unknown';
+
 export interface DefectScenario {
   name: string;
   status: ScenarioStatus;
   module?: string;
+  failureType?: FailureType;
+  failureTypeLabel?: string;
+  layer?: FailureLayer;
   failureReason?: string;
   rootCause?: string;
+  detailedExplanation?: string;
+  impactedFlow?: string;
+  technicalInsight?: string;
   suggestedFix?: string;
+  preventionRecommendation?: string;
+  confidence?: number;
   errorSnippet?: string;
+  stackTrace?: string;
   durationMs?: number;
   tags?: string[];
   isFlaky?: boolean;
