@@ -20,6 +20,7 @@ const DefectAnalyzerModule: React.FC = () => {
     selectedOs,
     reportSummaries,
     isAnalyzing,
+    isParsing,
     handleWorkspaceSelect,
     handleFilesAccepted,
     handleOsSelect,
