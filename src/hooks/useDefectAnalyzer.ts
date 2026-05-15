@@ -234,6 +234,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
     selectedOs,
     reportSummaries,
     isAnalyzing,
+    isParsing,
     analysis,
     handleWorkspaceSelect,
     handleFilesAccepted,
