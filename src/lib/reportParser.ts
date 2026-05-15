@@ -2,8 +2,36 @@ import JSZip from 'jszip';
 import type { ReportFileSummary } from '@/types/defectAnalyzer';
 
 const TEXT_LIKE = ['.html', '.htm', '.json', '.log', '.txt', '.xml', '.csv', '.yml', '.yaml', '.md'];
-const MAX_PER_FILE = 200_000;
-const MAX_TOTAL = 600_000;
+
+// Budgets — tuned so the edge function payload stays well under the 50MB cap
+// while still providing rich context for huge automation reports (up to 500MB+).
+const MAX_PER_FILE = 350_000;       // ~350KB per file in the digest
+const MAX_TOTAL = 1_200_000;        // ~1.2MB total digest
+const SMART_EXTRACT_THRESHOLD = 2 * 1024 * 1024; // 2MB — switch to failure-focused streaming
+const STREAM_CHUNK = 4 * 1024 * 1024;            // 4MB read chunks
+const HEAD_TAIL_CHARS = 40_000;                  // keep beginning + end of huge files
+
+// Lines worth keeping when smart-extracting a huge report
+const FAILURE_PATTERNS = [
+  /\bfail(ed|ure)?\b/i,
+  /\berror\b/i,
+  /\bexception\b/i,
+  /\btraceback\b/i,
+  /\bassert(ion)?\b/i,
+  /\btimeout\b/i,
+  /\bnosuchelement\b/i,
+  /\belementnotfound\b/i,
+  /\bstaleelement\b/i,
+  /\bxpath\b/i,
+  /\blocator\b/i,
+  /\bflaky\b/i,
+  /\bretry\b/i,
+  /\bskipped\b/i,
+  /\bpanic\b/i,
+  /\bcrash(ed)?\b/i,
+  /\bstatus[:= ]+(fail|error)/i,
+  /\b\d{3}\s+(internal server error|bad gateway|service unavailable)/i,
+];
 
 function detectKind(name: string): ReportFileSummary['kind'] {
   const lower = name.toLowerCase();
@@ -34,7 +62,115 @@ function htmlToText(html: string): string {
 
 function clip(text: string, max = MAX_PER_FILE) {
   if (text.length <= max) return text;
-  return text.slice(0, max) + `\n[...truncated ${text.length - max} chars...]`;
+  const head = text.slice(0, Math.floor(max * 0.7));
+  const tail = text.slice(-Math.floor(max * 0.25));
+  return `${head}\n[...truncated ${text.length - max} chars from middle...]\n${tail}`;
+}
+
+/**
+ * Stream-reads a huge text/log/json file via File.slice() chunks and keeps:
+ *  - the first HEAD_TAIL_CHARS chars
+ *  - the last HEAD_TAIL_CHARS chars
+ *  - every line matching FAILURE_PATTERNS (with N lines of surrounding context)
+ *
+ * This lets us handle 500MB log/HAR/HTML reports without loading them fully into memory.
+ */
+async function smartExtractLargeFile(file: File, kind: ReportFileSummary['kind']): Promise<string> {
+  const decoder = new TextDecoder('utf-8', { fatal: false });
+  const totalSize = file.size;
+  let offset = 0;
+  let leftover = '';
+  let head = '';
+  let tailRing = '';
+  const matches: string[] = [];
+  const recentLines: string[] = [];
+  const CONTEXT = 2;
+  let pendingAfter = 0;
+  let matchCharBudget = MAX_PER_FILE - HEAD_TAIL_CHARS * 2;
+  if (matchCharBudget < 50_000) matchCharBudget = 50_000;
+  let matchChars = 0;
+
+  while (offset < totalSize) {
+    const slice = file.slice(offset, offset + STREAM_CHUNK);
+    const buf = await slice.arrayBuffer();
+    const chunk = leftover + decoder.decode(buf, { stream: true });
+    offset += STREAM_CHUNK;
+
+    const lastNl = chunk.lastIndexOf('\n');
+    const processable = lastNl >= 0 ? chunk.slice(0, lastNl) : chunk;
+    leftover = lastNl >= 0 ? chunk.slice(lastNl + 1) : '';
+
+    // capture HEAD
+    if (head.length < HEAD_TAIL_CHARS) {
+      head += processable.slice(0, HEAD_TAIL_CHARS - head.length);
+    }
+
+    // rolling TAIL ring
+    tailRing = (tailRing + processable).slice(-HEAD_TAIL_CHARS);
+
+    // line scan for failure patterns
+    if (matchChars < matchCharBudget) {
+      const lines = processable.split(/\r?\n/);
+      for (const line of lines) {
+        recentLines.push(line);
+        if (recentLines.length > CONTEXT + 1) recentLines.shift();
+
+        const isMatch = FAILURE_PATTERNS.some((re) => re.test(line));
+        if (isMatch) {
+          // include preceding context
+          for (const prev of recentLines.slice(0, -1)) {
+            if (matchChars >= matchCharBudget) break;
+            matches.push(prev);
+            matchChars += prev.length + 1;
+          }
+          if (matchChars < matchCharBudget) {
+            matches.push(line);
+            matchChars += line.length + 1;
+          }
+          pendingAfter = CONTEXT;
+        } else if (pendingAfter > 0) {
+          if (matchChars < matchCharBudget) {
+            matches.push(line);
+            matchChars += line.length + 1;
+          }
+          pendingAfter--;
+        }
+      }
+    }
+  }
+
+  // flush any leftover into tail
+  if (leftover) tailRing = (tailRing + leftover).slice(-HEAD_TAIL_CHARS);
+
+  let combined =
+    `[FILE: ${file.name} • ${(totalSize / (1024 * 1024)).toFixed(1)}MB • smart-extracted]\n\n` +
+    `--- HEAD (first ${head.length} chars) ---\n${head}\n\n` +
+    (matches.length
+      ? `--- FAILURE / ERROR LINES (${matches.length} extracted) ---\n${matches.join('\n')}\n\n`
+      : `--- NO FAILURE PATTERNS DETECTED IN STREAM ---\n\n`) +
+    `--- TAIL (last ${tailRing.length} chars) ---\n${tailRing}`;
+
+  if (kind === 'html') {
+    // best-effort flatten of HTML chunks we kept
+    combined = htmlToText(combined);
+  }
+  return combined;
+}
+
+async function readSmallFileAsText(file: File, kind: ReportFileSummary['kind']): Promise<string> {
+  const raw = await file.text();
+  return kind === 'html' ? htmlToText(raw) : raw;
+}
+
+async function processFile(file: File, kind: ReportFileSummary['kind']): Promise<string> {
+  if (file.size > SMART_EXTRACT_THRESHOLD && kind !== 'json') {
+    return smartExtractLargeFile(file, kind);
+  }
+  // JSON we still try to parse fully unless it's enormous; otherwise smart-extract on it as text
+  if (file.size > SMART_EXTRACT_THRESHOLD) {
+    return smartExtractLargeFile(file, 'text');
+  }
+  return readSmallFileAsText(file, kind);
 }
 
 export async function parseReportFiles(files: File[]): Promise<{ digest: string; summaries: ReportFileSummary[] }> {
@@ -46,30 +182,40 @@ export async function parseReportFiles(files: File[]): Promise<{ digest: string;
     const kind = detectKind(file.name);
     summaries.push({ name: file.name, size: file.size, kind });
 
-    if (kind === 'zip') {
-      try {
+    try {
+      if (kind === 'zip') {
         const zip = await JSZip.loadAsync(await file.arrayBuffer());
-        for (const entry of Object.values(zip.files)) {
-          if (entry.dir) continue;
-          if (!isTextLike(entry.name)) continue;
+        // Prioritize files that look failure-relevant first
+        const entries = Object.values(zip.files)
+          .filter((e) => !e.dir && isTextLike(e.name))
+          .sort((a, b) => {
+            const score = (n: string) =>
+              /(fail|error|result|report|summary|junit|cucumber|test)/i.test(n) ? 0 : 1;
+            return score(a.name) - score(b.name);
+          });
+
+        for (const entry of entries) {
           const raw = await entry.async('string');
-          const processed = entry.name.toLowerCase().endsWith('.html') || entry.name.toLowerCase().endsWith('.htm')
-            ? htmlToText(raw)
-            : raw;
-          const clipped = clip(processed);
-          sections.push(`--- FILE: ${entry.name} ---\n${clipped}`);
-          total += clipped.length;
+          const lower = entry.name.toLowerCase();
+          const subKind: ReportFileSummary['kind'] =
+            lower.endsWith('.html') || lower.endsWith('.htm') ? 'html' : 'text';
+          let processed = subKind === 'html' ? htmlToText(raw) : raw;
+          if (processed.length > MAX_PER_FILE) processed = clip(processed);
+          sections.push(`--- FILE: ${entry.name} ---\n${processed}`);
+          total += processed.length;
           if (total >= MAX_TOTAL) break;
         }
-      } catch (e) {
-        sections.push(`--- FILE: ${file.name} (ZIP error: ${(e as Error).message}) ---`);
+      } else {
+        const processed = await processFile(file, kind);
+        const clipped = clip(processed);
+        sections.push(`--- FILE: ${file.name} ---\n${clipped}`);
+        total += clipped.length;
       }
-    } else {
-      const raw = await file.text();
-      const processed = kind === 'html' ? htmlToText(raw) : raw;
-      const clipped = clip(processed);
-      sections.push(`--- FILE: ${file.name} ---\n${clipped}`);
-      total += clipped.length;
+    } catch (e) {
+      sections.push(
+        `--- FILE: ${file.name} (read error: ${(e as Error).message}) ---\n` +
+          `The analyzer could not read this file. If it's > 500MB, try splitting it or uploading a ZIP of the failure logs only.`,
+      );
     }
 
     if (total >= MAX_TOTAL) break;
@@ -77,7 +223,7 @@ export async function parseReportFiles(files: File[]): Promise<{ digest: string;
 
   let digest = sections.join('\n\n');
   if (digest.length > MAX_TOTAL) {
-    digest = digest.slice(0, MAX_TOTAL) + `\n[...total digest truncated...]`;
+    digest = digest.slice(0, MAX_TOTAL) + `\n[...total digest truncated for upload safety...]`;
   }
   return { digest, summaries };
 }
