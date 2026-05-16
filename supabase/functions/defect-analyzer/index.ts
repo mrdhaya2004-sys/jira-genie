@@ -408,7 +408,7 @@ Produce the structured JSON defined in the system prompt. Remember: every scenar
     }
 
     // Validation + enrichment layer — defends against hallucination & recomputes truthful metrics.
-    const validated = validateAndEnrich(parsed, trimmedDigest, parseMetrics);
+    const validated = validateAndEnrich(parsed, trimmedDigest, parseMetrics, safeShots.length);
 
     return new Response(JSON.stringify({ analysis: validated }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
