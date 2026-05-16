@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { parseReportFiles } from '@/lib/reportParser';
+import { extractScreenshots, type ScreenshotAsset } from '@/lib/screenshotExtractor';
 import type {
   DefectChatMessage,
   DefectFlowPhase,
