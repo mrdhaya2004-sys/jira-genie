@@ -152,11 +152,22 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
         }
         setReportDigest(digest);
         setReportSummaries(summaries);
+
+        // Extract screenshots in parallel — failure-shot heuristic + downscaling happens inside.
+        let extractedShots: ScreenshotAsset[] = [];
+        try {
+          extractedShots = await extractScreenshots(files);
+          setScreenshots(extractedShots);
+        } catch (shotErr) {
+          console.warn('Screenshot extraction failed', shotErr);
+          setScreenshots([]);
+        }
+
         addMessage({
           role: 'user',
           content: `Uploaded **${summaries.length}** report file${summaries.length > 1 ? 's' : ''}${
             isHuge ? ` (${totalMb.toFixed(1)}MB — smart-extracted)` : ''
-          }.`,
+          }${extractedShots.length ? ` • 🖼️ ${extractedShots.length} screenshot${extractedShots.length === 1 ? '' : 's'} captured for AI vision analysis` : ''}.`,
           type: 'report_uploaded',
           reportSummary: summaries,
         });
