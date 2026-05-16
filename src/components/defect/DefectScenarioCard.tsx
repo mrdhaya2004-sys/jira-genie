@@ -13,15 +13,18 @@ import {
   Wrench,
   Brain,
   Workflow,
+  Ban,
+  AlertTriangle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { DefectScenario, FailureType } from '@/types/defectAnalyzer';
 
 const STATUS_META: Record<DefectScenario['status'], { label: string; icon: React.ElementType; cls: string }> = {
   passed: { label: 'Passed', icon: CheckCircle2, cls: 'bg-success/15 text-success border-success/40' },
-  failed: { label: 'Failed', icon: XCircle, cls: 'bg-destructive/15 text-destructive border-destructive/40' },
+  failed: { label: 'Failed', icon: XCircle, cls: 'bg-destructive/15 text-destructive border-destructive/50' },
+  blocked: { label: 'Blocked', icon: Ban, cls: 'bg-orange-500/15 text-orange-500 border-orange-500/40' },
   flaky: { label: 'Flaky', icon: RefreshCcw, cls: 'bg-warning/15 text-warning border-warning/40' },
-  skipped: { label: 'Skipped', icon: AlertCircle, cls: 'bg-muted/30 text-muted-foreground border-border' },
+  skipped: { label: 'Skipped', icon: AlertCircle, cls: 'bg-warning/10 text-warning border-warning/30' },
   unknown: { label: 'Unknown', icon: AlertCircle, cls: 'bg-muted/30 text-muted-foreground border-border' },
 };
 
