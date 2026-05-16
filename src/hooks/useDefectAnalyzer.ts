@@ -251,6 +251,15 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
             reportSummaries,
             reportDigest,
             parseMetrics,
+            screenshots: screenshots.map((s, i) => ({
+              index: i,
+              name: s.name,
+              sourceFile: s.sourceFile,
+              dataUrl: s.dataUrl,
+              width: s.width,
+              height: s.height,
+              context: s.context,
+            })),
           }),
         },
       );
