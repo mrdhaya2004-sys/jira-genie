@@ -23,6 +23,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
   const [reportDigest, setReportDigest] = useState<string>('');
   const [reportSummaries, setReportSummaries] = useState<ReportFileSummary[]>([]);
+  const [parseMetrics, setParseMetrics] = useState<{ parsingCompletion: number; logCoverage: number; rawBytes: number; digestBytes: number; failureLinesCaptured: number } | null>(null);
   const [selectedOs, setSelectedOs] = useState<ExecutionOS | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<DefectAnalysisResult | null>(null);
