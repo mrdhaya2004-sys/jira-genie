@@ -304,7 +304,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
     } finally {
       setIsAnalyzing(false);
     }
-  }, [selectedWorkspace, selectedOs, reportDigest, reportSummaries, parseMetrics, addMessage, toast]);
+  }, [selectedWorkspace, selectedOs, reportDigest, reportSummaries, parseMetrics, screenshots, addMessage, toast]);
 
   const resetFlow = useCallback(() => {
     setMessages([]);
@@ -313,6 +313,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
     setReportDigest('');
     setReportSummaries([]);
     setParseMetrics(null);
+    setScreenshots([]);
     setSelectedOs(null);
     setAnalysis(null);
   }, []);
