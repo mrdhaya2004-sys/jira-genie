@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import {
   CheckCircle2,
   XCircle,
@@ -15,9 +16,12 @@ import {
   Workflow,
   Ban,
   AlertTriangle,
+  Camera,
+  Eye,
+  ZoomIn,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { DefectScenario, FailureType } from '@/types/defectAnalyzer';
+import type { DefectScenario, FailureType, DefectAnalysisResult } from '@/types/defectAnalyzer';
 
 const STATUS_META: Record<DefectScenario['status'], { label: string; icon: React.ElementType; cls: string }> = {
   passed: { label: 'Passed', icon: CheckCircle2, cls: 'bg-success/15 text-success border-success/40' },
