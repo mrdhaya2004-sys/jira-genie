@@ -237,6 +237,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
             os: selectedOs,
             reportSummaries,
             reportDigest,
+            parseMetrics,
           }),
         },
       );
