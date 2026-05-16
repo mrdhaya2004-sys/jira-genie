@@ -146,6 +146,14 @@ export interface DefectAnalysisResult {
   xpathIssues: XPathIssue[];
   recommendations: string[];
   reliability?: ReportReliability;
+  /** Lightweight metadata about the screenshots the AI inspected. */
+  screenshots?: {
+    name: string;
+    sourceFile: string;
+    dataUrl: string;
+    width: number;
+    height: number;
+  }[];
 }
 
 export const EXECUTION_OS_OPTIONS: DefectChatOption[] = [
