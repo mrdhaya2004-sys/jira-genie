@@ -75,7 +75,20 @@ function clip(text: string, max = MAX_PER_FILE) {
  *
  * This lets us handle 500MB log/HAR/HTML reports without loading them fully into memory.
  */
-async function smartExtractLargeFile(file: File, kind: ReportFileSummary['kind']): Promise<string> {
+export type ParseProgress = (info: {
+  fileIndex: number;
+  fileName: string;
+  fileBytes: number;
+  fileTotal: number;
+  overallBytes: number;
+  overallTotal: number;
+}) => void;
+
+async function smartExtractLargeFile(
+  file: File,
+  kind: ReportFileSummary['kind'],
+  onChunk?: (chunkBytes: number) => void,
+): Promise<string> {
   const decoder = new TextDecoder('utf-8', { fatal: false });
   const totalSize = file.size;
   let offset = 0;
