@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { parseReportFiles } from '@/lib/reportParser';
+import { extractScreenshots, type ScreenshotAsset } from '@/lib/screenshotExtractor';
 import type {
   DefectChatMessage,
   DefectFlowPhase,
@@ -24,6 +25,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
   const [reportDigest, setReportDigest] = useState<string>('');
   const [reportSummaries, setReportSummaries] = useState<ReportFileSummary[]>([]);
   const [parseMetrics, setParseMetrics] = useState<{ parsingCompletion: number; logCoverage: number; rawBytes: number; digestBytes: number; failureLinesCaptured: number } | null>(null);
+  const [screenshots, setScreenshots] = useState<ScreenshotAsset[]>([]);
   const [selectedOs, setSelectedOs] = useState<ExecutionOS | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<DefectAnalysisResult | null>(null);
@@ -150,11 +152,22 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
         }
         setReportDigest(digest);
         setReportSummaries(summaries);
+
+        // Extract screenshots in parallel — failure-shot heuristic + downscaling happens inside.
+        let extractedShots: ScreenshotAsset[] = [];
+        try {
+          extractedShots = await extractScreenshots(files);
+          setScreenshots(extractedShots);
+        } catch (shotErr) {
+          console.warn('Screenshot extraction failed', shotErr);
+          setScreenshots([]);
+        }
+
         addMessage({
           role: 'user',
           content: `Uploaded **${summaries.length}** report file${summaries.length > 1 ? 's' : ''}${
             isHuge ? ` (${totalMb.toFixed(1)}MB — smart-extracted)` : ''
-          }.`,
+          }${extractedShots.length ? ` • 🖼️ ${extractedShots.length} screenshot${extractedShots.length === 1 ? '' : 's'} captured for AI vision analysis` : ''}.`,
           type: 'report_uploaded',
           reportSummary: summaries,
         });
@@ -238,6 +251,15 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
             reportSummaries,
             reportDigest,
             parseMetrics,
+            screenshots: screenshots.map((s, i) => ({
+              index: i,
+              name: s.name,
+              sourceFile: s.sourceFile,
+              dataUrl: s.dataUrl,
+              width: s.width,
+              height: s.height,
+              context: s.context,
+            })),
           }),
         },
       );
@@ -247,6 +269,16 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
         throw new Error(data?.error || 'Analysis failed');
       }
       const result = data.analysis as DefectAnalysisResult;
+      // Attach the original screenshots so the dashboard can render them with the AI's per-scenario observations.
+      if (screenshots.length > 0) {
+        result.screenshots = screenshots.map((s) => ({
+          name: s.name,
+          sourceFile: s.sourceFile,
+          dataUrl: s.dataUrl,
+          width: s.width,
+          height: s.height,
+        }));
+      }
       setAnalysis(result);
       addMessage({
         role: 'assistant',
@@ -272,7 +304,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
     } finally {
       setIsAnalyzing(false);
     }
-  }, [selectedWorkspace, selectedOs, reportDigest, reportSummaries, parseMetrics, addMessage, toast]);
+  }, [selectedWorkspace, selectedOs, reportDigest, reportSummaries, parseMetrics, screenshots, addMessage, toast]);
 
   const resetFlow = useCallback(() => {
     setMessages([]);
@@ -281,6 +313,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
     setReportDigest('');
     setReportSummaries([]);
     setParseMetrics(null);
+    setScreenshots([]);
     setSelectedOs(null);
     setAnalysis(null);
   }, []);

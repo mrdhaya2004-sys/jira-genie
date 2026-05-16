@@ -61,6 +61,20 @@ export type FailureType =
 
 export type FailureLayer = 'ui' | 'api' | 'network' | 'data' | 'environment' | 'framework' | 'auth' | 'unknown';
 
+export interface ScenarioScreenshotAnalysis {
+  /** Index into DefectAnalysisResult.screenshots (so the UI can render the actual image). */
+  screenshotIndex: number;
+  /** Plain-language description of what the AI sees. */
+  visualObservation: string;
+  /** Concrete UI issue the AI identified (e.g. "Toast: 'Invalid credentials'", "Login button missing"). */
+  detectedIssue?: string;
+  /** Visible text the AI extracted (titles, errors, banners). */
+  visibleText?: string;
+  /** Region or component blocking interaction, if any. */
+  blockingOverlay?: string;
+  confidence?: number;
+}
+
 export interface DefectScenario {
   name: string;
   status: ScenarioStatus;
@@ -86,6 +100,8 @@ export interface DefectScenario {
   tags?: string[];
   isFlaky?: boolean;
   executionSequence?: string[];
+  /** AI vision analysis of report screenshots tied to this scenario. */
+  screenshotAnalysis?: ScenarioScreenshotAnalysis[];
 }
 
 export interface XPathIssue {
@@ -130,6 +146,14 @@ export interface DefectAnalysisResult {
   xpathIssues: XPathIssue[];
   recommendations: string[];
   reliability?: ReportReliability;
+  /** Lightweight metadata about the screenshots the AI inspected. */
+  screenshots?: {
+    name: string;
+    sourceFile: string;
+    dataUrl: string;
+    width: number;
+    height: number;
+  }[];
 }
 
 export const EXECUTION_OS_OPTIONS: DefectChatOption[] = [

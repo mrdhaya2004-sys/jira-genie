@@ -4,6 +4,16 @@ import { validateAuth, corsHeaders, unauthorizedResponse } from "../_shared/auth
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
+interface ScreenshotPayload {
+  index: number;
+  name: string;
+  sourceFile: string;
+  dataUrl: string;
+  width: number;
+  height: number;
+  context?: string;
+}
+
 interface DefectRequest {
   workspaceId: string;
   workspaceName?: string;
@@ -17,6 +27,7 @@ interface DefectRequest {
     digestBytes: number;
     failureLinesCaptured: number;
   };
+  screenshots?: ScreenshotPayload[];
 }
 
 const SYSTEM_PROMPT = `You are an elite QA Defect Analyst AI for an enterprise SaaS test platform.
@@ -75,7 +86,17 @@ You MUST respond with ONLY a single JSON object (no markdown fences, no commenta
       "stackTrace": string | null,             // verbatim trimmed stack trace if present (<= 800 chars)
       "durationMs": number | null,
       "tags": string[],
-      "isFlaky": boolean
+      "isFlaky": boolean,
+      "screenshotAnalysis": [
+        {
+          "screenshotIndex": number,             // index into the provided SCREENSHOTS list (0-based)
+          "visualObservation": string,           // 1-3 sentence description of what is on the screen
+          "detectedIssue": string | null,        // concrete UI issue: error toast text, missing element, blank screen, overlay, etc.
+          "visibleText": string | null,          // notable text the AI reads from the screen (errors, banners, dialog titles)
+          "blockingOverlay": string | null,      // describe overlay/popup blocking interaction if present
+          "confidence": number                   // 0-100 per-screenshot confidence
+        }
+      ] | null
     }
   ],
   "xpathIssues": [
@@ -111,6 +132,18 @@ DEEP ANALYSIS RULES:
 - preventionRecommendation = forward-looking practice.
 - stabilityScore = round(100 * passed / max(totalScenarios,1)); subtract up to 15 points for high flakyCount.
 - ANTI-HALLUCINATION: If the digest is sparse, return fewer but accurate scenarios with low confidence rather than fabricating detail. Always set verifiedInLogs=true ONLY when the exact scenario name string appears in the report content.
+
+SCREENSHOT INTELLIGENCE (when SCREENSHOTS are attached):
+- You will receive 1-8 images labeled with their index, file name and source. Look at each image carefully.
+- For each FAILED, BLOCKED or FLAKY scenario, if any screenshot is clearly related (matches by name, sequence, on-screen text, or timing), populate "screenshotAnalysis" with one entry per related image.
+- visualObservation: describe what the user would see on the screen in plain language (which screen, layout state, key elements visible).
+- detectedIssue: name the concrete visual problem — e.g. "Error toast: 'Invalid username or password'", "App displayed blank white screen", "Native permission dialog blocked the Continue button", "Loader spinner stuck", "Session expired modal", "Form field highlighted red with validation message X".
+- visibleText: extract notable on-screen text verbatim (error banners, toasts, dialog titles, validation strings). Do NOT invent text not visible in the image.
+- blockingOverlay: only when a popup/modal/permission/cookie banner is clearly intercepting the action under test.
+- confidence: lower it when the screenshot is blurry, partially rendered, or the link to the scenario is uncertain.
+- If a screenshot adds new evidence (e.g. visible error text), use it to refine rootCause/suggestedFix even when the logs are sparse. Quote the screen text in technicalInsight.
+- If NO screenshot is related to a scenario, omit screenshotAnalysis (null). Never fabricate analysis for images that are unrelated.
+- If screenshots are absent entirely, behave exactly as before (log-only analysis).
 - NEVER include markdown, NEVER wrap in code fences. Output raw JSON ONLY.`;
 
 // ---------- Validation layer ----------
@@ -131,7 +164,7 @@ function clamp(n: number, lo: number, hi: number) {
  * - Recomputes counts, stability score, root cause distribution.
  * - Produces an aggregate analysisReliability score.
  */
-function validateAndEnrich(parsed: any, digest: string, parseMetrics?: DefectRequest['parseMetrics']) {
+function validateAndEnrich(parsed: any, digest: string, parseMetrics?: DefectRequest['parseMetrics'], screenshotCount = 0) {
   if (!parsed || typeof parsed !== 'object') return parsed;
   const lowerDigest = (digest || '').toLowerCase();
 
@@ -160,12 +193,36 @@ function validateAndEnrich(parsed: any, digest: string, parseMetrics?: DefectReq
       confidenceWeights += 1;
     }
 
+    // Sanitize screenshotAnalysis: drop entries with out-of-range indices or empty observations.
+    let screenshotAnalysis: any[] | undefined;
+    if (Array.isArray(s?.screenshotAnalysis) && screenshotCount > 0) {
+      screenshotAnalysis = s.screenshotAnalysis
+        .filter((sa: any) =>
+          sa &&
+          typeof sa.screenshotIndex === 'number' &&
+          sa.screenshotIndex >= 0 &&
+          sa.screenshotIndex < screenshotCount &&
+          typeof sa.visualObservation === 'string' &&
+          sa.visualObservation.trim().length > 0,
+        )
+        .map((sa: any) => ({
+          screenshotIndex: sa.screenshotIndex,
+          visualObservation: String(sa.visualObservation).slice(0, 800),
+          detectedIssue: typeof sa.detectedIssue === 'string' ? sa.detectedIssue.slice(0, 400) : null,
+          visibleText: typeof sa.visibleText === 'string' ? sa.visibleText.slice(0, 400) : null,
+          blockingOverlay: typeof sa.blockingOverlay === 'string' ? sa.blockingOverlay.slice(0, 300) : null,
+          confidence: clamp(safeNumber(sa.confidence, 60), 0, 100),
+        }));
+      if (screenshotAnalysis.length === 0) screenshotAnalysis = undefined;
+    }
+
     return {
       ...s,
       name,
       verifiedInLogs: verified,
       confidence,
       lowConfidenceReason,
+      ...(screenshotAnalysis ? { screenshotAnalysis } : {}),
     };
   });
 
@@ -254,7 +311,7 @@ serve(async (req) => {
     }
 
     const body = await req.json() as DefectRequest;
-    const { workspaceName, os, reportSummaries, reportDigest, parseMetrics } = body;
+    const { workspaceName, os, reportSummaries, reportDigest, parseMetrics, screenshots } = body;
 
     if (!reportDigest || reportDigest.trim().length === 0) {
       return new Response(JSON.stringify({ error: "Empty report content" }), {
@@ -267,18 +324,39 @@ serve(async (req) => {
       ? reportDigest.slice(0, MAX_CHARS) + `\n\n[...truncated ${reportDigest.length - MAX_CHARS} chars...]`
       : reportDigest;
 
-    const userPrompt = `Workspace: ${workspaceName || 'unknown'}
+    // Cap screenshots defensively (client also caps at 8)
+    const safeShots = Array.isArray(screenshots)
+      ? screenshots.filter((s) => typeof s?.dataUrl === 'string' && s.dataUrl.startsWith('data:image/')).slice(0, 8)
+      : [];
+
+    const screenshotManifest = safeShots.length
+      ? safeShots.map((s, i) =>
+          `  [${i}] ${s.name}  (source: ${s.sourceFile}, ${s.width}x${s.height})${s.context ? ` — ${s.context}` : ''}`,
+        ).join('\n')
+      : '  (no screenshots attached — analyze logs only)';
+
+    const userTextPrompt = `Workspace: ${workspaceName || 'unknown'}
 Execution OS: ${os}
 Files uploaded: ${reportSummaries.map(f => `${f.name} (${f.kind}, ${f.size}b)`).join(', ') || 'inline text'}
 Parsing completion: ${parseMetrics?.parsingCompletion ?? 'unknown'}%
 Log coverage: ${parseMetrics?.logCoverage ?? 'unknown'}%
 Failure lines captured during smart-extraction: ${parseMetrics?.failureLinesCaptured ?? 'n/a'}
 
+=== SCREENSHOTS ATTACHED (${safeShots.length}) ===
+${screenshotManifest}
+${safeShots.length ? 'The images follow this text block, in the same order as the manifest. Use screenshotIndex to reference them.' : ''}
+
 === REPORT CONTENT (analyze ONLY what is below — never invent) ===
 ${trimmedDigest}
 === END REPORT ===
 
-Produce the structured JSON defined in the system prompt. Remember: every scenario name MUST appear verbatim in the report content above, or you must mark verifiedInLogs=false with a low confidence and an honest lowConfidenceReason.`;
+Produce the structured JSON defined in the system prompt. Remember: every scenario name MUST appear verbatim in the report content above, or you must mark verifiedInLogs=false with a low confidence and an honest lowConfidenceReason. For each related screenshot, populate screenshotAnalysis with the correct screenshotIndex.`;
+
+    // Build multimodal content: text first, then each screenshot as image_url.
+    const userContent: any[] = [{ type: 'text', text: userTextPrompt }];
+    for (const s of safeShots) {
+      userContent.push({ type: 'image_url', image_url: { url: s.dataUrl } });
+    }
 
     const aiResponse = await fetch(AI_GATEWAY_URL, {
       method: 'POST',
@@ -290,7 +368,7 @@ Produce the structured JSON defined in the system prompt. Remember: every scenar
         model: 'google/gemini-2.5-pro',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: userPrompt },
+          { role: 'user', content: safeShots.length > 0 ? userContent : userTextPrompt },
         ],
         response_format: { type: 'json_object' },
       }),
@@ -330,7 +408,7 @@ Produce the structured JSON defined in the system prompt. Remember: every scenar
     }
 
     // Validation + enrichment layer — defends against hallucination & recomputes truthful metrics.
-    const validated = validateAndEnrich(parsed, trimmedDigest, parseMetrics);
+    const validated = validateAndEnrich(parsed, trimmedDigest, parseMetrics, safeShots.length);
 
     return new Response(JSON.stringify({ analysis: validated }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },

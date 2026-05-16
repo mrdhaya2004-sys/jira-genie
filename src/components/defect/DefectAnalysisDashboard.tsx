@@ -234,7 +234,7 @@ const DefectAnalysisDashboard: React.FC<DefectAnalysisDashboardProps> = ({ analy
             </div>
             <div className="grid md:grid-cols-2 gap-3 pt-2">
               {failedScenarios.map((s, i) => (
-                <DefectScenarioCard key={`fail-${s.name}-${i}`} scenario={s} />
+                <DefectScenarioCard key={`fail-${s.name}-${i}`} scenario={s} screenshots={analysis.screenshots} />
               ))}
             </div>
           </CardContent>
@@ -255,7 +255,7 @@ const DefectAnalysisDashboard: React.FC<DefectAnalysisDashboardProps> = ({ analy
           </div>
           <div className="grid md:grid-cols-2 gap-3">
             {blockedScenarios.map((s, i) => (
-              <DefectScenarioCard key={`blk-${s.name}-${i}`} scenario={s} />
+              <DefectScenarioCard key={`blk-${s.name}-${i}`} scenario={s} screenshots={analysis.screenshots} />
             ))}
           </div>
         </div>
@@ -275,7 +275,7 @@ const DefectAnalysisDashboard: React.FC<DefectAnalysisDashboardProps> = ({ analy
           </div>
           <div className="grid md:grid-cols-2 gap-3">
             {flakyScenarios.map((s, i) => (
-              <DefectScenarioCard key={`flk-${s.name}-${i}`} scenario={s} />
+              <DefectScenarioCard key={`flk-${s.name}-${i}`} scenario={s} screenshots={analysis.screenshots} />
             ))}
           </div>
         </div>

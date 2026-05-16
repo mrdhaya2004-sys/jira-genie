@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import {
   CheckCircle2,
   XCircle,
@@ -15,9 +16,12 @@ import {
   Workflow,
   Ban,
   AlertTriangle,
+  Camera,
+  Eye,
+  ZoomIn,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { DefectScenario, FailureType } from '@/types/defectAnalyzer';
+import type { DefectScenario, FailureType, DefectAnalysisResult } from '@/types/defectAnalyzer';
 
 const STATUS_META: Record<DefectScenario['status'], { label: string; icon: React.ElementType; cls: string }> = {
   passed: { label: 'Passed', icon: CheckCircle2, cls: 'bg-success/15 text-success border-success/40' },
@@ -77,7 +81,10 @@ const Section: React.FC<{
   );
 };
 
-const DefectScenarioCard: React.FC<{ scenario: DefectScenario }> = ({ scenario }) => {
+const DefectScenarioCard: React.FC<{
+  scenario: DefectScenario;
+  screenshots?: DefectAnalysisResult['screenshots'];
+}> = ({ scenario, screenshots }) => {
   const meta = STATUS_META[scenario.status] || STATUS_META.unknown;
   const Icon = meta.icon;
   const failureLabel =
@@ -218,6 +225,83 @@ const DefectScenarioCard: React.FC<{ scenario: DefectScenario }> = ({ scenario }
           <Section icon={ShieldCheck} label="Prevention Strategy" tone="success">
             {scenario.preventionRecommendation}
           </Section>
+        )}
+
+        {/* Screenshot intelligence — AI visual analysis */}
+        {scenario.screenshotAnalysis && scenario.screenshotAnalysis.length > 0 && screenshots && (
+          <div className="rounded-lg border border-primary/30 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 p-3 space-y-3">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
+              <Camera className="h-3 w-3" />
+              AI Screenshot Analysis ({scenario.screenshotAnalysis.length})
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {scenario.screenshotAnalysis.map((sa, i) => {
+                const shot = screenshots[sa.screenshotIndex];
+                if (!shot) return null;
+                return (
+                  <div key={i} className="rounded-lg border border-border/40 bg-background/60 backdrop-blur-sm overflow-hidden">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <button
+                          type="button"
+                          className="group relative block w-full aspect-video bg-muted/40 overflow-hidden"
+                          aria-label={`Zoom screenshot ${shot.name}`}
+                        >
+                          <img
+                            src={shot.dataUrl}
+                            alt={shot.name}
+                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                            <span className="text-[10px] text-white flex items-center gap-1">
+                              <ZoomIn className="h-3 w-3" /> Click to zoom
+                            </span>
+                          </div>
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-5xl p-2">
+                        <img
+                          src={shot.dataUrl}
+                          alt={shot.name}
+                          className="w-full h-auto rounded-md"
+                        />
+                        <div className="text-[11px] text-muted-foreground px-1 pb-1 truncate">
+                          {shot.name} • {shot.width}×{shot.height} • {shot.sourceFile}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    <div className="p-2.5 space-y-1.5">
+                      <div className="flex items-start gap-1.5 text-[11px]">
+                        <Eye className="h-3 w-3 mt-0.5 text-primary shrink-0" />
+                        <span className="text-foreground/90 leading-relaxed">{sa.visualObservation}</span>
+                      </div>
+                      {sa.detectedIssue && (
+                        <div className="text-[11px] rounded border border-destructive/30 bg-destructive/5 px-2 py-1 text-destructive">
+                          <span className="font-semibold">Detected: </span>{sa.detectedIssue}
+                        </div>
+                      )}
+                      {sa.visibleText && (
+                        <div className="text-[10px] text-muted-foreground italic break-words">
+                          “{sa.visibleText}”
+                        </div>
+                      )}
+                      {sa.blockingOverlay && (
+                        <div className="text-[10px] rounded border border-warning/40 bg-warning/5 px-2 py-1 text-warning">
+                          <span className="font-semibold">Blocking overlay: </span>{sa.blockingOverlay}
+                        </div>
+                      )}
+                      {typeof sa.confidence === 'number' && (
+                        <div className="text-[10px] text-muted-foreground">
+                          Vision confidence: <span className={cn(sa.confidence < 60 ? 'text-warning' : 'text-primary', 'font-semibold')}>{sa.confidence}%</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {/* Error snippet */}
