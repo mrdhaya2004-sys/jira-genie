@@ -164,7 +164,7 @@ function clamp(n: number, lo: number, hi: number) {
  * - Recomputes counts, stability score, root cause distribution.
  * - Produces an aggregate analysisReliability score.
  */
-function validateAndEnrich(parsed: any, digest: string, parseMetrics?: DefectRequest['parseMetrics']) {
+function validateAndEnrich(parsed: any, digest: string, parseMetrics?: DefectRequest['parseMetrics'], screenshotCount = 0) {
   if (!parsed || typeof parsed !== 'object') return parsed;
   const lowerDigest = (digest || '').toLowerCase();
 
@@ -193,12 +193,36 @@ function validateAndEnrich(parsed: any, digest: string, parseMetrics?: DefectReq
       confidenceWeights += 1;
     }
 
+    // Sanitize screenshotAnalysis: drop entries with out-of-range indices or empty observations.
+    let screenshotAnalysis: any[] | undefined;
+    if (Array.isArray(s?.screenshotAnalysis) && screenshotCount > 0) {
+      screenshotAnalysis = s.screenshotAnalysis
+        .filter((sa: any) =>
+          sa &&
+          typeof sa.screenshotIndex === 'number' &&
+          sa.screenshotIndex >= 0 &&
+          sa.screenshotIndex < screenshotCount &&
+          typeof sa.visualObservation === 'string' &&
+          sa.visualObservation.trim().length > 0,
+        )
+        .map((sa: any) => ({
+          screenshotIndex: sa.screenshotIndex,
+          visualObservation: String(sa.visualObservation).slice(0, 800),
+          detectedIssue: typeof sa.detectedIssue === 'string' ? sa.detectedIssue.slice(0, 400) : null,
+          visibleText: typeof sa.visibleText === 'string' ? sa.visibleText.slice(0, 400) : null,
+          blockingOverlay: typeof sa.blockingOverlay === 'string' ? sa.blockingOverlay.slice(0, 300) : null,
+          confidence: clamp(safeNumber(sa.confidence, 60), 0, 100),
+        }));
+      if (screenshotAnalysis.length === 0) screenshotAnalysis = undefined;
+    }
+
     return {
       ...s,
       name,
       verifiedInLogs: verified,
       confidence,
       lowConfidenceReason,
+      ...(screenshotAnalysis ? { screenshotAnalysis } : {}),
     };
   });
 
