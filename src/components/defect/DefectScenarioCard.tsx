@@ -83,15 +83,22 @@ const DefectScenarioCard: React.FC<{ scenario: DefectScenario }> = ({ scenario }
   const failureLabel =
     scenario.failureTypeLabel ||
     (scenario.failureType ? FAILURE_TYPE_LABELS[scenario.failureType] : null);
+  const accent =
+    scenario.status === 'failed' ? 'border-l-4 border-l-destructive' :
+    scenario.status === 'blocked' ? 'border-l-4 border-l-orange-500' :
+    scenario.status === 'flaky' ? 'border-l-4 border-l-warning' :
+    scenario.status === 'skipped' ? 'border-l-4 border-l-warning/60' :
+    scenario.status === 'passed' ? 'border-l-4 border-l-success' : '';
+  const isLowConfidence = typeof scenario.confidence === 'number' && scenario.confidence < 60;
 
   return (
-    <Card className="glass-card overflow-hidden">
+    <Card className={cn('glass-card overflow-hidden', accent)}>
       <CardContent className="p-4 space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="text-sm font-semibold truncate">{scenario.name}</h4>
+              <h4 className="text-sm font-semibold break-words">{scenario.name || 'Unnamed scenario'}</h4>
               {scenario.isFlaky && scenario.status !== 'flaky' && (
                 <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">
                   Flaky
