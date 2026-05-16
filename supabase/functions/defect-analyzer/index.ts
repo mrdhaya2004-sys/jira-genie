@@ -4,6 +4,16 @@ import { validateAuth, corsHeaders, unauthorizedResponse } from "../_shared/auth
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
+interface ScreenshotPayload {
+  index: number;
+  name: string;
+  sourceFile: string;
+  dataUrl: string;
+  width: number;
+  height: number;
+  context?: string;
+}
+
 interface DefectRequest {
   workspaceId: string;
   workspaceName?: string;
@@ -17,6 +27,7 @@ interface DefectRequest {
     digestBytes: number;
     failureLinesCaptured: number;
   };
+  screenshots?: ScreenshotPayload[];
 }
 
 const SYSTEM_PROMPT = `You are an elite QA Defect Analyst AI for an enterprise SaaS test platform.
