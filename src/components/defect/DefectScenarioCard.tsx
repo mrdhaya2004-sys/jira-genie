@@ -81,7 +81,10 @@ const Section: React.FC<{
   );
 };
 
-const DefectScenarioCard: React.FC<{ scenario: DefectScenario }> = ({ scenario }) => {
+const DefectScenarioCard: React.FC<{
+  scenario: DefectScenario;
+  screenshots?: DefectAnalysisResult['screenshots'];
+}> = ({ scenario, screenshots }) => {
   const meta = STATUS_META[scenario.status] || STATUS_META.unknown;
   const Icon = meta.icon;
   const failureLabel =
