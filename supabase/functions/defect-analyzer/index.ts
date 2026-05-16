@@ -132,6 +132,18 @@ DEEP ANALYSIS RULES:
 - preventionRecommendation = forward-looking practice.
 - stabilityScore = round(100 * passed / max(totalScenarios,1)); subtract up to 15 points for high flakyCount.
 - ANTI-HALLUCINATION: If the digest is sparse, return fewer but accurate scenarios with low confidence rather than fabricating detail. Always set verifiedInLogs=true ONLY when the exact scenario name string appears in the report content.
+
+SCREENSHOT INTELLIGENCE (when SCREENSHOTS are attached):
+- You will receive 1-8 images labeled with their index, file name and source. Look at each image carefully.
+- For each FAILED, BLOCKED or FLAKY scenario, if any screenshot is clearly related (matches by name, sequence, on-screen text, or timing), populate "screenshotAnalysis" with one entry per related image.
+- visualObservation: describe what the user would see on the screen in plain language (which screen, layout state, key elements visible).
+- detectedIssue: name the concrete visual problem — e.g. "Error toast: 'Invalid username or password'", "App displayed blank white screen", "Native permission dialog blocked the Continue button", "Loader spinner stuck", "Session expired modal", "Form field highlighted red with validation message X".
+- visibleText: extract notable on-screen text verbatim (error banners, toasts, dialog titles, validation strings). Do NOT invent text not visible in the image.
+- blockingOverlay: only when a popup/modal/permission/cookie banner is clearly intercepting the action under test.
+- confidence: lower it when the screenshot is blurry, partially rendered, or the link to the scenario is uncertain.
+- If a screenshot adds new evidence (e.g. visible error text), use it to refine rootCause/suggestedFix even when the logs are sparse. Quote the screen text in technicalInsight.
+- If NO screenshot is related to a scenario, omit screenshotAnalysis (null). Never fabricate analysis for images that are unrelated.
+- If screenshots are absent entirely, behave exactly as before (log-only analysis).
 - NEVER include markdown, NEVER wrap in code fences. Output raw JSON ONLY.`;
 
 // ---------- Validation layer ----------
