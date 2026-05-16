@@ -13,15 +13,18 @@ import {
   Wrench,
   Brain,
   Workflow,
+  Ban,
+  AlertTriangle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { DefectScenario, FailureType } from '@/types/defectAnalyzer';
 
 const STATUS_META: Record<DefectScenario['status'], { label: string; icon: React.ElementType; cls: string }> = {
   passed: { label: 'Passed', icon: CheckCircle2, cls: 'bg-success/15 text-success border-success/40' },
-  failed: { label: 'Failed', icon: XCircle, cls: 'bg-destructive/15 text-destructive border-destructive/40' },
+  failed: { label: 'Failed', icon: XCircle, cls: 'bg-destructive/15 text-destructive border-destructive/50' },
+  blocked: { label: 'Blocked', icon: Ban, cls: 'bg-orange-500/15 text-orange-500 border-orange-500/40' },
   flaky: { label: 'Flaky', icon: RefreshCcw, cls: 'bg-warning/15 text-warning border-warning/40' },
-  skipped: { label: 'Skipped', icon: AlertCircle, cls: 'bg-muted/30 text-muted-foreground border-border' },
+  skipped: { label: 'Skipped', icon: AlertCircle, cls: 'bg-warning/10 text-warning border-warning/30' },
   unknown: { label: 'Unknown', icon: AlertCircle, cls: 'bg-muted/30 text-muted-foreground border-border' },
 };
 
@@ -80,15 +83,22 @@ const DefectScenarioCard: React.FC<{ scenario: DefectScenario }> = ({ scenario }
   const failureLabel =
     scenario.failureTypeLabel ||
     (scenario.failureType ? FAILURE_TYPE_LABELS[scenario.failureType] : null);
+  const accent =
+    scenario.status === 'failed' ? 'border-l-4 border-l-destructive' :
+    scenario.status === 'blocked' ? 'border-l-4 border-l-orange-500' :
+    scenario.status === 'flaky' ? 'border-l-4 border-l-warning' :
+    scenario.status === 'skipped' ? 'border-l-4 border-l-warning/60' :
+    scenario.status === 'passed' ? 'border-l-4 border-l-success' : '';
+  const isLowConfidence = typeof scenario.confidence === 'number' && scenario.confidence < 60;
 
   return (
-    <Card className="glass-card overflow-hidden">
+    <Card className={cn('glass-card overflow-hidden', accent)}>
       <CardContent className="p-4 space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="text-sm font-semibold truncate">{scenario.name}</h4>
+              <h4 className="text-sm font-semibold break-words">{scenario.name || 'Unnamed scenario'}</h4>
               {scenario.isFlaky && scenario.status !== 'flaky' && (
                 <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">
                   Flaky
@@ -105,14 +115,32 @@ const DefectScenarioCard: React.FC<{ scenario: DefectScenario }> = ({ scenario }
                   {scenario.layer.toUpperCase()}
                 </Badge>
               )}
-              {failureLabel && (
+              {failureLabel && (scenario.status === 'failed' || scenario.status === 'flaky' || scenario.status === 'blocked') && (
                 <Badge variant="outline" className="text-[10px] border-destructive/30 text-destructive bg-destructive/5">
                   {failureLabel}
                 </Badge>
               )}
               {typeof scenario.confidence === 'number' && (
-                <Badge variant="outline" className="text-[10px] border-primary/30 text-primary bg-primary/5">
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'text-[10px]',
+                    isLowConfidence
+                      ? 'border-warning/40 text-warning bg-warning/5'
+                      : 'border-primary/30 text-primary bg-primary/5',
+                  )}
+                >
                   {scenario.confidence}% confidence
+                </Badge>
+              )}
+              {scenario.verifiedInLogs === false && (
+                <Badge variant="outline" className="text-[10px] border-warning/40 text-warning bg-warning/5">
+                  Unverified in logs
+                </Badge>
+              )}
+              {scenario.verifiedInLogs === true && (
+                <Badge variant="outline" className="text-[10px] border-success/40 text-success bg-success/5">
+                  ✓ Verified
                 </Badge>
               )}
             </div>
@@ -122,6 +150,14 @@ const DefectScenarioCard: React.FC<{ scenario: DefectScenario }> = ({ scenario }
             {meta.label}
           </Badge>
         </div>
+
+        {/* Low-confidence honesty banner */}
+        {isLowConfidence && scenario.lowConfidenceReason && (
+          <div className="flex items-start gap-2 rounded-lg border border-warning/40 bg-warning/5 p-2.5 text-[11px] text-warning">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+            <span>{scenario.lowConfidenceReason}</span>
+          </div>
+        )}
 
         {/* Failure summary */}
         {scenario.failureReason && (
@@ -158,7 +194,19 @@ const DefectScenarioCard: React.FC<{ scenario: DefectScenario }> = ({ scenario }
           </Section>
         )}
 
-        {/* Suggested fix */}
+        {/* Execution sequence */}
+        {scenario.executionSequence && scenario.executionSequence.length > 0 && (
+          <Section icon={Workflow} label="Execution Sequence (last steps)" tone="muted">
+            <ol className="list-decimal list-inside space-y-0.5 marker:text-muted-foreground">
+              {scenario.executionSequence.map((step, i) => (
+                <li key={i} className={i === scenario.executionSequence!.length - 1 ? 'text-destructive font-medium' : ''}>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          </Section>
+        )}
+
         {scenario.suggestedFix && (
           <Section icon={Lightbulb} label="Suggested Fix" tone="primary">
             {scenario.suggestedFix}

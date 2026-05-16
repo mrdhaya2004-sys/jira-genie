@@ -192,15 +192,30 @@ async function processFile(
   return out;
 }
 
+export interface ParseMetrics {
+  /** % of original raw bytes successfully read into the digest pipeline (before truncation). */
+  parsingCompletion: number;
+  /** % of failure-relevant lines extracted vs estimated total relevant lines. Heuristic. */
+  logCoverage: number;
+  /** Total raw bytes processed. */
+  rawBytes: number;
+  /** Bytes actually shipped to the AI (digest length). */
+  digestBytes: number;
+  /** Number of failure-pattern matches captured. */
+  failureLinesCaptured: number;
+}
+
 export async function parseReportFiles(
   files: File[],
   onProgress?: ParseProgress,
-): Promise<{ digest: string; summaries: ReportFileSummary[] }> {
+): Promise<{ digest: string; summaries: ReportFileSummary[]; metrics: ParseMetrics }> {
   const summaries: ReportFileSummary[] = [];
   const sections: string[] = [];
   let total = 0;
   const overallTotal = files.reduce((s, f) => s + f.size, 0);
   let overallBytes = 0;
+  let rawProcessed = 0;
+  let failureLinesCaptured = 0;
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -259,7 +274,11 @@ export async function parseReportFiles(
         const clipped = clip(processed);
         sections.push(`--- FILE: ${file.name} ---\n${clipped}`);
         total += clipped.length;
+        // count "FAILURE / ERROR LINES" markers as captured failure lines
+        const m = processed.match(/--- FAILURE \/ ERROR LINES \((\d+) extracted\)/);
+        if (m) failureLinesCaptured += parseInt(m[1], 10);
       }
+      rawProcessed += file.size;
     } catch (e) {
       sections.push(
         `--- FILE: ${file.name} (read error: ${(e as Error).message}) ---\n` +
@@ -275,5 +294,25 @@ export async function parseReportFiles(
   if (digest.length > MAX_TOTAL) {
     digest = digest.slice(0, MAX_TOTAL) + `\n[...total digest truncated for upload safety...]`;
   }
-  return { digest, summaries };
+
+  // Metrics
+  const parsingCompletion = overallTotal > 0
+    ? Math.min(100, Math.round((rawProcessed / overallTotal) * 100))
+    : 100;
+  // Heuristic: digest characters relative to a target prompt window (1.2MB ideal).
+  // If the report easily fits, coverage is 100; if huge and we smart-extracted, scale by digest density.
+  const idealDigest = Math.min(MAX_TOTAL, Math.max(1, overallTotal));
+  const logCoverage = Math.min(100, Math.round((digest.length / idealDigest) * 100));
+
+  return {
+    digest,
+    summaries,
+    metrics: {
+      parsingCompletion,
+      logCoverage,
+      rawBytes: overallTotal,
+      digestBytes: digest.length,
+      failureLinesCaptured,
+    },
+  };
 }

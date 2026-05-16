@@ -9,56 +9,70 @@ interface DefectRequest {
   workspaceName?: string;
   os: 'android' | 'ios' | 'web';
   reportSummaries: { name: string; size: number; kind: string }[];
-  reportDigest: string; // pre-trimmed text payload from client
+  reportDigest: string;
+  parseMetrics?: {
+    parsingCompletion: number;
+    logCoverage: number;
+    rawBytes: number;
+    digestBytes: number;
+    failureLinesCaptured: number;
+  };
 }
 
-const SYSTEM_PROMPT = `You are an elite QA Defect Analyst AI. You receive raw automation execution reports
-(HTML/JSON/log/text/stack traces) and produce a precise, structured root cause analysis
-for EVERY failed scenario — not only XPath issues.
+const SYSTEM_PROMPT = `You are an elite QA Defect Analyst AI for an enterprise SaaS test platform.
+You receive raw automation execution reports (HTML/JSON/log/text/stack traces) and produce
+HIGHLY ACCURATE, EVIDENCE-BACKED root-cause analysis for EVERY failed scenario.
+
+ACCURACY IS NON-NEGOTIABLE. You MUST:
+- READ the report carefully before concluding anything.
+- Quote ONLY scenarios, error messages, stack traces, selectors and HTTP codes that are LITERALLY present in the report. Never invent scenario names, modules, error classes, line numbers, or selectors.
+- If the report does not clearly establish a root cause, set "confidence" LOW (<= 40) and write in "lowConfidenceReason" exactly what evidence was missing (e.g. "no stack trace present", "scenario name not found in logs", "report truncated before failure point").
+- NEVER write generic placeholder text like "check the issue", "investigate further", "verify the test" without specifics tied to the actual log.
+- If you cannot find ANY failed scenarios in the report, return scenarios=[] and explain in summary.
 
 You MUST respond with ONLY a single JSON object (no markdown fences, no commentary) matching this schema:
 
 {
-  "summary": string,                          // 2-4 sentence executive summary
-  "totalScenarios": number,
+  "summary": string,                          // 2-4 sentence executive summary grounded in the actual report
+  "totalScenarios": number,                   // count actually observed in the report (do not guess)
   "passed": number,
   "failed": number,
   "skipped": number,
+  "blocked": number,                          // scenarios that could not run due to setup/dependency failure
   "stabilityScore": number,                   // 0-100
-  "confidence": number,                       // 0-100, your confidence in this analysis
+  "confidence": number,                       // 0-100 overall analysis confidence
   "mostFailedModule": string | null,
+  "impactedModules": string[],                // distinct modules/features impacted by failures
   "flakyCount": number,
   "rootCauseDistribution": [
     { "label": string, "count": number, "percentage": number }
   ],
   "scenarios": [
     {
-      "name": string,
-      "status": "passed" | "failed" | "skipped" | "flaky" | "unknown",
+      "name": string,                          // EXACT name as it appears in the report
+      "status": "passed" | "failed" | "skipped" | "blocked" | "flaky" | "unknown",
       "module": string | null,
-
-      // Classification — REQUIRED for every failed/flaky scenario
+      "verifiedInLogs": boolean,               // true ONLY if the scenario name appears verbatim in the report content
       "failureType":
         "xpath_locator" | "assertion" | "timeout" | "element_not_interactable" |
         "element_not_found" | "api_failure" | "network" | "data_mismatch" |
         "environment" | "app_crash" | "unexpected_popup" | "session_expired" |
         "dependency" | "slow_loading" | "validation" | "permission" | "flaky" |
         "build_mismatch" | "configuration" | "authentication" | "ui_change" | "unknown",
-      "failureTypeLabel": string | null,      // Human-readable label
+      "failureTypeLabel": string | null,
       "layer": "ui" | "api" | "network" | "data" | "environment" | "framework" | "auth" | "unknown",
-
-      // Analysis — REQUIRED for every failed/flaky scenario (write meaningful prose, not "N/A")
-      "failureReason": string | null,         // 1-sentence summary of WHAT failed
-      "rootCause": string | null,             // WHY it failed (the underlying cause)
-      "detailedExplanation": string | null,   // 2-4 sentence deep-dive in human language
-      "technicalInsight": string | null,      // QA-engineer-grade technical observation (selectors, timing, payloads, codes)
-      "impactedFlow": string | null,          // Which user/business flow this breaks
-      "suggestedFix": string | null,          // Concrete, actionable fix steps
-      "preventionRecommendation": string | null, // How to prevent recurrence
-      "confidence": number,                   // 0-100 confidence in this scenario diagnosis
-
-      "errorSnippet": string | null,          // Short raw error excerpt (<= 400 chars)
-      "stackTrace": string | null,            // Trimmed stack trace if present (<= 800 chars)
+      "failureReason": string | null,          // 1-sentence factual summary of WHAT failed (quote evidence)
+      "rootCause": string | null,              // WHY it failed, grounded in evidence
+      "detailedExplanation": string | null,    // 2-4 sentence human-readable cause-and-effect
+      "technicalInsight": string | null,       // concrete: selectors, status codes, timing numbers, assertion diffs from the log
+      "impactedFlow": string | null,           // which user/business flow is broken (only if derivable from the log)
+      "suggestedFix": string | null,           // SPECIFIC, actionable, tied to the actual error
+      "preventionRecommendation": string | null,
+      "confidence": number,                    // 0-100 per-scenario diagnosis confidence
+      "lowConfidenceReason": string | null,    // REQUIRED whenever confidence < 60
+      "executionSequence": string[] | null,    // ordered list of the last 3-8 steps before the failure, if present
+      "errorSnippet": string | null,           // verbatim raw error excerpt (<= 400 chars). DO NOT paraphrase.
+      "stackTrace": string | null,             // verbatim trimmed stack trace if present (<= 800 chars)
       "durationMs": number | null,
       "tags": string[],
       "isFlaky": boolean
@@ -67,41 +81,162 @@ You MUST respond with ONLY a single JSON object (no markdown fences, no commenta
   "xpathIssues": [
     {
       "scenario": string | null,
-      "oldXpath": string,
+      "oldXpath": string,                      // must be quoted from the report
       "proposedXpath": string | null,
       "reason": string,
       "confidence": number
     }
   ],
-  "recommendations": string[]                 // 3-7 concrete stabilization actions
+  "recommendations": string[]                  // 3-7 specific, actionable, evidence-backed stabilization actions
 }
 
-CRITICAL ANALYSIS RULES:
-- Analyze EVERY failed and flaky scenario in depth — never leave failureType, rootCause, detailedExplanation, suggestedFix or preventionRecommendation empty for a failure. If unsure, use failureType "unknown" but still write a best-effort explanation and what to investigate.
-- Read logs deeply: parse stack traces, HTTP status codes, error class names, timeout values, assertion diffs, locator strings, popup/dialog mentions, build/version mismatches, auth/session expiry markers.
-- Map errors to failureType using these signals (non-exhaustive):
-  * NoSuchElement / ElementNotFound / StaleElementReference / InvalidSelector → xpath_locator OR element_not_found
-  * ElementNotInteractable / ElementClickIntercepted / overlay/modal blocking → element_not_interactable or unexpected_popup
-  * TimeoutException / wait timed out / Navigation timeout → timeout (or slow_loading if page-load related)
-  * AssertionError / expected vs actual / "to equal" / "to contain" → assertion or data_mismatch
+DEEP ANALYSIS RULES:
+- Parse stack traces, HTTP codes, error class names, timeout values, assertion diffs, locator strings, popup/dialog mentions, build/version mismatches, auth/session expiry markers.
+- Failure-type signals:
+  * NoSuchElement / ElementNotFound / StaleElementReference / InvalidSelector → xpath_locator or element_not_found
+  * ElementNotInteractable / ElementClickIntercepted / overlay blocking → element_not_interactable or unexpected_popup
+  * TimeoutException / wait timed out → timeout (slow_loading if page-load)
+  * AssertionError / expected vs actual → assertion or data_mismatch
   * HTTP 4xx/5xx, fetch failed, ECONNREFUSED, DNS, SSL → api_failure or network
-  * 401 / 403 / token expired / login failed / unauthorized → authentication or session_expired or permission
-  * App crashed / SIGSEGV / native crash / ANR / process died → app_crash
-  * Missing env var / wrong baseUrl / config not found → configuration or environment
-  * APK/IPA/build version mismatch, capability mismatch → build_mismatch
-  * Intermittent pass/fail, retry markers, "passed on retry" → flaky (set isFlaky=true)
-  * UI snapshot diff, layout shift, new modal, redesigned screen → ui_change
-- For xpath_locator / element_not_found failures, also surface them in xpathIssues with a stabler proposed XPath (prefer relative + attribute-based: resource-id, content-desc, accessibility-id, name, label, data-testid).
-- "layer" should reflect WHERE the failure surfaced (ui for selectors/visibility, api for backend calls, network for transport, data for assertion/data mismatch, environment for env/config, auth for login/token, framework for driver/runner issues).
-- detailedExplanation MUST be human-readable prose explaining cause-and-effect; technicalInsight MUST contain concrete technical observations (selector strings, timing numbers, status codes, payload diffs).
-- suggestedFix MUST be actionable steps (e.g. "Replace XPath with resource-id 'btn_submit'", "Add explicit wait for element visibility up to 15s", "Verify /api/login returns 200 before proceeding").
-- preventionRecommendation MUST give a forward-looking practice (e.g. "Use stable test IDs from dev team", "Add health-check before suite", "Mock unstable third-party dependency").
-- Identify flaky scenarios (intermittent or retry markers) and set isFlaky=true.
-- Group root causes into clear buckets in rootCauseDistribution (e.g. "Locator/XPath", "Timeout/Waits", "Assertion/Data", "Network/API", "Auth/Session", "App Crash", "Environment/Config", "UI Change", "Flaky").
-- Compute stabilityScore = round(100 * passed / max(totalScenarios,1)); reduce by up to 15 points if flakyCount is high.
-- Per-scenario "confidence" reflects YOUR certainty in that diagnosis (lower it when logs are sparse).
-- If parsing fails or input is unclear, still return valid JSON with empty arrays and overall confidence reflecting uncertainty.
-- NEVER include markdown, NEVER wrap in code fences. Output raw JSON only.`;
+  * 401 / 403 / token expired → authentication or session_expired or permission
+  * App crashed / SIGSEGV / ANR → app_crash
+  * Missing env var / wrong baseUrl → configuration or environment
+  * APK/IPA build mismatch → build_mismatch
+  * Intermittent pass/fail or retry markers → flaky, set isFlaky=true
+  * UI snapshot diff / new modal → ui_change
+- "blocked" = could not execute (e.g. previous step failed, hook failed, setup error, app didn't launch). Not the same as "failed".
+- For xpath_locator / element_not_found, ALSO add to xpathIssues with a stable proposed XPath (prefer resource-id / accessibility-id / data-testid).
+- detailedExplanation = prose. technicalInsight = concrete technical observations from the log.
+- suggestedFix MUST be a specific action, e.g. "Replace XPath '//button[3]' with resource-id 'btn_submit'", "Add explicit wait up to 15s for 'login_btn'", "Verify /api/login returns 200 (currently 503)".
+- preventionRecommendation = forward-looking practice.
+- stabilityScore = round(100 * passed / max(totalScenarios,1)); subtract up to 15 points for high flakyCount.
+- ANTI-HALLUCINATION: If the digest is sparse, return fewer but accurate scenarios with low confidence rather than fabricating detail. Always set verifiedInLogs=true ONLY when the exact scenario name string appears in the report content.
+- NEVER include markdown, NEVER wrap in code fences. Output raw JSON ONLY.`;
+
+// ---------- Validation layer ----------
+
+function safeNumber(n: unknown, fallback = 0): number {
+  if (typeof n === 'number' && Number.isFinite(n)) return n;
+  return fallback;
+}
+
+function clamp(n: number, lo: number, hi: number) {
+  return Math.max(lo, Math.min(hi, n));
+}
+
+/**
+ * Cross-checks the AI's output against the raw report to defend against hallucination.
+ * - Downgrades per-scenario confidence when the scenario name is not in the report text.
+ * - Sets verifiedInLogs honestly.
+ * - Recomputes counts, stability score, root cause distribution.
+ * - Produces an aggregate analysisReliability score.
+ */
+function validateAndEnrich(parsed: any, digest: string, parseMetrics?: DefectRequest['parseMetrics']) {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+  const lowerDigest = (digest || '').toLowerCase();
+
+  const scenarios: any[] = Array.isArray(parsed.scenarios) ? parsed.scenarios : [];
+  let verifiedCount = 0;
+  let confidenceSum = 0;
+  let confidenceWeights = 0;
+  const cleaned = scenarios.map((s) => {
+    const name = typeof s?.name === 'string' ? s.name.trim() : '';
+    const verified = name.length >= 3 && lowerDigest.includes(name.toLowerCase());
+    let confidence = clamp(safeNumber(s?.confidence, 50), 0, 100);
+    let lowConfidenceReason: string | null = s?.lowConfidenceReason ?? null;
+
+    // If the AI claimed verifiedInLogs=true but we cannot find the name, downgrade and mark.
+    if (!verified && (s?.status === 'failed' || s?.status === 'flaky' || s?.status === 'blocked')) {
+      if (confidence > 45) confidence = 45;
+      if (!lowConfidenceReason) {
+        lowConfidenceReason =
+          'Scenario name was not found verbatim in the uploaded report — diagnosis is inferred from partial context.';
+      }
+    }
+
+    if (verified) verifiedCount++;
+    if (s?.status === 'failed' || s?.status === 'flaky' || s?.status === 'blocked') {
+      confidenceSum += confidence;
+      confidenceWeights += 1;
+    }
+
+    return {
+      ...s,
+      name,
+      verifiedInLogs: verified,
+      confidence,
+      lowConfidenceReason,
+    };
+  });
+
+  // Recount from the actual scenarios array — never trust AI counts blindly.
+  const counts = { passed: 0, failed: 0, skipped: 0, blocked: 0, flaky: 0, unknown: 0 };
+  for (const s of cleaned) {
+    const st = String(s.status || 'unknown').toLowerCase();
+    if (st in counts) (counts as any)[st]++;
+    else counts.unknown++;
+  }
+  const total = cleaned.length || safeNumber(parsed.totalScenarios, 0);
+  const stabilityScore = total > 0 ? Math.round((counts.passed / total) * 100) : 0;
+
+  // Recompute root-cause distribution from actual failure types
+  const rcMap = new Map<string, number>();
+  for (const s of cleaned) {
+    if (s.status === 'failed' || s.status === 'flaky' || s.status === 'blocked') {
+      const label = s.failureTypeLabel || s.failureType || 'unknown';
+      rcMap.set(label, (rcMap.get(label) || 0) + 1);
+    }
+  }
+  const failureTotal = Array.from(rcMap.values()).reduce((a, b) => a + b, 0);
+  const rootCauseDistribution = Array.from(rcMap.entries())
+    .map(([label, count]) => ({
+      label,
+      count,
+      percentage: failureTotal > 0 ? Math.round((count / failureTotal) * 100) : 0,
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  // Overall analysis reliability: blends AI confidence on failures + verification rate + parsing completeness.
+  const avgFailureConfidence = confidenceWeights > 0 ? confidenceSum / confidenceWeights : safeNumber(parsed.confidence, 50);
+  const verificationRate = cleaned.length > 0 ? (verifiedCount / cleaned.length) * 100 : 0;
+  const parsingCompletion = clamp(safeNumber(parseMetrics?.parsingCompletion, 100), 0, 100);
+  const logCoverage = clamp(safeNumber(parseMetrics?.logCoverage, 100), 0, 100);
+  const analysisReliability = Math.round(
+    clamp(avgFailureConfidence * 0.45 + verificationRate * 0.35 + parsingCompletion * 0.15 + logCoverage * 0.05, 0, 100),
+  );
+
+  let reliabilityNotes: string | undefined;
+  if (analysisReliability < 60) {
+    const reasons: string[] = [];
+    if (verificationRate < 60) reasons.push('many scenario names could not be matched in the raw logs');
+    if (parsingCompletion < 80) reasons.push('only part of the report was parseable');
+    if (avgFailureConfidence < 60) reasons.push('per-scenario AI confidence is low');
+    reliabilityNotes = `Analysis confidence is LOW: ${reasons.join('; ') || 'insufficient execution data in the report'}.`;
+  }
+
+  return {
+    ...parsed,
+    scenarios: cleaned,
+    passed: counts.passed,
+    failed: counts.failed,
+    skipped: counts.skipped,
+    blocked: counts.blocked,
+    flakyCount: counts.flaky,
+    totalScenarios: total,
+    stabilityScore,
+    rootCauseDistribution,
+    impactedModules: Array.isArray(parsed.impactedModules)
+      ? parsed.impactedModules
+      : Array.from(new Set(cleaned.filter((s) => s.status !== 'passed').map((s) => s.module).filter(Boolean))),
+    reliability: {
+      parsingCompletion,
+      logCoverage,
+      analysisReliability,
+      notes: reliabilityNotes,
+    },
+    confidence: Math.round(avgFailureConfidence),
+  };
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -119,7 +254,7 @@ serve(async (req) => {
     }
 
     const body = await req.json() as DefectRequest;
-    const { workspaceName, os, reportSummaries, reportDigest } = body;
+    const { workspaceName, os, reportSummaries, reportDigest, parseMetrics } = body;
 
     if (!reportDigest || reportDigest.trim().length === 0) {
       return new Response(JSON.stringify({ error: "Empty report content" }), {
@@ -127,7 +262,6 @@ serve(async (req) => {
       });
     }
 
-    // Hard cap to keep prompt safe (raised — client now smart-extracts huge reports)
     const MAX_CHARS = 400_000;
     const trimmedDigest = reportDigest.length > MAX_CHARS
       ? reportDigest.slice(0, MAX_CHARS) + `\n\n[...truncated ${reportDigest.length - MAX_CHARS} chars...]`
@@ -136,12 +270,15 @@ serve(async (req) => {
     const userPrompt = `Workspace: ${workspaceName || 'unknown'}
 Execution OS: ${os}
 Files uploaded: ${reportSummaries.map(f => `${f.name} (${f.kind}, ${f.size}b)`).join(', ') || 'inline text'}
+Parsing completion: ${parseMetrics?.parsingCompletion ?? 'unknown'}%
+Log coverage: ${parseMetrics?.logCoverage ?? 'unknown'}%
+Failure lines captured during smart-extraction: ${parseMetrics?.failureLinesCaptured ?? 'n/a'}
 
-=== REPORT CONTENT ===
+=== REPORT CONTENT (analyze ONLY what is below — never invent) ===
 ${trimmedDigest}
 === END REPORT ===
 
-Analyze the above automation execution report and return the structured JSON defined in the system prompt.`;
+Produce the structured JSON defined in the system prompt. Remember: every scenario name MUST appear verbatim in the report content above, or you must mark verifiedInLogs=false with a low confidence and an honest lowConfidenceReason.`;
 
     const aiResponse = await fetch(AI_GATEWAY_URL, {
       method: 'POST',
@@ -180,9 +317,8 @@ Analyze the above automation execution report and return the structured JSON def
     const aiJson = await aiResponse.json();
     const content: string = aiJson.choices?.[0]?.message?.content ?? '';
 
-    let parsed: unknown;
+    let parsed: any;
     try {
-      // Strip accidental code fences just in case
       const cleaned = content.trim().replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
       parsed = JSON.parse(cleaned);
     } catch (e) {
@@ -193,7 +329,10 @@ Analyze the above automation execution report and return the structured JSON def
       }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ analysis: parsed }), {
+    // Validation + enrichment layer — defends against hallucination & recomputes truthful metrics.
+    const validated = validateAndEnrich(parsed, trimmedDigest, parseMetrics);
+
+    return new Response(JSON.stringify({ analysis: validated }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {

@@ -23,6 +23,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
   const [reportDigest, setReportDigest] = useState<string>('');
   const [reportSummaries, setReportSummaries] = useState<ReportFileSummary[]>([]);
+  const [parseMetrics, setParseMetrics] = useState<{ parsingCompletion: number; logCoverage: number; rawBytes: number; digestBytes: number; failureLinesCaptured: number } | null>(null);
   const [selectedOs, setSelectedOs] = useState<ExecutionOS | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<DefectAnalysisResult | null>(null);
@@ -107,7 +108,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
           }),
         );
 
-        const { digest, summaries } = await parseReportFiles(files, ({ fileName, fileBytes, fileTotal }) => {
+        const { digest, summaries, metrics } = await parseReportFiles(files, ({ fileName, fileBytes, fileTotal }) => {
           setProgress?.((items) =>
             items.map((it) => {
               if (it.file.name !== fileName) return it;
@@ -128,6 +129,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
             }),
           );
         });
+        setParseMetrics(metrics);
 
         // Mark all as completed
         setProgress?.((items) =>
@@ -235,6 +237,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
             os: selectedOs,
             reportSummaries,
             reportDigest,
+            parseMetrics,
           }),
         },
       );
