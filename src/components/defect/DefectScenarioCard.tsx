@@ -115,14 +115,32 @@ const DefectScenarioCard: React.FC<{ scenario: DefectScenario }> = ({ scenario }
                   {scenario.layer.toUpperCase()}
                 </Badge>
               )}
-              {failureLabel && (
+              {failureLabel && (scenario.status === 'failed' || scenario.status === 'flaky' || scenario.status === 'blocked') && (
                 <Badge variant="outline" className="text-[10px] border-destructive/30 text-destructive bg-destructive/5">
                   {failureLabel}
                 </Badge>
               )}
               {typeof scenario.confidence === 'number' && (
-                <Badge variant="outline" className="text-[10px] border-primary/30 text-primary bg-primary/5">
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'text-[10px]',
+                    isLowConfidence
+                      ? 'border-warning/40 text-warning bg-warning/5'
+                      : 'border-primary/30 text-primary bg-primary/5',
+                  )}
+                >
                   {scenario.confidence}% confidence
+                </Badge>
+              )}
+              {scenario.verifiedInLogs === false && (
+                <Badge variant="outline" className="text-[10px] border-warning/40 text-warning bg-warning/5">
+                  Unverified in logs
+                </Badge>
+              )}
+              {scenario.verifiedInLogs === true && (
+                <Badge variant="outline" className="text-[10px] border-success/40 text-success bg-success/5">
+                  ✓ Verified
                 </Badge>
               )}
             </div>
@@ -132,6 +150,14 @@ const DefectScenarioCard: React.FC<{ scenario: DefectScenario }> = ({ scenario }
             {meta.label}
           </Badge>
         </div>
+
+        {/* Low-confidence honesty banner */}
+        {isLowConfidence && scenario.lowConfidenceReason && (
+          <div className="flex items-start gap-2 rounded-lg border border-warning/40 bg-warning/5 p-2.5 text-[11px] text-warning">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+            <span>{scenario.lowConfidenceReason}</span>
+          </div>
+        )}
 
         {/* Failure summary */}
         {scenario.failureReason && (
