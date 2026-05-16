@@ -108,7 +108,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
           }),
         );
 
-        const { digest, summaries } = await parseReportFiles(files, ({ fileName, fileBytes, fileTotal }) => {
+        const { digest, summaries, metrics } = await parseReportFiles(files, ({ fileName, fileBytes, fileTotal }) => {
           setProgress?.((items) =>
             items.map((it) => {
               if (it.file.name !== fileName) return it;
@@ -129,6 +129,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
             }),
           );
         });
+        setParseMetrics(metrics);
 
         // Mark all as completed
         setProgress?.((items) =>
