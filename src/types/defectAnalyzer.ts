@@ -8,7 +8,7 @@ export type DefectFlowPhase =
 
 export type ExecutionOS = 'android' | 'ios' | 'web';
 
-export type ScenarioStatus = 'passed' | 'failed' | 'skipped' | 'flaky' | 'unknown';
+export type ScenarioStatus = 'passed' | 'failed' | 'skipped' | 'blocked' | 'flaky' | 'unknown';
 
 export interface DefectChatOption {
   id: string;
@@ -76,11 +76,16 @@ export interface DefectScenario {
   suggestedFix?: string;
   preventionRecommendation?: string;
   confidence?: number;
+  /** True when the AI's diagnosis could not be cross-verified against the raw logs. */
+  lowConfidenceReason?: string;
+  /** True when the scenario name was found verbatim in the uploaded logs. */
+  verifiedInLogs?: boolean;
   errorSnippet?: string;
   stackTrace?: string;
   durationMs?: number;
   tags?: string[];
   isFlaky?: boolean;
+  executionSequence?: string[];
 }
 
 export interface XPathIssue {
@@ -97,20 +102,34 @@ export interface RootCauseBucket {
   percentage: number;
 }
 
+export interface ReportReliability {
+  /** % of raw report content actually included in the AI prompt. */
+  parsingCompletion: number;
+  /** % of failure-relevant lines captured during smart extraction. */
+  logCoverage: number;
+  /** Aggregated AI analysis reliability (0-100), combining confidence + verification rate. */
+  analysisReliability: number;
+  /** Plain-language note when reliability is low. */
+  notes?: string;
+}
+
 export interface DefectAnalysisResult {
   summary: string;
   totalScenarios: number;
   passed: number;
   failed: number;
   skipped: number;
+  blocked: number;
   stabilityScore: number;
   confidence: number;
   mostFailedModule?: string;
+  impactedModules?: string[];
   flakyCount: number;
   rootCauseDistribution: RootCauseBucket[];
   scenarios: DefectScenario[];
   xpathIssues: XPathIssue[];
   recommendations: string[];
+  reliability?: ReportReliability;
 }
 
 export const EXECUTION_OS_OPTIONS: DefectChatOption[] = [
