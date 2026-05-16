@@ -176,30 +176,65 @@ async function readSmallFileAsText(file: File, kind: ReportFileSummary['kind']):
   return kind === 'html' ? htmlToText(raw) : raw;
 }
 
-async function processFile(file: File, kind: ReportFileSummary['kind']): Promise<string> {
+async function processFile(
+  file: File,
+  kind: ReportFileSummary['kind'],
+  onChunk?: (chunkBytes: number) => void,
+): Promise<string> {
   if (file.size > SMART_EXTRACT_THRESHOLD && kind !== 'json') {
-    return smartExtractLargeFile(file, kind);
+    return smartExtractLargeFile(file, kind, onChunk);
   }
-  // JSON we still try to parse fully unless it's enormous; otherwise smart-extract on it as text
   if (file.size > SMART_EXTRACT_THRESHOLD) {
-    return smartExtractLargeFile(file, 'text');
+    return smartExtractLargeFile(file, 'text', onChunk);
   }
-  return readSmallFileAsText(file, kind);
+  const out = await readSmallFileAsText(file, kind);
+  if (onChunk) onChunk(file.size);
+  return out;
 }
 
-export async function parseReportFiles(files: File[]): Promise<{ digest: string; summaries: ReportFileSummary[] }> {
+export async function parseReportFiles(
+  files: File[],
+  onProgress?: ParseProgress,
+): Promise<{ digest: string; summaries: ReportFileSummary[] }> {
   const summaries: ReportFileSummary[] = [];
   const sections: string[] = [];
   let total = 0;
+  const overallTotal = files.reduce((s, f) => s + f.size, 0);
+  let overallBytes = 0;
 
-  for (const file of files) {
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
     const kind = detectKind(file.name);
     summaries.push({ name: file.name, size: file.size, kind });
+
+    let fileBytes = 0;
+    const reportChunk = (n: number) => {
+      fileBytes = Math.min(file.size, fileBytes + n);
+      overallBytes = Math.min(overallTotal, overallBytes + n);
+      onProgress?.({
+        fileIndex: i,
+        fileName: file.name,
+        fileBytes,
+        fileTotal: file.size,
+        overallBytes,
+        overallTotal,
+      });
+    };
+
+    // emit initial 0% tick so UI shows the file immediately
+    onProgress?.({
+      fileIndex: i,
+      fileName: file.name,
+      fileBytes: 0,
+      fileTotal: file.size,
+      overallBytes,
+      overallTotal,
+    });
 
     try {
       if (kind === 'zip') {
         const zip = await JSZip.loadAsync(await file.arrayBuffer());
-        // Prioritize files that look failure-relevant first
+        reportChunk(file.size);
         const entries = Object.values(zip.files)
           .filter((e) => !e.dir && isTextLike(e.name))
           .sort((a, b) => {
@@ -220,7 +255,7 @@ export async function parseReportFiles(files: File[]): Promise<{ digest: string;
           if (total >= MAX_TOTAL) break;
         }
       } else {
-        const processed = await processFile(file, kind);
+        const processed = await processFile(file, kind, reportChunk);
         const clipped = clip(processed);
         sections.push(`--- FILE: ${file.name} ---\n${clipped}`);
         total += clipped.length;
@@ -230,6 +265,7 @@ export async function parseReportFiles(files: File[]): Promise<{ digest: string;
         `--- FILE: ${file.name} (read error: ${(e as Error).message}) ---\n` +
           `The analyzer could not read this file. If it's > 500MB, try splitting it or uploading a ZIP of the failure logs only.`,
       );
+      throw e;
     }
 
     if (total >= MAX_TOTAL) break;
@@ -240,4 +276,5 @@ export async function parseReportFiles(files: File[]): Promise<{ digest: string;
     digest = digest.slice(0, MAX_TOTAL) + `\n[...total digest truncated for upload safety...]`;
   }
   return { digest, summaries };
+}
 }
