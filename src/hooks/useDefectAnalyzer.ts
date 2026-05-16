@@ -80,18 +80,64 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
   const [isParsing, setIsParsing] = useState(false);
 
   const handleFilesAccepted = useCallback(
-    async (files: File[]) => {
+    async (
+      files: File[],
+      setProgress?: (cb: (items: any[]) => any[]) => void,
+    ) => {
       const totalMb = files.reduce((s, f) => s + f.size, 0) / (1024 * 1024);
       const isHuge = totalMb > 50;
+      const started: Record<string, number> = {};
       try {
         setIsParsing(true);
         if (isHuge) {
           toast({
             title: 'Large report detected',
-            description: `Parsing ${totalMb.toFixed(1)}MB — extracting failure-relevant sections. This may take a moment...`,
+            description: `Parsing ${totalMb.toFixed(1)}MB — extracting failure-relevant sections...`,
           });
         }
-        const { digest, summaries } = await parseReportFiles(files);
+
+        // Mark all as uploading at 0%
+        setProgress?.((items) =>
+          items.map((it) => {
+            if (files.some((f) => f === it.file)) {
+              started[it.id] = performance.now();
+              return { ...it, state: 'uploading', uploadedBytes: 0, errorMessage: undefined };
+            }
+            return it;
+          }),
+        );
+
+        const { digest, summaries } = await parseReportFiles(files, ({ fileName, fileBytes, fileTotal }) => {
+          setProgress?.((items) =>
+            items.map((it) => {
+              if (it.file.name !== fileName) return it;
+              const startedAt = started[it.id] || performance.now();
+              const elapsed = Math.max(0.001, (performance.now() - startedAt) / 1000);
+              const speed = fileBytes / elapsed;
+              const remaining = Math.max(0, fileTotal - fileBytes);
+              const eta = speed > 0 ? remaining / speed : 0;
+              const done = fileBytes >= fileTotal;
+              return {
+                ...it,
+                state: done ? 'processing' : 'uploading',
+                uploadedBytes: fileBytes,
+                totalBytes: fileTotal,
+                speedBps: speed,
+                etaSeconds: eta,
+              };
+            }),
+          );
+        });
+
+        // Mark all as completed
+        setProgress?.((items) =>
+          items.map((it) =>
+            files.some((f) => f === it.file)
+              ? { ...it, state: 'completed', uploadedBytes: it.totalBytes, etaSeconds: 0 }
+              : it,
+          ),
+        );
+
         if (!digest.trim()) {
           toast({
             title: 'No readable content',
@@ -121,6 +167,13 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
         }, 300);
       } catch (e) {
         console.error(e);
+        setProgress?.((items) =>
+          items.map((it) =>
+            files.some((f) => f === it.file) && it.state !== 'completed'
+              ? { ...it, state: 'failed', errorMessage: e instanceof Error ? e.message : 'Parse failed' }
+              : it,
+          ),
+        );
         toast({
           title: 'Could not read report',
           description:
@@ -129,6 +182,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
               : 'Unknown parse error',
           variant: 'destructive',
         });
+        throw e;
       } finally {
         setIsParsing(false);
       }
