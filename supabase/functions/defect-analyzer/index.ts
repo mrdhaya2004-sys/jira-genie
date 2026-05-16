@@ -86,7 +86,17 @@ You MUST respond with ONLY a single JSON object (no markdown fences, no commenta
       "stackTrace": string | null,             // verbatim trimmed stack trace if present (<= 800 chars)
       "durationMs": number | null,
       "tags": string[],
-      "isFlaky": boolean
+      "isFlaky": boolean,
+      "screenshotAnalysis": [
+        {
+          "screenshotIndex": number,             // index into the provided SCREENSHOTS list (0-based)
+          "visualObservation": string,           // 1-3 sentence description of what is on the screen
+          "detectedIssue": string | null,        // concrete UI issue: error toast text, missing element, blank screen, overlay, etc.
+          "visibleText": string | null,          // notable text the AI reads from the screen (errors, banners, dialog titles)
+          "blockingOverlay": string | null,      // describe overlay/popup blocking interaction if present
+          "confidence": number                   // 0-100 per-screenshot confidence
+        }
+      ] | null
     }
   ],
   "xpathIssues": [
