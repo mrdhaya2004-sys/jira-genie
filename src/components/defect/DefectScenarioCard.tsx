@@ -194,7 +194,19 @@ const DefectScenarioCard: React.FC<{ scenario: DefectScenario }> = ({ scenario }
           </Section>
         )}
 
-        {/* Suggested fix */}
+        {/* Execution sequence */}
+        {scenario.executionSequence && scenario.executionSequence.length > 0 && (
+          <Section icon={Workflow} label="Execution Sequence (last steps)" tone="muted">
+            <ol className="list-decimal list-inside space-y-0.5 marker:text-muted-foreground">
+              {scenario.executionSequence.map((step, i) => (
+                <li key={i} className={i === scenario.executionSequence!.length - 1 ? 'text-destructive font-medium' : ''}>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          </Section>
+        )}
+
         {scenario.suggestedFix && (
           <Section icon={Lightbulb} label="Suggested Fix" tone="primary">
             {scenario.suggestedFix}
