@@ -110,6 +110,7 @@ async function smartExtractLargeFile(
     const readBytes = Math.min(STREAM_CHUNK, totalSize - (offset - STREAM_CHUNK));
     offset += STREAM_CHUNK;
     if (onChunk) onChunk(readBytes);
+    const lastNl = chunk.lastIndexOf('\n');
     const processable = lastNl >= 0 ? chunk.slice(0, lastNl) : chunk;
     leftover = lastNl >= 0 ? chunk.slice(lastNl + 1) : '';
 
