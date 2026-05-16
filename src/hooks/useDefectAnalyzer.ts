@@ -280,6 +280,7 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
     setSelectedWorkspace(null);
     setReportDigest('');
     setReportSummaries([]);
+    setParseMetrics(null);
     setSelectedOs(null);
     setAnalysis(null);
   }, []);
