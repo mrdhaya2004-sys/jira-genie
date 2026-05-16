@@ -128,8 +128,6 @@ const DefectAnalyzerModule: React.FC = () => {
             />
           </div>
         )}
-          </div>
-        )}
 
         {(phase === 'ready' || phase === 'analyzing' || phase === 'results') && (
           <div className="max-w-2xl mx-auto flex items-center justify-between gap-3 flex-wrap">
