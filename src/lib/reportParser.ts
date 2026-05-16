@@ -277,4 +277,3 @@ export async function parseReportFiles(
   }
   return { digest, summaries };
 }
-}
