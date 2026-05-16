@@ -119,10 +119,18 @@ const DefectAnalyzerModule: React.FC = () => {
 
       {/* Footer / actions per phase */}
       <div className="border-t border-border/60 backdrop-blur-xl bg-card/70 p-4">
-        {phase === 'report_upload' && (
+        {(phase === 'report_upload' || phase === 'os_selection' || phase === 'ready' || phase === 'analyzing') && (
           <div className="max-w-2xl mx-auto space-y-2">
-            <DefectReportUploader onAccepted={handleFilesAccepted} disabled={isAnalyzing || isParsing} />
-            {isParsing && (
+            {phase === 'report_upload' && (
+              <DefectReportUploader
+                onAccepted={handleFilesAccepted}
+                disabled={isAnalyzing}
+                externalState={
+                  isAnalyzing ? 'analyzing' : isParsing ? 'processing' : 'idle'
+                }
+              />
+            )}
+            {phase === 'report_upload' && isParsing && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground glass-effect rounded-full px-3 py-1.5 w-fit mx-auto">
                 <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
                 <span>Parsing report — extracting failure context...</span>
