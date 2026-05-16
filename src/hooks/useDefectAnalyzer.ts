@@ -269,6 +269,16 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
         throw new Error(data?.error || 'Analysis failed');
       }
       const result = data.analysis as DefectAnalysisResult;
+      // Attach the original screenshots so the dashboard can render them with the AI's per-scenario observations.
+      if (screenshots.length > 0) {
+        result.screenshots = screenshots.map((s) => ({
+          name: s.name,
+          sourceFile: s.sourceFile,
+          dataUrl: s.dataUrl,
+          width: s.width,
+          height: s.height,
+        }));
+      }
       setAnalysis(result);
       addMessage({
         role: 'assistant',
