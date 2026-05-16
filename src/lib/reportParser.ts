@@ -274,7 +274,11 @@ export async function parseReportFiles(
         const clipped = clip(processed);
         sections.push(`--- FILE: ${file.name} ---\n${clipped}`);
         total += clipped.length;
+        // count "FAILURE / ERROR LINES" markers as captured failure lines
+        const m = processed.match(/--- FAILURE \/ ERROR LINES \((\d+) extracted\)/);
+        if (m) failureLinesCaptured += parseInt(m[1], 10);
       }
+      rawProcessed += file.size;
     } catch (e) {
       sections.push(
         `--- FILE: ${file.name} (read error: ${(e as Error).message}) ---\n` +
@@ -290,5 +294,25 @@ export async function parseReportFiles(
   if (digest.length > MAX_TOTAL) {
     digest = digest.slice(0, MAX_TOTAL) + `\n[...total digest truncated for upload safety...]`;
   }
-  return { digest, summaries };
+
+  // Metrics
+  const parsingCompletion = overallTotal > 0
+    ? Math.min(100, Math.round((rawProcessed / overallTotal) * 100))
+    : 100;
+  // Heuristic: digest characters relative to a target prompt window (1.2MB ideal).
+  // If the report easily fits, coverage is 100; if huge and we smart-extracted, scale by digest density.
+  const idealDigest = Math.min(MAX_TOTAL, Math.max(1, overallTotal));
+  const logCoverage = Math.min(100, Math.round((digest.length / idealDigest) * 100));
+
+  return {
+    digest,
+    summaries,
+    metrics: {
+      parsingCompletion,
+      logCoverage,
+      rawBytes: overallTotal,
+      digestBytes: digest.length,
+      failureLinesCaptured,
+    },
+  };
 }
