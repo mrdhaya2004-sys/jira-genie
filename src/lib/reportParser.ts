@@ -192,15 +192,30 @@ async function processFile(
   return out;
 }
 
+export interface ParseMetrics {
+  /** % of original raw bytes successfully read into the digest pipeline (before truncation). */
+  parsingCompletion: number;
+  /** % of failure-relevant lines extracted vs estimated total relevant lines. Heuristic. */
+  logCoverage: number;
+  /** Total raw bytes processed. */
+  rawBytes: number;
+  /** Bytes actually shipped to the AI (digest length). */
+  digestBytes: number;
+  /** Number of failure-pattern matches captured. */
+  failureLinesCaptured: number;
+}
+
 export async function parseReportFiles(
   files: File[],
   onProgress?: ParseProgress,
-): Promise<{ digest: string; summaries: ReportFileSummary[] }> {
+): Promise<{ digest: string; summaries: ReportFileSummary[]; metrics: ParseMetrics }> {
   const summaries: ReportFileSummary[] = [];
   const sections: string[] = [];
   let total = 0;
   const overallTotal = files.reduce((s, f) => s + f.size, 0);
   let overallBytes = 0;
+  let rawProcessed = 0;
+  let failureLinesCaptured = 0;
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
