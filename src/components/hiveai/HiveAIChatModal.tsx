@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import CodePlayground from './CodePlayground';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import ScrollToBottomButton from '@/components/common/ScrollToBottomButton';
+import { supabase } from '@/integrations/supabase/client';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 
