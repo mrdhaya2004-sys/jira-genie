@@ -297,7 +297,7 @@ const AIConfigurationModule: React.FC = () => {
                 <SelectTrigger className="menu-item-shine">
                   <SelectValue placeholder="Select model" />
                 </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
+                <SelectContent className="max-h-[300px] overflow-y-auto [&_[data-radix-select-viewport]]:max-h-[280px] [&_[data-radix-select-viewport]]:overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-thumb]:rounded-full [&_[data-radix-select-viewport]::-webkit-scrollbar]:w-2 [&_[data-radix-select-viewport]::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&_[data-radix-select-viewport]::-webkit-scrollbar-thumb]:rounded-full">
                   {availableModels.map((m) =>
                 <SelectItem key={m} value={m}>{m}</SelectItem>
                 )}
