@@ -41,6 +41,13 @@ const AIConfigurationModule: React.FC = () => {
 
   const selectedProvider = AI_PROVIDERS.find((p) => p.value === provider);
   const availableModels = detectedModels ?? selectedProvider?.defaultModels ?? [];
+  const isModelInvalid =
+    !!model && availableModels.length > 0 && !availableModels.includes(model);
+  const modelErrorMessage = isModelInvalid
+    ? detectedModels
+      ? `"${model}" is not available for this API key. Pick one of the detected models or re-run auto-detect.`
+      : `"${model}" is not a supported model for ${selectedProvider?.label ?? 'this provider'}. Choose one from the list.`
+    : null;
 
   useEffect(() => {
     if (config) {
