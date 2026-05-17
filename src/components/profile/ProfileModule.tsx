@@ -206,12 +206,20 @@ const ProfileModule: React.FC = () => {
         .from('profiles')
         .update({
           full_name: formData.fullName.trim(),
-          employee_id: formData.employeeId.trim(),
-          mobile_number: mobileForStorage,
         })
         .eq('user_id', user.id);
 
       if (error) throw error;
+
+      // Upsert owner-only private fields
+      const { error: privErr } = await (supabase as any)
+        .from('profiles_private')
+        .upsert({
+          user_id: user.id,
+          employee_id: formData.employeeId.trim(),
+          mobile_number: mobileForStorage,
+        }, { onConflict: 'user_id' });
+      if (privErr) throw privErr;
 
       if (usernameChanged && formData.username) {
         const success = await saveProfileId(`@${formData.username}`);
