@@ -57,11 +57,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq('user_id', userId)
       .maybeSingle();
 
-    if (!error && data) {
-      setProfile(data as UserProfile);
-    } else {
+    if (error || !data) {
       setProfile(null);
+      return;
     }
+
+    // Merge in private PII fields (owner-only)
+    const { data: priv } = await (supabase as any)
+      .from('profiles_private')
+      .select('mobile_number, date_of_birth, employee_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    setProfile({
+      ...(data as any),
+      employee_id: priv?.employee_id ?? '',
+      mobile_number: priv?.mobile_number ?? undefined,
+      date_of_birth: priv?.date_of_birth ?? undefined,
+    } as UserProfile);
   }, []);
 
   useEffect(() => {
