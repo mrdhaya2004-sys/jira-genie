@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import ScrollToBottomButton from '@/components/common/ScrollToBottomButton';
+import { supabase } from '@/integrations/supabase/client';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 
