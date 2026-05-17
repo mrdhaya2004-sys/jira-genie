@@ -239,15 +239,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user_id: authData.user.id,
         full_name: data.fullName,
         email: data.email.toLowerCase().trim(),
-        employee_id: data.employeeId,
-        mobile_number: data.mobileNumber || null,
-        date_of_birth: data.dateOfBirth || null,
         avatar_url: data.avatarUrl || null,
       });
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
         return { error: profileError as Error };
+      }
+
+      // Store private PII separately (owner-only RLS)
+      const { error: privError } = await (supabase as any)
+        .from('profiles_private')
+        .insert({
+          user_id: authData.user.id,
+          employee_id: data.employeeId,
+          mobile_number: data.mobileNumber || null,
+          date_of_birth: data.dateOfBirth || null,
+        });
+
+      if (privError) {
+        console.error('Private profile creation error:', privError);
       }
     }
 
