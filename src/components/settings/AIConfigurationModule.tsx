@@ -309,7 +309,10 @@ const AIConfigurationModule: React.FC = () => {
             </div>
             {availableModels.length > 0 ?
             <Select value={model} onValueChange={setModel}>
-                <SelectTrigger className="menu-item-shine">
+                <SelectTrigger
+                  className={`menu-item-shine ${isModelInvalid ? 'border-destructive focus:ring-destructive' : ''}`}
+                  aria-invalid={isModelInvalid}
+                >
                   <SelectValue placeholder="Select model" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] overflow-y-auto [&_[data-radix-select-viewport]]:max-h-[280px] [&_[data-radix-select-viewport]]:overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-thumb]:rounded-full [&_[data-radix-select-viewport]::-webkit-scrollbar]:w-2 [&_[data-radix-select-viewport]::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&_[data-radix-select-viewport]::-webkit-scrollbar-thumb]:rounded-full">
@@ -327,6 +330,12 @@ const AIConfigurationModule: React.FC = () => {
               onChange={(e) => setModel(e.target.value)} />
 
             }
+            {modelErrorMessage && (
+              <p className="text-xs text-destructive flex items-center gap-1">
+                <XCircle className="h-3 w-3" />
+                {modelErrorMessage}
+              </p>
+            )}
           </div>
 
           {/* Endpoint URL */}
