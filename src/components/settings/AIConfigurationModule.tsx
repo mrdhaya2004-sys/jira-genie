@@ -370,7 +370,7 @@ const AIConfigurationModule: React.FC = () => {
               variant="outline"
               className="menu-item-shine"
               onClick={handleTest}
-              disabled={isTesting || !apiKey && !config}>
+              disabled={isTesting || !apiKey && !config || isModelInvalid}>
 
               {isTesting ?
               <Loader2 className="h-4 w-4 mr-2 animate-spin" /> :
@@ -382,7 +382,7 @@ const AIConfigurationModule: React.FC = () => {
             <Button
               className="menu-item-shine"
               onClick={handleSave}
-              disabled={isSaving || !apiKey && !config || !model}>
+              disabled={isSaving || !apiKey && !config || !model || isModelInvalid}>
 
               {isSaving ?
               <Loader2 className="h-4 w-4 mr-2 animate-spin" /> :
