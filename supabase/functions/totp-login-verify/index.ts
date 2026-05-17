@@ -65,9 +65,31 @@ Deno.serve(async (req) => {
       });
     }
 
-    const targetUser = users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    const emailLower = email.toLowerCase();
+
+    // Rate limit: max 5 failed attempts per email in last 15 minutes
+    const since = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    const { count: failCount } = await serviceClient
+      .from("totp_attempts")
+      .select("*", { count: "exact", head: true })
+      .eq("email_lower", emailLower)
+      .eq("succeeded", false)
+      .gte("attempted_at", since);
+
+    if ((failCount ?? 0) >= 5) {
+      return new Response(JSON.stringify({ error: "Too many failed attempts. Try again in 15 minutes." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Slow down enumeration
+    await new Promise((r) => setTimeout(r, 800));
+
+    const targetUser = users?.find(u => u.email?.toLowerCase() === emailLower);
     if (!targetUser) {
-      return new Response(JSON.stringify({ error: "User not found" }), {
+      await serviceClient.from("totp_attempts").insert({ email_lower: emailLower, succeeded: false });
+      return new Response(JSON.stringify({ error: "Invalid code" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -81,6 +103,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (fetchError || !totpRecord) {
+      await serviceClient.from("totp_attempts").insert({ email_lower: emailLower, succeeded: false });
       return new Response(JSON.stringify({ error: "2FA not enabled for this user" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -88,7 +111,8 @@ Deno.serve(async (req) => {
     }
 
     const isValid = await verifyTOTP(totpRecord.totp_secret, otp);
-    
+    await serviceClient.from("totp_attempts").insert({ email_lower: emailLower, succeeded: isValid });
+
     return new Response(JSON.stringify({ valid: isValid }), {
       status: isValid ? 200 : 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
