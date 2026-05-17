@@ -117,6 +117,20 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
+  // Authorization: only organization admins may seed questions
+  const { data: adminRows, error: adminErr } = await supabase
+    .from("organization_members")
+    .select("role")
+    .eq("user_id", auth.user.id)
+    .eq("role", "admin")
+    .limit(1);
+  if (adminErr || !adminRows || adminRows.length === 0) {
+    return new Response(JSON.stringify({ error: "Forbidden: admin role required" }), {
+      status: 403,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const body = await req.json().catch(() => ({}));
     const target: number = Math.min(Math.max(body.target ?? 200, 25), 500); // questions per call
