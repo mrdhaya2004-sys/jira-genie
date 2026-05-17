@@ -156,6 +156,15 @@ export interface DefectAnalysisResult {
   }[];
 }
 
+export type DefectAnalyzerServiceCode = 'AI_CREDITS_EXHAUSTED' | 'AI_RATE_LIMITED';
+
+export interface DefectAnalyzerServiceError {
+  error: string;
+  code: DefectAnalyzerServiceCode;
+  userActionRequired: boolean;
+  retryable: boolean;
+}
+
 export const EXECUTION_OS_OPTIONS: DefectChatOption[] = [
   { id: 'android', label: 'Android', value: 'android', icon: '🤖', description: 'Appium / Espresso reports' },
   { id: 'ios', label: 'iOS', value: 'ios', icon: '🍎', description: 'XCUITest / Appium reports' },
