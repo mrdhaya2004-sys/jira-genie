@@ -60,6 +60,10 @@ const AIConfigurationModule: React.FC = () => {
 
   const handleSave = async () => {
     if (!apiKey && !config) return;
+    if (isModelInvalid) {
+      toast.error('Invalid model selected', { description: modelErrorMessage ?? undefined });
+      return;
+    }
     setIsSaving(true);
     await saveConfig({
       provider,
@@ -74,6 +78,10 @@ const AIConfigurationModule: React.FC = () => {
 
   const handleTest = async () => {
     if (!apiKey && !config) return;
+    if (isModelInvalid) {
+      toast.error('Invalid model selected', { description: modelErrorMessage ?? undefined });
+      return;
+    }
     await testConnection({
       provider,
       apiKey: apiKey || config?.api_key_encrypted || '',
