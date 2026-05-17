@@ -41,6 +41,13 @@ const AIConfigurationModule: React.FC = () => {
 
   const selectedProvider = AI_PROVIDERS.find((p) => p.value === provider);
   const availableModels = detectedModels ?? selectedProvider?.defaultModels ?? [];
+  const isModelInvalid =
+    !!model && availableModels.length > 0 && !availableModels.includes(model);
+  const modelErrorMessage = isModelInvalid
+    ? detectedModels
+      ? `"${model}" is not available for this API key. Pick one of the detected models or re-run auto-detect.`
+      : `"${model}" is not a supported model for ${selectedProvider?.label ?? 'this provider'}. Choose one from the list.`
+    : null;
 
   useEffect(() => {
     if (config) {
@@ -53,6 +60,10 @@ const AIConfigurationModule: React.FC = () => {
 
   const handleSave = async () => {
     if (!apiKey && !config) return;
+    if (isModelInvalid) {
+      toast.error('Invalid model selected', { description: modelErrorMessage ?? undefined });
+      return;
+    }
     setIsSaving(true);
     await saveConfig({
       provider,
@@ -67,6 +78,10 @@ const AIConfigurationModule: React.FC = () => {
 
   const handleTest = async () => {
     if (!apiKey && !config) return;
+    if (isModelInvalid) {
+      toast.error('Invalid model selected', { description: modelErrorMessage ?? undefined });
+      return;
+    }
     await testConnection({
       provider,
       apiKey: apiKey || config?.api_key_encrypted || '',
@@ -294,7 +309,10 @@ const AIConfigurationModule: React.FC = () => {
             </div>
             {availableModels.length > 0 ?
             <Select value={model} onValueChange={setModel}>
-                <SelectTrigger className="menu-item-shine">
+                <SelectTrigger
+                  className={`menu-item-shine ${isModelInvalid ? 'border-destructive focus:ring-destructive' : ''}`}
+                  aria-invalid={isModelInvalid}
+                >
                   <SelectValue placeholder="Select model" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] overflow-y-auto [&_[data-radix-select-viewport]]:max-h-[280px] [&_[data-radix-select-viewport]]:overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-thumb]:rounded-full [&_[data-radix-select-viewport]::-webkit-scrollbar]:w-2 [&_[data-radix-select-viewport]::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&_[data-radix-select-viewport]::-webkit-scrollbar-thumb]:rounded-full">
@@ -312,6 +330,12 @@ const AIConfigurationModule: React.FC = () => {
               onChange={(e) => setModel(e.target.value)} />
 
             }
+            {modelErrorMessage && (
+              <p className="text-xs text-destructive flex items-center gap-1">
+                <XCircle className="h-3 w-3" />
+                {modelErrorMessage}
+              </p>
+            )}
           </div>
 
           {/* Endpoint URL */}
@@ -346,7 +370,7 @@ const AIConfigurationModule: React.FC = () => {
               variant="outline"
               className="menu-item-shine"
               onClick={handleTest}
-              disabled={isTesting || !apiKey && !config}>
+              disabled={isTesting || !apiKey && !config || isModelInvalid}>
 
               {isTesting ?
               <Loader2 className="h-4 w-4 mr-2 animate-spin" /> :
@@ -358,7 +382,7 @@ const AIConfigurationModule: React.FC = () => {
             <Button
               className="menu-item-shine"
               onClick={handleSave}
-              disabled={isSaving || !apiKey && !config || !model}>
+              disabled={isSaving || !apiKey && !config || !model || isModelInvalid}>
 
               {isSaving ?
               <Loader2 className="h-4 w-4 mr-2 animate-spin" /> :
