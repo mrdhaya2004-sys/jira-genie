@@ -8,7 +8,6 @@ export interface SearchResult {
   email: string;
   avatar_url: string | null;
   profile_id: string | null;
-  employee_id: string;
 }
 
 export function useUserSearch() {
