@@ -80,6 +80,8 @@ Test Zone modules:
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const authErr = await requireAuth(req);
+  if (authErr) return authErr;
 
   try {
     const { messages } = await req.json();
