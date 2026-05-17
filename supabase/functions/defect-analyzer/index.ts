@@ -378,13 +378,23 @@ Produce the structured JSON defined in the system prompt. Remember: every scenar
       const txt = await aiResponse.text();
       console.error('AI gateway error', aiResponse.status, txt);
       if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded, please try again shortly." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({
+          error: "Rate limit exceeded, please try again shortly.",
+          code: "AI_RATE_LIMITED",
+          userActionRequired: true,
+          retryable: true,
+        }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({
+          error: "AI credits exhausted.",
+          code: "AI_CREDITS_EXHAUSTED",
+          userActionRequired: true,
+          retryable: false,
+        }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       return new Response(JSON.stringify({ error: "AI gateway error" }), {
