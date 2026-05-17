@@ -8,7 +8,6 @@ export interface SearchResult {
   email: string;
   avatar_url: string | null;
   profile_id: string | null;
-  employee_id: string;
 }
 
 export function useUserSearch() {
@@ -29,7 +28,7 @@ export function useUserSearch() {
       
       let queryBuilder = supabase
         .from('profiles')
-        .select('user_id, full_name, email, avatar_url, profile_id, employee_id')
+        .select('user_id, full_name, email, avatar_url, profile_id')
         .neq('user_id', user.id)
         .limit(20);
 

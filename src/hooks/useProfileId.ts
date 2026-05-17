@@ -58,7 +58,6 @@ export function useProfileId() {
             profile_id: profileId,
             full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
             email: user.email || '',
-            employee_id: user.user_metadata?.employee_id || 'N/A',
           });
         error = result.error;
       }

@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import CodePlayground from './CodePlayground';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import ScrollToBottomButton from '@/components/common/ScrollToBottomButton';
+import { supabase } from '@/integrations/supabase/client';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 
@@ -101,13 +102,19 @@ const HiveAIChatModal: React.FC<HiveAIChatModalProps> = ({ open, onClose }) => {
     let assistantContent = '';
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please sign in to use Hive AI.');
+        setIsStreaming(false);
+        return;
+      }
       const resp = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hive-ai-chat`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
             messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),

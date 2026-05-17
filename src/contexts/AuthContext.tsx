@@ -57,11 +57,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq('user_id', userId)
       .maybeSingle();
 
-    if (!error && data) {
-      setProfile(data as UserProfile);
-    } else {
+    if (error || !data) {
       setProfile(null);
+      return;
     }
+
+    // Merge in private PII fields (owner-only)
+    const { data: priv } = await (supabase as any)
+      .from('profiles_private')
+      .select('mobile_number, date_of_birth, employee_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    setProfile({
+      ...(data as any),
+      employee_id: priv?.employee_id ?? '',
+      mobile_number: priv?.mobile_number ?? undefined,
+      date_of_birth: priv?.date_of_birth ?? undefined,
+    } as UserProfile);
   }, []);
 
   useEffect(() => {
@@ -226,15 +239,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user_id: authData.user.id,
         full_name: data.fullName,
         email: data.email.toLowerCase().trim(),
-        employee_id: data.employeeId,
-        mobile_number: data.mobileNumber || null,
-        date_of_birth: data.dateOfBirth || null,
         avatar_url: data.avatarUrl || null,
       });
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
         return { error: profileError as Error };
+      }
+
+      // Store private PII separately (owner-only RLS)
+      const { error: privError } = await (supabase as any)
+        .from('profiles_private')
+        .insert({
+          user_id: authData.user.id,
+          employee_id: data.employeeId,
+          mobile_number: data.mobileNumber || null,
+          date_of_birth: data.dateOfBirth || null,
+        });
+
+      if (privError) {
+        console.error('Private profile creation error:', privError);
       }
     }
 

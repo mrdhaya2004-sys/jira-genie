@@ -217,16 +217,16 @@ const QAMockTestDialog: React.FC<Props> = ({ open, onOpenChange }) => {
 
   const revealAnswer = async (opt: string) => {
     if (!currentQ) return;
-    const { data, error } = await supabase
-      .from('qa_questions')
-      .select('correct_option, explanation')
-      .eq('id', currentQ.id)
-      .maybeSingle();
+    const { data: rows, error } = await (supabase as any).rpc('check_qa_answer', {
+      _question_id: currentQ.id,
+      _selected_option: opt,
+    });
+    const data = Array.isArray(rows) ? rows[0] : rows;
     if (error || !data) {
       toast({ title: 'Could not verify answer', variant: 'destructive' });
       return;
     }
-    const correct = opt === data.correct_option;
+    const correct = !!data.is_correct;
     if (correct) setScore((s) => s + 1);
     setFeedback({ correct, correctOption: data.correct_option, explanation: data.explanation });
     setAnswers((prev) => [...prev, { question_id: currentQ.id, selected_option: opt }]);
