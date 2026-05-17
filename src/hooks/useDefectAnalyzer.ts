@@ -8,6 +8,7 @@ import type {
   DefectFlowPhase,
   ExecutionOS,
   DefectAnalysisResult,
+  DefectAnalyzerServiceError,
   ReportFileSummary,
 } from '@/types/defectAnalyzer';
 import { EXECUTION_OS_OPTIONS } from '@/types/defectAnalyzer';
@@ -267,6 +268,27 @@ export const useDefectAnalyzer = ({ workspaces, isLoadingWorkspaces = false }: U
       const data = await resp.json();
       if (!resp.ok) {
         throw new Error(data?.error || 'Analysis failed');
+      }
+      if (data?.code === 'AI_CREDITS_EXHAUSTED' || data?.code === 'AI_RATE_LIMITED') {
+        const serviceError = data as DefectAnalyzerServiceError;
+        toast({
+          title: serviceError.code === 'AI_CREDITS_EXHAUSTED' ? 'AI credits exhausted' : 'AI rate limit reached',
+          description:
+            serviceError.code === 'AI_CREDITS_EXHAUSTED'
+              ? 'Add AI balance in Lovable Cloud before running another defect analysis.'
+              : serviceError.error,
+          variant: 'destructive',
+        });
+        addMessage({
+          role: 'assistant',
+          content:
+            serviceError.code === 'AI_CREDITS_EXHAUSTED'
+              ? "⚠️ **AI credits exhausted**\n\nI couldn't run this analysis because the workspace AI balance is depleted. Add AI balance in **Settings → Cloud & AI balance**, then click **Execute & Analyze** again. Your uploaded report and selected OS are still preserved."
+              : "⏳ **AI rate limit reached**\n\nPlease wait a moment, then click **Execute & Analyze** again. Your uploaded report and selected OS are still preserved.",
+          type: 'text',
+        });
+        setPhase('ready');
+        return;
       }
       const result = data.analysis as DefectAnalysisResult;
       // Attach the original screenshots so the dashboard can render them with the AI's per-scenario observations.
