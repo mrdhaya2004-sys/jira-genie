@@ -592,12 +592,9 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
-          date_of_birth: string | null
           email: string
-          employee_id: string
           full_name: string
           id: string
-          mobile_number: string | null
           profile_id: string | null
           updated_at: string
           user_id: string
@@ -605,12 +602,9 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
-          date_of_birth?: string | null
           email: string
-          employee_id: string
           full_name: string
           id?: string
-          mobile_number?: string | null
           profile_id?: string | null
           updated_at?: string
           user_id: string
@@ -618,13 +612,37 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
-          date_of_birth?: string | null
           email?: string
-          employee_id?: string
           full_name?: string
           id?: string
-          mobile_number?: string | null
           profile_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles_private: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          employee_id: string | null
+          mobile_number: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          employee_id?: string | null
+          mobile_number?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          employee_id?: string | null
+          mobile_number?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -825,6 +843,27 @@ export type Database = {
           token_expires_at?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      totp_attempts: {
+        Row: {
+          attempted_at: string
+          email_lower: string
+          id: string
+          succeeded: boolean
+        }
+        Insert: {
+          attempted_at?: string
+          email_lower: string
+          id?: string
+          succeeded?: boolean
+        }
+        Update: {
+          attempted_at?: string
+          email_lower?: string
+          id?: string
+          succeeded?: boolean
         }
         Relationships: []
       }
@@ -1094,6 +1133,14 @@ export type Database = {
       }
     }
     Functions: {
+      check_qa_answer: {
+        Args: { _question_id: string; _selected_option: string }
+        Returns: {
+          correct_option: string
+          explanation: string
+          is_correct: boolean
+        }[]
+      }
       create_notification: {
         Args: {
           _message: string
