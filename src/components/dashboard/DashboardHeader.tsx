@@ -189,53 +189,166 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
           </PopoverContent>
         </Popover>
         
-        {/* Profile Dropdown */}
+        {/* Profile Dropdown — iOS 26 glassmorphism */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="menu-item-shine flex items-center gap-2 h-9 px-2 hover:bg-accent/60">
-              <Avatar className="h-7 w-7 ring-1 ring-border/50">
-                <AvatarImage src={profile?.avatar_url || undefined} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                  {profile?.full_name ? getInitials(profile.full_name) : 'U'}
-                </AvatarFallback>
-              </Avatar>
+            <Button
+              variant="ghost"
+              className="menu-item-shine group flex items-center gap-2 h-9 px-2 rounded-full hover:bg-primary/10 transition-all duration-300"
+            >
+              <span className="relative">
+                <Avatar className="h-7 w-7 ring-2 ring-primary/30 group-hover:ring-primary/60 transition-all duration-300 shadow-sm">
+                  <AvatarImage src={profile?.avatar_url || undefined} />
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-xs font-semibold">
+                    {profile?.full_name ? getInitials(profile.full_name) : 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                {/* Online indicator */}
+                <span className="absolute -bottom-0.5 -right-0.5 block h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-card shadow-[0_0_6px_hsl(var(--primary)/0.6)]" />
+              </span>
               <span className="text-sm font-medium hidden md:inline">{profile?.full_name}</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 bg-popover border border-border shadow-lg z-50">
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">{profile?.full_name}</p>
-                <p className="text-xs text-muted-foreground">{profile?.email}</p>
+          <DropdownMenuContent
+            align="end"
+            sideOffset={10}
+            className="w-72 p-0 overflow-hidden rounded-[22px] border border-white/15 dark:border-white/10
+              bg-popover/70 backdrop-blur-2xl backdrop-saturate-150
+              shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.25),0_8px_24px_-8px_hsl(0_0%_0%/0.18)]
+              data-[state=open]:animate-in data-[state=closed]:animate-out
+              data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0
+              data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95
+              data-[side=bottom]:slide-in-from-top-2"
+          >
+            {/* Soft gradient overlay */}
+            <div
+              className="pointer-events-none absolute inset-0 opacity-80"
+              style={{
+                background:
+                  'radial-gradient(120% 60% at 50% 0%, hsl(var(--primary) / 0.18) 0%, transparent 55%), linear-gradient(180deg, hsl(var(--primary) / 0.06) 0%, transparent 100%)',
+              }}
+              aria-hidden="true"
+            />
+            {/* Border highlight */}
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 h-px"
+              style={{
+                background:
+                  'linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.5) 50%, transparent 100%)',
+              }}
+              aria-hidden="true"
+            />
+
+            {/* Profile header */}
+            <div className="relative px-4 pt-4 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Avatar className="h-12 w-12 ring-2 ring-primary/40 shadow-[0_4px_18px_-4px_hsl(var(--primary)/0.5)]">
+                    <AvatarImage src={profile?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-primary-foreground text-sm font-semibold">
+                      {profile?.full_name ? getInitials(profile.full_name) : 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3 items-center justify-center">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+                    <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-popover" />
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground truncate leading-tight">
+                    {profile?.full_name || 'User'}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
+                  <span className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary backdrop-blur-sm">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />
+                    Member
+                  </span>
+                </div>
               </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => onModuleChange('profile')}>
-              <User className="h-4 w-4" />
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setChangePasswordOpen(true)}>
-              <Key className="h-4 w-4" />
-              Change Password
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => onModuleChange('account-settings')}>
-              <Settings className="h-4 w-4" />
-              Account Settings
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => onModuleChange('account-settings')}>
-              <Sliders className="h-4 w-4" />
-              Preferences
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setHelpChatOpen(true)}>
-              <HelpCircle className="h-4 w-4" />
-              Help
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer text-destructive gap-2" onClick={() => setLogoutOpen(true)}>
-              <LogOut className="h-4 w-4" />
-              Logout
-            </DropdownMenuItem>
+            </div>
+
+            {/* Soft separator */}
+            <div className="relative mx-3 h-px bg-gradient-to-r from-transparent via-border/60 to-transparent" />
+
+            {/* Menu items */}
+            <div className="relative p-1.5">
+              <DropdownMenuItem
+                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
+                  hover:bg-primary/10 focus:bg-primary/10 hover:translate-x-0.5
+                  data-[highlighted]:bg-primary/10 data-[highlighted]:shadow-[0_0_0_1px_hsl(var(--primary)/0.18),0_4px_14px_-6px_hsl(var(--primary)/0.35)]"
+                onClick={() => onModuleChange('profile')}
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                  <User className="h-3.5 w-3.5" />
+                </span>
+                Profile
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
+                  hover:bg-primary/10 focus:bg-primary/10 hover:translate-x-0.5
+                  data-[highlighted]:bg-primary/10 data-[highlighted]:shadow-[0_0_0_1px_hsl(var(--primary)/0.18),0_4px_14px_-6px_hsl(var(--primary)/0.35)]"
+                onClick={() => setChangePasswordOpen(true)}
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                  <Key className="h-3.5 w-3.5" />
+                </span>
+                Change Password
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
+                  hover:bg-primary/10 focus:bg-primary/10 hover:translate-x-0.5
+                  data-[highlighted]:bg-primary/10 data-[highlighted]:shadow-[0_0_0_1px_hsl(var(--primary)/0.18),0_4px_14px_-6px_hsl(var(--primary)/0.35)]"
+                onClick={() => onModuleChange('account-settings')}
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                  <Settings className="h-3.5 w-3.5" />
+                </span>
+                Account Settings
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
+                  hover:bg-primary/10 focus:bg-primary/10 hover:translate-x-0.5
+                  data-[highlighted]:bg-primary/10 data-[highlighted]:shadow-[0_0_0_1px_hsl(var(--primary)/0.18),0_4px_14px_-6px_hsl(var(--primary)/0.35)]"
+                onClick={() => onModuleChange('account-settings')}
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                  <Sliders className="h-3.5 w-3.5" />
+                </span>
+                Preferences
+              </DropdownMenuItem>
+
+              <div className="my-1.5 mx-2 h-px bg-gradient-to-r from-transparent via-border/50 to-transparent" />
+
+              <DropdownMenuItem
+                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
+                  hover:bg-primary/10 focus:bg-primary/10 hover:translate-x-0.5
+                  data-[highlighted]:bg-primary/10 data-[highlighted]:shadow-[0_0_0_1px_hsl(var(--primary)/0.18),0_4px_14px_-6px_hsl(var(--primary)/0.35)]"
+                onClick={() => setHelpChatOpen(true)}
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                  <HelpCircle className="h-3.5 w-3.5" />
+                </span>
+                Help
+              </DropdownMenuItem>
+
+              <div className="my-1.5 mx-2 h-px bg-gradient-to-r from-transparent via-destructive/30 to-transparent" />
+
+              <DropdownMenuItem
+                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm text-destructive transition-all duration-200
+                  hover:bg-destructive/10 focus:bg-destructive/10 hover:translate-x-0.5
+                  data-[highlighted]:bg-destructive/10 data-[highlighted]:text-destructive
+                  data-[highlighted]:shadow-[0_0_0_1px_hsl(var(--destructive)/0.25),0_4px_14px_-6px_hsl(var(--destructive)/0.4)]"
+                onClick={() => setLogoutOpen(true)}
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-destructive/10 text-destructive transition-all group-hover:bg-destructive/20 group-hover:animate-pulse">
+                  <LogOut className="h-3.5 w-3.5" />
+                </span>
+                Logout
+              </DropdownMenuItem>
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
