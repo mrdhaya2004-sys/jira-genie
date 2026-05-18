@@ -78,7 +78,8 @@ const HiveAIChatModal: React.FC<HiveAIChatModalProps> = ({ open, onClose }) => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [playground, setPlayground] = useState<{ code: string; language?: string } | null>(null);
   const { containerRef: scrollRef, scrollToBottom, isAtBottom } = useAutoScroll<HTMLDivElement>({
-    dependencies: [messages, isStreaming],
+    dependencies: [isStreaming],
+    messageCount: messages.length,
   });
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
