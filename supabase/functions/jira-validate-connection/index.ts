@@ -53,7 +53,15 @@ serve(async (req) => {
       );
     }
 
-    const domain = sanitizeDomain(jiraDomain);
+    let domain: string;
+    try {
+      domain = sanitizeDomain(jiraDomain);
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: e instanceof Error ? e.message : 'Invalid Jira domain' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const auth = btoa(`${jiraEmail}:${jiraApiToken}`);
 
     // Validate by fetching the project
