@@ -44,7 +44,8 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
   } = useTestCaseGenerator({ workspaces, isLoadingWorkspaces: workspacesLoading });
 
   const { containerRef: scrollRef, scrollToBottom, isAtBottom } = useAutoScroll<HTMLDivElement>({
-    dependencies: [messages, isStreaming, isLoading],
+    dependencies: [isStreaming, isLoading],
+    messageCount: messages.length,
     enabled: true,
   });
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
