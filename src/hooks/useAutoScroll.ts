@@ -93,10 +93,22 @@ export function useAutoScroll<T extends HTMLElement = HTMLDivElement>(
     if (!v) return;
 
     const id = requestAnimationFrame(() => {
-      const last = v.lastElementChild as HTMLElement | null;
+      // Resolve the actual content root. Radix ScrollArea wraps content in a
+      // single inner div (`display: table`); descend one level in that case.
+      let contentRoot: HTMLElement = v;
+      if (v.children.length === 1 && v.firstElementChild) {
+        contentRoot = v.firstElementChild as HTMLElement;
+      }
+      const last = contentRoot.lastElementChild as HTMLElement | null;
       if (!last) return;
-      // Position the start of the new message at (or near) the top of the viewport.
-      const targetTop = Math.max(0, last.offsetTop - 8);
+
+      const vRect = v.getBoundingClientRect();
+      const lastRect = last.getBoundingClientRect();
+      // Position the start of the new message ~8px below viewport top.
+      const targetTop = Math.max(
+        0,
+        lastRect.top - vRect.top + v.scrollTop - 8
+      );
       v.scrollTo({ top: targetTop, behavior: smooth ? 'smooth' : 'auto' });
     });
     return () => cancelAnimationFrame(id);
