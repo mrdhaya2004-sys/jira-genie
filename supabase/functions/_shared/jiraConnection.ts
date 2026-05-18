@@ -1,7 +1,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 function sanitizeDomain(domain: string): string {
-  return domain.replace(/^https?:\/\//i, '').replace(/\/+$/, '').trim();
+  const cleaned = domain.replace(/^https?:\/\//i, '').replace(/\/+$/, '').trim().toLowerCase();
+  // Allowlist: only Atlassian-hosted Jira Cloud domains to prevent SSRF
+  // (e.g., internal IPs, metadata endpoints, arbitrary hosts).
+  if (!/^[a-z0-9][a-z0-9-]*\.atlassian\.net$/.test(cleaned)) {
+    throw new Error('Invalid Jira domain. Only *.atlassian.net domains are allowed.');
+  }
+  return cleaned;
 }
 
 interface JiraConnectionConfig {

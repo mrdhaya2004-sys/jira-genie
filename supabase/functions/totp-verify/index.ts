@@ -78,6 +78,24 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    const emailLower = (user.email ?? "").toLowerCase();
+
+    // Rate limit: max 5 failed attempts per user in last 15 minutes
+    const since = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    const { count: failCount } = await serviceClient
+      .from("totp_attempts")
+      .select("*", { count: "exact", head: true })
+      .eq("email_lower", emailLower)
+      .eq("succeeded", false)
+      .gte("attempted_at", since);
+
+    if ((failCount ?? 0) >= 5) {
+      return new Response(JSON.stringify({ error: "Too many failed attempts. Try again in 15 minutes." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: totpRecord, error: fetchError } = await serviceClient
       .from("user_totp")
       .select("*")
@@ -92,7 +110,12 @@ Deno.serve(async (req) => {
     }
 
     const isValid = await verifyTOTP(totpRecord.totp_secret, otp);
+
+    // Record attempt (and apply consistent slowdown on failure)
+    await serviceClient.from("totp_attempts").insert({ email_lower: emailLower, succeeded: isValid });
+
     if (!isValid) {
+      await new Promise((r) => setTimeout(r, 800));
       return new Response(JSON.stringify({ error: "Invalid OTP. Please try again.", valid: false }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -8,7 +8,11 @@ const corsHeaders = {
 };
 
 function sanitizeDomain(domain: string): string {
-  return domain.replace(/^https?:\/\//i, '').replace(/\/+$/, '').trim();
+  const cleaned = domain.replace(/^https?:\/\//i, '').replace(/\/+$/, '').trim().toLowerCase();
+  if (!/^[a-z0-9][a-z0-9-]*\.atlassian\.net$/.test(cleaned)) {
+    throw new Error('Invalid Jira domain. Only *.atlassian.net domains are allowed.');
+  }
+  return cleaned;
 }
 
 serve(async (req) => {
@@ -49,7 +53,15 @@ serve(async (req) => {
       );
     }
 
-    const domain = sanitizeDomain(jiraDomain);
+    let domain: string;
+    try {
+      domain = sanitizeDomain(jiraDomain);
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: e instanceof Error ? e.message : 'Invalid Jira domain' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const auth = btoa(`${jiraEmail}:${jiraApiToken}`);
 
     // Validate by fetching the project

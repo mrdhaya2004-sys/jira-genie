@@ -21,9 +21,32 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    const emailLower = email.toLowerCase();
+
+    // Rate limit enumeration: cap at 20 lookups per email per minute
+    const since = new Date(Date.now() - 60 * 1000).toISOString();
+    const { count: recentCount } = await serviceClient
+      .from("totp_attempts")
+      .select("*", { count: "exact", head: true })
+      .eq("email_lower", emailLower)
+      .gte("attempted_at", since);
+
+    if ((recentCount ?? 0) >= 20) {
+      return new Response(JSON.stringify({ error: "Too many requests. Please try again shortly." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Uniform delay to slow timing-based enumeration
+    await new Promise((r) => setTimeout(r, 200));
+
     const { data: { users } } = await serviceClient.auth.admin.listUsers();
-    const targetUser = users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
-    
+    const targetUser = users?.find(u => u.email?.toLowerCase() === emailLower);
+
+    // Record a lookup (succeeded=true so this does NOT consume the login-verify failure budget)
+    await serviceClient.from("totp_attempts").insert({ email_lower: emailLower, succeeded: true });
+
     if (!targetUser) {
       // Don't reveal if user exists
       return new Response(JSON.stringify({ enabled: false }), {
