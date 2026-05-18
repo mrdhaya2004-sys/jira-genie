@@ -7,12 +7,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Sanitize domain - remove protocol and trailing slashes
+// Sanitize domain - remove protocol/trailing slashes and enforce Atlassian allowlist to prevent SSRF
 function sanitizeDomain(domain: string): string {
-  return domain
+  const cleaned = domain
     .replace(/^https?:\/\//i, '')
     .replace(/\/+$/, '')
-    .trim();
+    .trim()
+    .toLowerCase();
+  if (!/^[a-z0-9][a-z0-9-]*\.atlassian\.net$/.test(cleaned)) {
+    throw new Error('Invalid Jira domain. Only *.atlassian.net domains are allowed.');
+  }
+  return cleaned;
 }
 
 // Escape JQL special characters to prevent injection attacks
