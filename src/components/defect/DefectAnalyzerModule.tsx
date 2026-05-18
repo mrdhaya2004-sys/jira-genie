@@ -30,7 +30,8 @@ const DefectAnalyzerModule: React.FC = () => {
 
   const { toast } = useToast();
   const { containerRef: scrollRef, scrollToBottom, isAtBottom } = useAutoScroll<HTMLDivElement>({
-    dependencies: [messages, isAnalyzing],
+    dependencies: [isAnalyzing],
+    messageCount: messages.length,
   });
 
   const handleRegenerateXPath = () => {
