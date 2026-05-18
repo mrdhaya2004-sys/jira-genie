@@ -1,40 +1,56 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
- * Reusable smart auto-scroll for AI/chat modules.
+ * Smart, ChatGPT-style scroll manager for AI/chat modules.
  *
- * - Smoothly keeps view pinned to the bottom while content streams in
- * - If the user scrolls up, auto-scroll pauses until they return near bottom
- * - Exposes `scrollToBottom` and `isAtBottom` for a "Scroll to bottom" UI
+ * Goals:
+ * - When a new message appears, scroll the START of that message into view
+ *   (not the bottom). The user can read the answer from the top as it streams.
+ * - During streaming (content growing inside the same message), DO NOT keep
+ *   forcing the viewport to the bottom. Maintain a stable reading position.
+ * - If the user has scrolled up to read older messages, never force-scroll.
+ * - Expose `scrollToBottom` and `isAtBottom` so a "Jump to latest" button
+ *   can let the user opt back into following the stream.
  *
- * Works with either a regular scrollable div OR a Radix ScrollArea.
- * Pass the ref to the scrollable element (or to the ScrollArea Root and we'll
- * resolve the inner viewport via `[data-radix-scroll-area-viewport]`).
+ * Works with a regular scrollable div OR a Radix ScrollArea (the inner
+ * `[data-radix-scroll-area-viewport]` is resolved automatically).
  */
 export interface UseAutoScrollOptions {
-  /** Values to watch — scrolling is reconsidered whenever any change. */
+  /** Values to watch — used to trigger re-evaluation (e.g. streaming chunks). */
   dependencies?: ReadonlyArray<unknown>;
-  /** Pixels from the bottom still considered "at bottom". Default 80. */
+  /**
+   * Total message count. When this increases, the hook anchors the newest
+   * message to the top of the viewport (ChatGPT behaviour). When omitted,
+   * the hook falls back to legacy bottom-pinning behaviour.
+   */
+  messageCount?: number;
+  /** Pixels from bottom still considered "at bottom". Default 80. */
   threshold?: number;
-  /** Whether to smooth-scroll. Default true. */
+  /** Smooth-scroll for programmatic scrolls. Default true. */
   smooth?: boolean;
-  /** Whether the hook is actively driving scroll (e.g. streaming). Default true. */
+  /** Whether the hook is active. Default true. */
   enabled?: boolean;
 }
 
 export function useAutoScroll<T extends HTMLElement = HTMLDivElement>(
   options: UseAutoScrollOptions = {}
 ) {
-  const { dependencies = [], threshold = 80, smooth = true, enabled = true } = options;
+  const {
+    dependencies = [],
+    messageCount,
+    threshold = 80,
+    smooth = true,
+    enabled = true,
+  } = options;
 
   const containerRef = useRef<T | null>(null);
   const stickRef = useRef(true);
+  const prevCountRef = useRef<number | undefined>(messageCount);
   const [isAtBottom, setIsAtBottom] = useState(true);
 
   const getViewport = useCallback((): HTMLElement | null => {
     const el = containerRef.current;
     if (!el) return null;
-    // Radix ScrollArea exposes a viewport child
     const viewport = el.querySelector<HTMLElement>('[data-radix-scroll-area-viewport]');
     return viewport ?? (el as unknown as HTMLElement);
   }, []);
@@ -50,7 +66,7 @@ export function useAutoScroll<T extends HTMLElement = HTMLDivElement>(
     [getViewport, smooth]
   );
 
-  // Track manual user scrolls to decide whether to keep sticking to bottom
+  // Track manual user scrolls — decides whether the hook may auto-scroll.
   useEffect(() => {
     const v = getViewport();
     if (!v) return;
@@ -64,55 +80,47 @@ export function useAutoScroll<T extends HTMLElement = HTMLDivElement>(
     return () => v.removeEventListener('scroll', onScroll);
   }, [getViewport, threshold]);
 
-  // Scroll on dependency changes (new message, streaming chunk, typing flag…)
+  // ChatGPT-style anchor: when a new message is added, align its TOP with the
+  // viewport top — but only if the user wasn't reading older messages.
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || messageCount === undefined) return;
+    const prev = prevCountRef.current;
+    prevCountRef.current = messageCount;
+    if (prev === undefined || messageCount <= prev) return;
+    if (!stickRef.current) return; // user is reading older content — don't interrupt
+
+    const v = getViewport();
+    if (!v) return;
+
+    const id = requestAnimationFrame(() => {
+      const last = v.lastElementChild as HTMLElement | null;
+      if (!last) return;
+      // Position the start of the new message at (or near) the top of the viewport.
+      const targetTop = Math.max(0, last.offsetTop - 8);
+      v.scrollTo({ top: targetTop, behavior: smooth ? 'smooth' : 'auto' });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [enabled, smooth, messageCount, getViewport]);
+
+  // Legacy fallback: when `messageCount` is NOT provided, keep the previous
+  // bottom-pinning behaviour for any consumers that haven't migrated yet.
+  useEffect(() => {
+    if (!enabled || messageCount !== undefined) return;
     if (!stickRef.current) return;
     const v = getViewport();
     if (!v) return;
-    // rAF lets new DOM size settle before scrolling
     const id = requestAnimationFrame(() => {
       v.scrollTo({ top: v.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
     });
     return () => cancelAnimationFrame(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, smooth, getViewport, ...dependencies]);
+  }, [enabled, smooth, messageCount, getViewport, ...dependencies]);
 
-  // Observe inner content size changes for streaming responses.
-  // High-frequency token streaming can fire ResizeObserver dozens of times per
-  // second; coalesce into a single rAF tick and additionally throttle smooth
-  // scrolls to ~60ms so the browser isn't fighting an in-flight smooth animation.
-  useEffect(() => {
-    if (!enabled) return;
-    const v = getViewport();
-    if (!v) return;
-    const target = v.firstElementChild ?? v;
-
-    let rafId: number | null = null;
-    let lastSmoothAt = 0;
-    const SMOOTH_MIN_INTERVAL = 60; // ms — caps smooth-scroll dispatches
-
-    const flush = () => {
-      rafId = null;
-      if (!stickRef.current) return;
-      const now = performance.now();
-      const useSmooth = smooth && now - lastSmoothAt >= SMOOTH_MIN_INTERVAL;
-      if (useSmooth) lastSmoothAt = now;
-      v.scrollTo({ top: v.scrollHeight, behavior: useSmooth ? 'smooth' : 'auto' });
-    };
-
-    const ro = new ResizeObserver(() => {
-      if (rafId !== null) return; // coalesce bursts within one frame
-      rafId = requestAnimationFrame(flush);
-    });
-    ro.observe(target);
-
-    return () => {
-      ro.disconnect();
-      if (rafId !== null) cancelAnimationFrame(rafId);
-    };
-  }, [enabled, smooth, getViewport]);
-
+  // NOTE: We intentionally do NOT observe content resizes to pin to bottom.
+  // That was causing the "jumps to bottom while streaming" behaviour the
+  // user complained about. Streaming chunks now grow naturally below the
+  // anchored response; the "Jump to latest" button (using scrollToBottom)
+  // lets the user opt back in.
 
   return { containerRef, scrollToBottom, isAtBottom };
 }
