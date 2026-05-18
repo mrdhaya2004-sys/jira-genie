@@ -42,8 +42,11 @@ Deno.serve(async (req) => {
     await new Promise((r) => setTimeout(r, 200));
 
     const { data: { users } } = await serviceClient.auth.admin.listUsers();
-    const targetUser = users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
-    
+    const targetUser = users?.find(u => u.email?.toLowerCase() === emailLower);
+
+    // Record a lookup (succeeded=true so this does NOT consume the login-verify failure budget)
+    await serviceClient.from("totp_attempts").insert({ email_lower: emailLower, succeeded: true });
+
     if (!targetUser) {
       // Don't reveal if user exists
       return new Response(JSON.stringify({ enabled: false }), {
