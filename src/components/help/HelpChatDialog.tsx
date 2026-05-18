@@ -36,7 +36,8 @@ const HelpChatDialog: React.FC<HelpChatDialogProps> = ({ open, onOpenChange }) =
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const { containerRef: scrollRef, scrollToBottom, isAtBottom } = useAutoScroll<HTMLDivElement>({
-    dependencies: [messages, isStreaming],
+    dependencies: [isStreaming],
+    messageCount: messages.length,
   });
   const inputRef = useRef<HTMLTextAreaElement>(null);
 

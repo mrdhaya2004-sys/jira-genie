@@ -10,7 +10,8 @@ import ScrollToBottomButton from '@/components/common/ScrollToBottomButton';
 const ChatContainer: React.FC = () => {
   const { messages, isTyping, handleUserInput, handleOptionSelect, handleDynamicInputSubmit, startNewTicket, handleEditTicket, currentPhase, dynamicInputs } = useChat();
   const { containerRef: scrollRef, scrollToBottom, isAtBottom } = useAutoScroll<HTMLDivElement>({
-    dependencies: [messages, isTyping],
+    dependencies: [isTyping],
+    messageCount: messages.length,
   });
   const hasStarted = useRef(false);
 

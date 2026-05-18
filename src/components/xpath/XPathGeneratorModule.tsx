@@ -40,7 +40,8 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
   } = useXPathGenerator({ workspaces, isLoadingWorkspaces: workspacesLoading });
 
   const { containerRef: scrollRef, scrollToBottom, isAtBottom } = useAutoScroll<HTMLDivElement>({
-    dependencies: [messages, isStreaming, isLoading],
+    dependencies: [isStreaming, isLoading],
+    messageCount: messages.length,
   });
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
