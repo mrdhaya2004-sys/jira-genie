@@ -20,6 +20,7 @@ import {
   User, Shield, Brain, Bot, Bell, FlaskConical, Link2, Palette,
   Pencil, Lock, Key, Monitor, Smartphone, Loader2, Save,
   CheckCircle, XCircle, AtSign, Mail, IdCard, Phone, Calendar,
+  Settings2, Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
