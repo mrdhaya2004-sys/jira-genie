@@ -503,31 +503,94 @@ const AccountSettingsModule: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex">
+    <div className="h-full flex bg-gradient-to-br from-background via-background to-primary/[0.03]">
       {/* Left: Section Nav */}
-      <div className="w-56 flex-shrink-0 border-r border-border/60 bg-card/30 hidden md:block">
-        <div className="p-4">
-          <h2 className="text-sm font-semibold text-foreground mb-1">Account Settings</h2>
-          <p className="text-xs text-muted-foreground">Manage your account</p>
+      <aside className="w-64 flex-shrink-0 hidden md:flex flex-col p-3 animate-fade-in">
+        <div className="relative flex-1 flex flex-col rounded-3xl border border-white/10 bg-card/40 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.25),0_8px_24px_-12px_hsl(0_0%_0%/0.15)] overflow-hidden">
+          {/* Glow accents */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+          <div className="pointer-events-none absolute -top-24 -left-12 h-48 w-48 rounded-full bg-primary/20 blur-3xl opacity-60" />
+          <div className="pointer-events-none absolute -bottom-24 -right-12 h-48 w-48 rounded-full bg-cyan-400/15 blur-3xl opacity-50" />
+
+          {/* Header */}
+          <div className="relative px-5 pt-5 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="relative h-10 w-10 rounded-2xl bg-gradient-to-br from-primary/25 to-cyan-400/15 border border-primary/30 flex items-center justify-center shadow-[0_0_20px_-4px_hsl(var(--primary)/0.5)]">
+                <Settings2 className="h-5 w-5 text-primary" />
+                <span className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/15" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold text-foreground tracking-tight leading-tight">Account Settings</h2>
+                <p className="text-[11px] text-muted-foreground/80 leading-tight mt-0.5">Manage your workspace</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mx-4 h-px bg-gradient-to-r from-transparent via-border/60 to-transparent" />
+
+          {/* Nav */}
+          <nav className="relative flex-1 px-2.5 py-3 space-y-1 overflow-y-auto scrollbar-thin">
+            {SECTIONS.map((section, idx) => {
+              const isActive = activeSection === section.id;
+              const isHive = section.id === 'hive-ai';
+              return (
+                <button
+                  key={section.id}
+                  onClick={() => setActiveSection(section.id)}
+                  style={{ animationDelay: `${idx * 30}ms` }}
+                  className={cn(
+                    "group relative w-full flex items-center gap-3 pl-3.5 pr-3 py-2.5 rounded-xl text-[13px] font-medium",
+                    "transition-all duration-300 ease-out animate-fade-in",
+                    isActive
+                      ? "text-foreground bg-gradient-to-r from-primary/15 via-primary/10 to-cyan-400/5 border border-primary/25 shadow-[0_4px_16px_-6px_hsl(var(--primary)/0.4),inset_0_1px_0_0_hsl(0_0%_100%/0.08)] -translate-y-px"
+                      : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-white/[0.04] hover:border-white/10 hover:translate-x-0.5"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-gradient-to-b from-primary to-cyan-400 transition-all duration-300",
+                      isActive ? "h-6 opacity-100 shadow-[0_0_8px_hsl(var(--primary)/0.8)]" : "h-0 opacity-0"
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "relative flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-300",
+                      isActive
+                        ? "bg-primary/15 text-primary shadow-[0_0_12px_-2px_hsl(var(--primary)/0.6)]"
+                        : "text-muted-foreground/80 group-hover:text-foreground group-hover:bg-white/[0.04]"
+                    )}
+                  >
+                    <section.icon className="h-4 w-4" />
+                    {isHive && (
+                      <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                        <span className="absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75 animate-ping" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_6px_hsl(190_100%_60%)]" />
+                      </span>
+                    )}
+                  </span>
+                  <span className="flex-1 text-left tracking-tight">{section.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Pro upgrade card */}
+          <div className="relative p-3">
+            <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-cyan-400/10 p-3 backdrop-blur-xl">
+              <div className="pointer-events-none absolute -top-6 -right-6 h-20 w-20 rounded-full bg-primary/30 blur-2xl" />
+              <div className="relative flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-[0_0_16px_-2px_hsl(var(--primary)/0.7)]">
+                  <Sparkles className="h-4 w-4 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12px] font-semibold text-foreground leading-tight">Test Zone Pro</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight">Unlock advanced AI</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <nav className="px-2 pb-4 space-y-0.5">
-          {SECTIONS.map((section) => (
-            <button
-              key={section.id}
-              onClick={() => setActiveSection(section.id)}
-              className={cn(
-                "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150",
-                activeSection === section.id
-                  ? "nav-pill-active"
-                  : "text-muted-foreground hover:bg-muted/30 hover:text-foreground hover:translate-x-0.5"
-              )}
-            >
-              <section.icon className="h-4 w-4" />
-              {section.label}
-            </button>
-          ))}
-        </nav>
-      </div>
+      </aside>
 
       {/* Mobile section selector */}
       <div className="md:hidden w-full">
