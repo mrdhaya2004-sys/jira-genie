@@ -139,12 +139,12 @@ const TwoFactorSection: React.FC = () => {
       <TwoFactorSetupDialog
         open={showSetup}
         onOpenChange={setShowSetup}
-        onEnabled={() => { setIs2FAEnabled(true); }}
+        onEnabled={handleEnabled}
       />
       <TwoFactorDisableDialog
         open={showDisable}
         onOpenChange={setShowDisable}
-        onDisabled={() => { setIs2FAEnabled(false); }}
+        onDisabled={handleDisabled}
       />
     </>
   );
