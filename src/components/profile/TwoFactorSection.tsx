@@ -9,34 +9,65 @@ import { useAuth } from '@/contexts/AuthContext';
 import TwoFactorSetupDialog from './TwoFactorSetupDialog';
 import TwoFactorDisableDialog from './TwoFactorDisableDialog';
 
+const CACHE_KEY = 'tz_2fa_enabled';
+
+const readCache = (userId?: string): boolean | null => {
+  if (!userId) return null;
+  try {
+    const raw = sessionStorage.getItem(`${CACHE_KEY}:${userId}`);
+    if (raw === '1') return true;
+    if (raw === '0') return false;
+  } catch { /* ignore */ }
+  return null;
+};
+
+const writeCache = (userId: string, enabled: boolean) => {
+  try { sessionStorage.setItem(`${CACHE_KEY}:${userId}`, enabled ? '1' : '0'); } catch { /* ignore */ }
+};
+
 const TwoFactorSection: React.FC = () => {
   const { user } = useAuth();
-  const [is2FAEnabled, setIs2FAEnabled] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const cached = readCache(user?.id);
+  const [is2FAEnabled, setIs2FAEnabled] = useState<boolean>(cached ?? false);
+  // Only show loading spinner if we have no cached value (first visit)
+  const [isLoading, setIsLoading] = useState(cached === null);
   const [showSetup, setShowSetup] = useState(false);
   const [showDisable, setShowDisable] = useState(false);
 
-  const fetch2FAStatus = async () => {
-    if (!user) return;
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('user_totp')
-        .select('is_enabled')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      setIs2FAEnabled(data?.is_enabled === true);
-    } catch {
-      // ignore
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetch2FAStatus();
+    if (!user) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('user_totp')
+          .select('is_enabled')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (cancelled) return;
+        const enabled = data?.is_enabled === true;
+        setIs2FAEnabled(enabled);
+        writeCache(user.id, enabled);
+      } catch {
+        // ignore
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
   }, [user]);
+
+  const handleEnabled = () => {
+    setIs2FAEnabled(true);
+    if (user) writeCache(user.id, true);
+  };
+  const handleDisabled = () => {
+    setIs2FAEnabled(false);
+    if (user) writeCache(user.id, false);
+  };
 
   return (
     <>
