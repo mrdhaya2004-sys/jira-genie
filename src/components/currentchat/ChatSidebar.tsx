@@ -60,36 +60,42 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   return (
-    <div className="h-full w-full border-r border-border flex flex-col bg-card">
+    <div className="relative h-full w-full flex flex-col bg-card/40 backdrop-blur-2xl border-r border-white/10">
       {/* Header */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <img src={chatLogo} alt="Chats" className="h-8 w-8 rounded-lg object-contain" />
-            <h2 className="text-lg font-semibold">Chats</h2>
+      <div className="p-4 border-b border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent">
+        <div className="flex items-center justify-between mb-4 gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="relative flex-shrink-0">
+              <div className="absolute inset-0 rounded-xl bg-primary/30 blur-md" />
+              <img src={chatLogo} alt="Chats" className="relative h-9 w-9 rounded-xl object-contain ring-1 ring-white/15" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold truncate bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Messages</h2>
+              <p className="text-[10px] text-muted-foreground truncate">{conversations.length} conversation{conversations.length === 1 ? '' : 's'}</p>
+            </div>
           </div>
-          <div className="flex gap-1">
-            <Button variant="ghost" size="icon-sm" onClick={onOpenUserSearch} title="Search Users">
+          <div className="flex gap-0.5 flex-shrink-0">
+            <Button variant="ghost" size="icon-sm" onClick={onOpenUserSearch} title="Search Users" className="rounded-lg hover:bg-white/10">
               <AtSign className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon-sm" onClick={onOpenTeamsSettings} title="Teams Integration">
+            <Button variant="ghost" size="icon-sm" onClick={onOpenTeamsSettings} title="Teams Integration" className="rounded-lg hover:bg-white/10">
               <TeamsIcon className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon-sm" onClick={onNewChat} title="New Chat">
+            <Button variant="ghost" size="icon-sm" onClick={onNewChat} title="New Chat" className="rounded-lg hover:bg-white/10">
               <User className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon-sm" onClick={onNewGroup} title="New Group">
+            <Button variant="ghost" size="icon-sm" onClick={onNewGroup} title="New Group" className="rounded-lg hover:bg-white/10">
               <Users className="h-4 w-4" />
             </Button>
           </div>
         </div>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
           <Input
             placeholder="Search chats..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-9 rounded-xl"
           />
         </div>
       </div>
@@ -101,7 +107,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
             {[1, 2, 3].map(i => (
               <div key={i} className="flex items-center gap-3 animate-pulse">
                 <div className="h-10 w-10 rounded-full bg-muted" />
-                <div className="flex-1 space-y-2">
+                <div className="flex-1 space-y-2 min-w-0">
                   <div className="h-4 w-24 bg-muted rounded" />
                   <div className="h-3 w-32 bg-muted rounded" />
                 </div>
@@ -115,53 +121,70 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
             <p className="text-xs mt-1">Search users with @ or start a new chat</p>
           </div>
         ) : (
-          <div className="p-2 space-y-0.5">
+          <div className="p-2 space-y-1">
             {filteredConversations.map(conv => {
               const hasUnread = (conv.unread_count ?? 0) > 0;
+              const isActive = selectedConversation?.id === conv.id;
               return (
                 <div
                   key={conv.id}
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg cursor-pointer group transition-all duration-200",
-                    selectedConversation?.id === conv.id
-                      ? "bg-accent shadow-sm"
+                    "group relative flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all duration-200 animate-fade-in min-w-0",
+                    isActive
+                      ? "bg-gradient-to-r from-primary/15 via-primary/10 to-cyan-400/5 shadow-[0_4px_20px_-8px_hsl(var(--primary)/0.4)] ring-1 ring-inset ring-white/10"
                       : hasUnread
-                        ? "bg-primary/5 hover:bg-primary/10"
-                        : "hover:bg-muted/50"
+                        ? "bg-primary/5 hover:bg-white/[0.06]"
+                        : "hover:bg-white/[0.06]"
                   )}
                   onClick={() => onSelectConversation(conv)}
                 >
+                  {isActive && (
+                    <div className="absolute left-0 top-2 bottom-2 w-0.5 rounded-r-full bg-gradient-to-b from-primary to-cyan-400 shadow-[0_0_8px_hsl(var(--primary)/0.8)]" />
+                  )}
+
                   <div className="relative flex-shrink-0">
-                    <Avatar className="h-10 w-10">
+                    <Avatar className="h-10 w-10 ring-1 ring-white/10">
                       <AvatarImage src={conv.avatar_url || undefined} />
-                      <AvatarFallback className={conv.type === 'group' ? 'bg-primary/10 text-primary' : 'bg-accent'}>
+                      <AvatarFallback className={conv.type === 'group' ? 'bg-primary/15 text-primary text-xs' : 'bg-gradient-to-br from-primary/20 to-cyan-400/20 text-xs'}>
                         {conv.type === 'group' ? <Users className="h-4 w-4" /> : getInitials(conv.name || 'DC')}
                       </AvatarFallback>
                     </Avatar>
                   </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className={cn("text-sm truncate", hasUnread ? "font-bold text-foreground" : "font-medium")}>{conv.name || 'Direct Chat'}</span>
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        {conv.last_message && (
-                          <span className={cn("text-[11px]", hasUnread ? "text-primary font-medium" : "text-muted-foreground")}>
-                            {formatTime(conv.last_message.created_at)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 mt-0.5">
-                      {conv.last_message ? (
-                        <p className={cn("text-xs truncate", hasUnread ? "text-foreground font-medium" : "text-muted-foreground")}>
-                          {conv.last_message.is_deleted ? 'Message deleted' : conv.last_message.content}
-                        </p>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">No messages yet</p>
+
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <div className="flex items-baseline justify-between gap-2 min-w-0">
+                      <span className={cn(
+                        "text-sm truncate flex-1 min-w-0",
+                        hasUnread ? "font-semibold text-foreground" : "font-medium text-foreground/90"
+                      )}>
+                        {conv.name || 'Direct Chat'}
+                      </span>
+                      {conv.last_message && (
+                        <span className={cn(
+                          "text-[10px] flex-shrink-0 whitespace-nowrap tabular-nums",
+                          hasUnread ? "text-primary font-semibold" : "text-muted-foreground"
+                        )}>
+                          {formatTime(conv.last_message.created_at)}
+                        </span>
                       )}
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mt-0.5 min-w-0">
+                      <p className={cn(
+                        "text-xs truncate flex-1 min-w-0",
+                        hasUnread ? "text-foreground/80 font-medium" : "text-muted-foreground"
+                      )}>
+                        {conv.last_message
+                          ? (conv.last_message.is_deleted ? 'Message deleted' : conv.last_message.content)
+                          : 'No messages yet'}
+                      </p>
                       <div className="flex items-center gap-1 flex-shrink-0">
+                        {conv.is_teams_synced ? (
+                          <TeamsBadge />
+                        ) : conv.type === 'group' ? (
+                          <Badge variant="secondary" className="text-[9px] px-1.5 h-4">Group</Badge>
+                        ) : null}
                         {hasUnread && (
-                          <Badge className="h-5 min-w-5 flex items-center justify-center px-1.5 text-[10px] font-bold rounded-full">
+                          <Badge className="h-4 min-w-4 flex items-center justify-center px-1.5 text-[10px] font-bold rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.6)]">
                             {conv.unread_count! > 99 ? '99+' : conv.unread_count}
                           </Badge>
                         )}
@@ -169,34 +192,26 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreVertical className="h-3.5 w-3.5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={(e) => { e.stopPropagation(); onDeleteConversation(conv.id); }}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />Delete Chat
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    {conv.is_teams_synced ? (
-                      <TeamsBadge />
-                    ) : conv.type === 'group' ? (
-                      <Badge variant="secondary" className="text-[10px] px-1.5">Group</Badge>
-                    ) : null}
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 flex-shrink-0 rounded-md hover:bg-white/10"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="h-3.5 w-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={(e) => { e.stopPropagation(); onDeleteConversation(conv.id); }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />Delete Chat
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               );
             })}
@@ -208,3 +223,4 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
 };
 
 export default ChatSidebar;
+
