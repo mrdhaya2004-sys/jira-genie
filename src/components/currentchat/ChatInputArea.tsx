@@ -77,11 +77,12 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
   };
 
   return (
-    <div className="border-t border-border bg-card">
+    <div className="relative border-t border-white/10 bg-card/40 backdrop-blur-2xl">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
       {/* Attached file preview */}
       {attachedFile && (
         <div className="px-4 pt-3 pb-0">
-          <div className="inline-flex items-center gap-2 bg-muted rounded-lg px-3 py-2 text-sm">
+          <div className="inline-flex items-center gap-2 bg-white/[0.06] border border-white/10 backdrop-blur-xl rounded-xl px-3 py-2 text-sm">
             <FileIcon className="h-4 w-4 text-muted-foreground" />
             <span className="truncate max-w-[200px]">{attachedFile.name}</span>
             <Button
@@ -96,17 +97,16 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         </div>
       )}
 
-      <div className="p-4">
-        <div className="flex items-end gap-2">
-          {/* File attachment */}
+      <div className="p-3">
+        <div className="flex items-end gap-1.5 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl p-1.5 shadow-[inset_0_1px_0_0_hsl(0_0%_100%_/_0.05)] focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_hsl(var(--primary)/0.15)] transition-all">
           <Button
             variant="ghost"
-            size="icon"
-            className="flex-shrink-0 text-muted-foreground hover:text-foreground"
+            size="icon-sm"
+            className="flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-white/10 rounded-lg h-9 w-9"
             disabled={disabled}
             onClick={() => fileInputRef.current?.click()}
           >
-            <Paperclip className="h-5 w-5" />
+            <Paperclip className="h-4 w-4" />
           </Button>
           <input
             ref={fileInputRef}
@@ -115,16 +115,15 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             onChange={handleFileSelect}
           />
 
-          {/* Code block */}
           <Button
             variant="ghost"
-            size="icon"
-            className="flex-shrink-0 text-muted-foreground hover:text-foreground"
+            size="icon-sm"
+            className="flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-white/10 rounded-lg h-9 w-9"
             disabled={disabled}
             onClick={wrapInCodeBlock}
             title="Insert code block"
           >
-            <Code className="h-5 w-5" />
+            <Code className="h-4 w-4" />
           </Button>
 
           <Textarea
@@ -135,21 +134,20 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             disabled={disabled}
             rows={1}
             className={cn(
-              "flex-1 min-h-[44px] max-h-32 resize-none py-3",
-              "focus-visible:ring-1 focus-visible:ring-offset-0"
+              "flex-1 min-h-[36px] max-h-32 resize-none py-2 px-2 bg-transparent border-0 shadow-none",
+              "focus-visible:ring-0 focus-visible:ring-offset-0"
             )}
           />
 
-          {/* Emoji */}
           <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
-                size="icon"
-                className="flex-shrink-0 text-muted-foreground hover:text-foreground"
+                size="icon-sm"
+                className="flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-white/10 rounded-lg h-9 w-9"
                 disabled={disabled}
               >
-                <Smile className="h-5 w-5" />
+                <Smile className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-2" side="top" align="end">
@@ -168,12 +166,12 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
           </Popover>
 
           <Button
-            size="icon"
-            className="flex-shrink-0"
+            size="icon-sm"
+            className="flex-shrink-0 h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-cyan-500 hover:from-primary hover:to-cyan-400 text-primary-foreground shadow-[0_4px_16px_-4px_hsl(var(--primary)/0.6)] hover:shadow-[0_6px_20px_-4px_hsl(var(--primary)/0.8)] active:scale-95 transition-all disabled:opacity-40 disabled:shadow-none"
             onClick={handleSend}
             disabled={disabled || (!message.trim() && !attachedFile)}
           >
-            <Send className="h-5 w-5" />
+            <Send className="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -182,3 +180,4 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 };
 
 export default ChatInputArea;
+
