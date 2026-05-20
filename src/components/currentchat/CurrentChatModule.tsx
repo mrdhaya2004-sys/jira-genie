@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Sparkles } from 'lucide-react';
 import ChatSidebar from './ChatSidebar';
 import ChatHeader from './ChatHeader';
 import ChatMessageArea from './ChatMessageArea';
@@ -10,6 +10,7 @@ import UserSearchPanel from './UserSearchPanel';
 import ProfileIdSetupDialog from './ProfileIdSetupDialog';
 import TypingIndicatorBar from './TypingIndicatorBar';
 import TeamsSettingsDialog from '@/components/teams/TeamsSettingsDialog';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useChat } from '@/hooks/useChat';
 import { useTestChats } from '@/hooks/useTestChats';
 import { usePresence } from '@/hooks/usePresence';
