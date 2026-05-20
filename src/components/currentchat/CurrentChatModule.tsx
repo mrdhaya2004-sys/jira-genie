@@ -185,67 +185,112 @@ const CurrentChatModule: React.FC = () => {
     else deleteMessage(messageId);
   };
 
+  const STORAGE_KEY = 'tz_chat_sidebar_size';
+  const initialSidebarSize = (() => {
+    try {
+      const v = parseFloat(localStorage.getItem(STORAGE_KEY) || '');
+      if (!isNaN(v) && v >= 18 && v <= 42) return v;
+    } catch {}
+    return 26;
+  })();
+
+  const handlePanelResize = (sizes: number[]) => {
+    try { localStorage.setItem(STORAGE_KEY, String(sizes[0])); } catch {}
+  };
+
   return (
-    <div className="h-full w-full flex overflow-hidden bg-background">
-      {/* Sidebar - fixed width, never collapses */}
-      <div className="relative flex-shrink-0 w-[320px] min-w-[280px] h-full">
-        <ChatSidebar
-          conversations={allConversations}
-          selectedConversation={activeConversation}
-          onSelectConversation={handleSelectConversation}
-          onNewChat={handleNewChat}
-          onNewGroup={handleNewGroup}
-          onDeleteConversation={handleDeleteConversationClick}
-          onOpenTeamsSettings={() => setTeamsSettingsOpen(true)}
-          onOpenUserSearch={() => setUserSearchOpen(true)}
-          isLoading={isLoading}
-          getPresenceStatus={getStatus}
-        />
-        <UserSearchPanel
-          open={userSearchOpen}
-          onClose={() => setUserSearchOpen(false)}
-          onStartChat={handleStartChatFromSearch}
-        />
+    <div className="relative h-full w-full overflow-hidden bg-background">
+      {/* Ambient glow */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-32 -left-24 w-[480px] h-[480px] rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute top-1/3 -right-24 w-[420px] h-[420px] rounded-full bg-cyan-400/10 blur-3xl" />
+        <div className="absolute -bottom-32 left-1/3 w-[420px] h-[420px] rounded-full bg-sky-500/10 blur-3xl" />
       </div>
 
-      {/* Main Chat Area - fills remaining space */}
-      <div className="flex-1 flex flex-col min-w-0 h-full bg-background">
-        {activeConversation ? (
-          <>
-            <ChatHeader
-              conversation={activeConversation}
-              participants={testSelectedConv ? [] : participants}
-              onAddParticipant={() => setAddMemberDialogOpen(true)}
-              onViewParticipants={() => setParticipantsDialogOpen(true)}
-              onLeaveGroup={() => setLeaveDialogOpen(true)}
-              onDeleteConversation={() => handleDeleteConversationClick(activeConversation.id)}
-              isTestChat={!!testSelectedConv}
-              getPresenceStatus={getStatus}
-            />
-            <ChatMessageArea
-              messages={activeMessages}
-              isLoading={testSelectedConv ? false : isLoadingMessages}
-              onDeleteMessage={handleDeleteActiveMessage}
-              reactionGroups={testSelectedConv ? undefined : getReactionGroups}
-              onToggleReaction={testSelectedConv ? undefined : toggleReaction}
-            />
-            <TypingIndicatorBar typingText={typingText} />
-            <ChatInputArea
-              onSend={handleSendMessage}
-              onTyping={handleTyping}
-              disabled={testSelectedConv ? false : isLoadingMessages}
-            />
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            <div className="text-center">
-              <MessageSquare className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium">Welcome to Current Chat</h3>
-              <p className="text-sm mt-1">Select a conversation or search users with @</p>
-            </div>
+      <ResizablePanelGroup
+        direction="horizontal"
+        onLayout={handlePanelResize}
+        className="relative h-full w-full"
+      >
+        {/* Sidebar */}
+        <ResizablePanel
+          defaultSize={initialSidebarSize}
+          minSize={20}
+          maxSize={42}
+          className="relative h-full min-w-[300px] max-w-[500px]"
+        >
+          <ChatSidebar
+            conversations={allConversations}
+            selectedConversation={activeConversation}
+            onSelectConversation={handleSelectConversation}
+            onNewChat={handleNewChat}
+            onNewGroup={handleNewGroup}
+            onDeleteConversation={handleDeleteConversationClick}
+            onOpenTeamsSettings={() => setTeamsSettingsOpen(true)}
+            onOpenUserSearch={() => setUserSearchOpen(true)}
+            isLoading={isLoading}
+            getPresenceStatus={getStatus}
+          />
+          <UserSearchPanel
+            open={userSearchOpen}
+            onClose={() => setUserSearchOpen(false)}
+            onStartChat={handleStartChatFromSearch}
+          />
+        </ResizablePanel>
+
+        <ResizableHandle
+          withHandle
+          className="w-px bg-white/10 hover:bg-primary/40 transition-colors data-[resize-handle-state=drag]:bg-primary/60"
+        />
+
+        {/* Main Chat Area */}
+        <ResizablePanel defaultSize={100 - initialSidebarSize} minSize={45}>
+          <div className="flex flex-col h-full min-w-0 bg-transparent">
+            {activeConversation ? (
+              <>
+                <ChatHeader
+                  conversation={activeConversation}
+                  participants={testSelectedConv ? [] : participants}
+                  onAddParticipant={() => setAddMemberDialogOpen(true)}
+                  onViewParticipants={() => setParticipantsDialogOpen(true)}
+                  onLeaveGroup={() => setLeaveDialogOpen(true)}
+                  onDeleteConversation={() => handleDeleteConversationClick(activeConversation.id)}
+                  isTestChat={!!testSelectedConv}
+                  getPresenceStatus={getStatus}
+                />
+                <ChatMessageArea
+                  messages={activeMessages}
+                  isLoading={testSelectedConv ? false : isLoadingMessages}
+                  onDeleteMessage={handleDeleteActiveMessage}
+                  reactionGroups={testSelectedConv ? undefined : getReactionGroups}
+                  onToggleReaction={testSelectedConv ? undefined : toggleReaction}
+                />
+                <TypingIndicatorBar typingText={typingText} />
+                <ChatInputArea
+                  onSend={handleSendMessage}
+                  onTyping={handleTyping}
+                  disabled={testSelectedConv ? false : isLoadingMessages}
+                />
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-muted-foreground p-8">
+                <div className="text-center max-w-md animate-fade-in">
+                  <div className="relative mx-auto mb-6 w-20 h-20">
+                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/30 to-cyan-400/20 blur-2xl" />
+                    <div className="relative h-20 w-20 rounded-3xl bg-card/40 backdrop-blur-2xl border border-white/15 flex items-center justify-center shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]">
+                      <MessageSquare className="h-9 w-9 text-primary" />
+                      <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-cyan-400 animate-pulse" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground">Welcome to Current Chat</h3>
+                  <p className="text-sm mt-2 text-muted-foreground">Select a conversation or search users with @ to start messaging.</p>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+
 
       {/* Dialogs */}
       <CreateChatDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} type={createDialogType} onCreateConversation={handleCreateConversation} />
