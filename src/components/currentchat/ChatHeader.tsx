@@ -68,17 +68,19 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
     : 0;
 
   return (
-    <div className="h-16 border-b border-border bg-card flex items-center justify-between px-4">
-      <div className="flex items-center gap-3">
-        <div className="relative">
-          <Avatar className="h-10 w-10">
-            <AvatarImage 
-              src={conversation.type === 'group' 
-                ? conversation.avatar_url || undefined 
+    <div className="relative h-16 border-b border-white/10 bg-card/40 backdrop-blur-2xl backdrop-saturate-150 flex items-center justify-between px-4 gap-3 shadow-[0_4px_20px_-12px_hsl(var(--primary)/0.2)]">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className="relative flex-shrink-0">
+          <div className="absolute inset-0 rounded-full bg-primary/30 blur-md" />
+          <Avatar className="relative h-10 w-10 ring-1 ring-white/15">
+            <AvatarImage
+              src={conversation.type === 'group'
+                ? conversation.avatar_url || undefined
                 : otherParticipant?.profile?.avatar_url || undefined
-              } 
+              }
             />
-            <AvatarFallback className={conversation.type === 'group' ? 'bg-primary/10 text-primary' : ''}>
+            <AvatarFallback className={conversation.type === 'group' ? 'bg-primary/15 text-primary' : 'bg-gradient-to-br from-primary/20 to-cyan-400/20'}>
               {conversation.type === 'group' ? (
                 <Users className="h-4 w-4" />
               ) : (
@@ -93,14 +95,14 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           )}
         </div>
 
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-sm">{displayName}</h3>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0">
+            <h3 className="font-semibold text-sm truncate">{displayName}</h3>
             {conversation.is_teams_synced && <TeamsBadge />}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             {conversation.type === 'group' && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground truncate">
                 {participants.length} members{getPresenceStatus ? ` · ${onlineCount} online` : ''}
               </span>
             )}
@@ -108,13 +110,14 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
               <OnlineStatusIndicator status={otherStatus} showLabel size="sm" />
             )}
             {conversation.type === 'direct' && isTestChat && otherParticipant?.profile?.email && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground truncate">
                 {otherParticipant.profile.email}
               </span>
             )}
           </div>
         </div>
       </div>
+
 
       <div className="flex items-center gap-2">
         {conversation.type === 'group' && (
