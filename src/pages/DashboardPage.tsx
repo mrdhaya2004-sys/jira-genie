@@ -1,22 +1,25 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, lazy, Suspense } from 'react';
 import { Helmet } from 'react-helmet-async';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import MentionsPanel from '@/components/dashboard/MentionsPanel';
-import AgenticAIModule from '@/components/workspace/AgenticAIModule';
-import JiraTicketRaiserModule from '@/components/jira/JiraTicketRaiserModule';
-import LogicScenarioCreatorModule from '@/components/scenario/LogicScenarioCreatorModule';
-import TestCaseGeneratorModule from '@/components/testcase/TestCaseGeneratorModule';
-import XPathGeneratorModule from '@/components/xpath/XPathGeneratorModule';
-import DefectAnalyzerModule from '@/components/defect/DefectAnalyzerModule';
-import MyTicketsModule from '@/components/tickets/MyTicketsModule';
-import HistoryModule from '@/components/automation/HistoryModule';
-import CurrentChatModule from '@/components/currentchat/CurrentChatModule';
-import AIConfigurationModule from '@/components/settings/AIConfigurationModule';
-import ProfileModule from '@/components/profile/ProfileModule';
-import AccountSettingsModule from '@/components/settings/AccountSettingsModule';
-import AboutUsModule from '@/components/about/AboutUsModule';
-import FounderPage from '@/components/about/FounderPage';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Lazy-load every module — only the active one is fetched/parsed.
+const AgenticAIModule = lazy(() => import('@/components/workspace/AgenticAIModule'));
+const JiraTicketRaiserModule = lazy(() => import('@/components/jira/JiraTicketRaiserModule'));
+const LogicScenarioCreatorModule = lazy(() => import('@/components/scenario/LogicScenarioCreatorModule'));
+const TestCaseGeneratorModule = lazy(() => import('@/components/testcase/TestCaseGeneratorModule'));
+const XPathGeneratorModule = lazy(() => import('@/components/xpath/XPathGeneratorModule'));
+const DefectAnalyzerModule = lazy(() => import('@/components/defect/DefectAnalyzerModule'));
+const MyTicketsModule = lazy(() => import('@/components/tickets/MyTicketsModule'));
+const HistoryModule = lazy(() => import('@/components/automation/HistoryModule'));
+const CurrentChatModule = lazy(() => import('@/components/currentchat/CurrentChatModule'));
+const AIConfigurationModule = lazy(() => import('@/components/settings/AIConfigurationModule'));
+const ProfileModule = lazy(() => import('@/components/profile/ProfileModule'));
+const AccountSettingsModule = lazy(() => import('@/components/settings/AccountSettingsModule'));
+const AboutUsModule = lazy(() => import('@/components/about/AboutUsModule'));
+const FounderPage = lazy(() => import('@/components/about/FounderPage'));
 
 export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'defect-analyzer' | 'ai-settings' | 'profile' | 'account-settings' | 'about' | 'founder';
 
@@ -33,6 +36,19 @@ export interface ResumeData {
   prompt: string;
   historyLogId: string;
 }
+
+const ModuleFallback: React.FC = () => (
+  <div className="h-full w-full p-6 space-y-4">
+    <Skeleton className="h-10 w-1/3" />
+    <Skeleton className="h-6 w-2/3" />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+      <Skeleton className="h-40 w-full" />
+      <Skeleton className="h-40 w-full" />
+      <Skeleton className="h-40 w-full" />
+      <Skeleton className="h-40 w-full" />
+    </div>
+  </div>
+);
 
 const DashboardPage: React.FC = () => {
   const [activeModule, setActiveModule] = useState<ActiveModule>('mentions');
@@ -71,21 +87,23 @@ const DashboardPage: React.FC = () => {
         <DashboardHeader activeModule={activeModule} onModuleChange={setActiveModule} />
         <main className="flex-1 overflow-hidden bg-background/80">
           <div key={activeModule} className="h-full module-enter">
-            {activeModule === 'mentions' && <MentionsPanel />}
-            {activeModule === 'chat' && <CurrentChatModule />}
-            {activeModule === 'tickets' && <MyTicketsModule />}
-            {activeModule === 'history' && <HistoryModule onResumeAction={handleResumeAction} />}
-            {activeModule === 'agentic-ai' && <AgenticAIModule />}
-            {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule onNavigateBack={() => setActiveModule('mentions')} />}
-            {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule resumeData={resumeData} />}
-            {activeModule === 'test-case-generator' && <TestCaseGeneratorModule resumeData={resumeData} />}
-            {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
-            {activeModule === 'defect-analyzer' && <DefectAnalyzerModule />}
-            {activeModule === 'ai-settings' && <AIConfigurationModule />}
-            {activeModule === 'profile' && <ProfileModule />}
-            {activeModule === 'account-settings' && <AccountSettingsModule />}
-            {activeModule === 'about' && <AboutUsModule onOpenFounder={() => setActiveModule('founder')} />}
-            {activeModule === 'founder' && <FounderPage onBack={() => setActiveModule('about')} />}
+            <Suspense fallback={<ModuleFallback />}>
+              {activeModule === 'mentions' && <MentionsPanel />}
+              {activeModule === 'chat' && <CurrentChatModule />}
+              {activeModule === 'tickets' && <MyTicketsModule />}
+              {activeModule === 'history' && <HistoryModule onResumeAction={handleResumeAction} />}
+              {activeModule === 'agentic-ai' && <AgenticAIModule />}
+              {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule onNavigateBack={() => setActiveModule('mentions')} />}
+              {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule resumeData={resumeData} />}
+              {activeModule === 'test-case-generator' && <TestCaseGeneratorModule resumeData={resumeData} />}
+              {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
+              {activeModule === 'defect-analyzer' && <DefectAnalyzerModule />}
+              {activeModule === 'ai-settings' && <AIConfigurationModule />}
+              {activeModule === 'profile' && <ProfileModule />}
+              {activeModule === 'account-settings' && <AccountSettingsModule />}
+              {activeModule === 'about' && <AboutUsModule onOpenFounder={() => setActiveModule('founder')} />}
+              {activeModule === 'founder' && <FounderPage onBack={() => setActiveModule('about')} />}
+            </Suspense>
           </div>
         </main>
       </div>
