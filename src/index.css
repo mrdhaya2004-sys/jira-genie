@@ -916,3 +916,90 @@
           drop-shadow(0 1px 2px rgba(29, 78, 216, 0.45));
   transform: scale(1.08) rotate(-3deg);
 }
+
+/* ============================================================
+   Apple / iOS-style 120Hz motion layer (global)
+   GPU-accelerated transitions, smooth scrolling, hover polish.
+   ============================================================ */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  html, body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: none;
+  }
+  /* Apple-style easing variables */
+  :root {
+    --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-ios-spring: cubic-bezier(0.22, 1, 0.36, 1);
+    --dur-fast: 140ms;
+    --dur-base: 200ms;
+    --dur-slow: 320ms;
+  }
+  /* Native momentum + invisible scrollbar feel */
+  *, *::before, *::after {
+    -webkit-tap-highlight-color: transparent;
+  }
+  [data-radix-scroll-area-viewport],
+  .overflow-y-auto,
+  .overflow-auto,
+  .overflow-x-auto {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+@layer utilities {
+  /* Promote to GPU layer without overusing it */
+  .gpu { transform: translateZ(0); backface-visibility: hidden; }
+
+  /* iOS-style press: instant, soft scale, GPU-only */
+  .press {
+    transition: transform var(--dur-fast) var(--ease-ios),
+                opacity var(--dur-fast) var(--ease-ios);
+    will-change: transform;
+  }
+  .press:active { transform: scale(0.97); }
+
+  /* Snappy hover lift (transform only — no layout) */
+  .lift {
+    transition: transform var(--dur-base) var(--ease-ios-spring),
+                box-shadow var(--dur-base) var(--ease-ios-spring);
+  }
+  .lift:hover { transform: translate3d(0, -1px, 0); }
+
+  /* Lighter blur tier — use when the heavy 2xl tier causes FPS drops */
+  .blur-soft { backdrop-filter: blur(12px) saturate(140%); -webkit-backdrop-filter: blur(12px) saturate(140%); }
+}
+
+/* Globally tame transition curves so every shadcn/Tailwind transition
+   inherits the iOS spring instead of the default ease. */
+@layer base {
+  .transition,
+  .transition-all,
+  .transition-colors,
+  .transition-opacity,
+  .transition-transform,
+  .transition-shadow {
+    transition-timing-function: var(--ease-ios);
+  }
+}
+
+/* Reduce repaint cost of heavy backdrop-filter stacks: cap saturate
+   and prevent compositing storms on scroll containers. */
+@supports (backdrop-filter: blur(1px)) {
+  .backdrop-blur-2xl { backdrop-filter: blur(28px) saturate(140%); -webkit-backdrop-filter: blur(28px) saturate(140%); }
+  .backdrop-blur-3xl { backdrop-filter: blur(36px) saturate(140%); -webkit-backdrop-filter: blur(36px) saturate(140%); }
+}
+
+/* Honor user reduced-motion preference everywhere */
+@media (prefers-reduced-motion: reduce) {
+  .press, .lift { transition: none !important; }
+  .press:active, .lift:hover { transform: none !important; }
+  html { scroll-behavior: auto; }
+}
