@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MessageSquare, Sparkles } from 'lucide-react';
 import ChatSidebar from './ChatSidebar';
 import ChatHeader from './ChatHeader';
@@ -51,8 +51,14 @@ const CurrentChatModule: React.FC = () => {
     ? testConversations.find(c => c.id === testSelectedConv) || null
     : selectedConversation;
 
-  const activeMessages = testSelectedConv ? getTestMessages(testSelectedConv) : messages;
-  const allConversations = [...testConversations, ...conversations];
+  const activeMessages = useMemo(
+    () => (testSelectedConv ? getTestMessages(testSelectedConv) : messages),
+    [getTestMessages, messages, testSelectedConv]
+  );
+  const allConversations = useMemo(
+    () => [...testConversations, ...conversations],
+    [testConversations, conversations]
+  );
 
   // Typing indicator
   const { typingText, handleTyping } = useTypingIndicator(activeConversation?.id || null);
@@ -194,9 +200,17 @@ const CurrentChatModule: React.FC = () => {
     return 26;
   })();
 
-  const handlePanelResize = (sizes: number[]) => {
-    try { localStorage.setItem(STORAGE_KEY, String(sizes[0])); } catch {}
-  };
+  const resizeSaveRef = useRef<number | null>(null);
+  const handlePanelResize = useCallback((sizes: number[]) => {
+    if (resizeSaveRef.current) window.clearTimeout(resizeSaveRef.current);
+    resizeSaveRef.current = window.setTimeout(() => {
+      try { localStorage.setItem(STORAGE_KEY, String(sizes[0])); } catch {}
+    }, 160);
+  }, []);
+
+  useEffect(() => () => {
+    if (resizeSaveRef.current) window.clearTimeout(resizeSaveRef.current);
+  }, []);
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-background">
@@ -217,7 +231,7 @@ const CurrentChatModule: React.FC = () => {
           defaultSize={initialSidebarSize}
           minSize={20}
           maxSize={42}
-          className="relative h-full min-w-[300px] max-w-[500px]"
+          className="relative h-full min-w-0"
         >
           <ChatSidebar
             conversations={allConversations}
