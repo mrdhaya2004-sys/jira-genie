@@ -28,7 +28,7 @@ const PageLoader = () => (
     <div className="flex flex-col items-center gap-3">
       <img src={testzoneLogo} alt="Test Zone" className="h-12 w-12 rounded-xl" />
       <div className="h-1.5 w-32 overflow-hidden rounded-full bg-muted">
-        <div className="h-full w-1/2 animate-[shimmer_1.1s_ease-in-out_infinite] rounded-full bg-primary" />
+        <div className="h-full w-1/2 animate-pulse rounded-full bg-primary" />
       </div>
       <p className="text-sm text-muted-foreground">Loading Test Zone…</p>
     </div>
