@@ -40,7 +40,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   render() {
     if (!this.state.hasError) return this.props.children;
 
-    if (this.props.fallback) return this.props.fallback;
+    if (this.props.fallback !== undefined) return this.props.fallback;
 
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground">
