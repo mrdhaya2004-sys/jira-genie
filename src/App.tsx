@@ -8,6 +8,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import HiveAIButton from "./components/hiveai/HiveAIButton";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
 import testzoneLogo from "@/assets/testzone-logo.png";
 
 // Lazy-loaded pages
@@ -23,10 +24,13 @@ const QAMockTestPage = lazy(() => import("./pages/QAMockTestPage"));
 const queryClient = new QueryClient();
 
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <div className="flex flex-col items-center gap-3 animate-pulse">
+  <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+    <div className="flex flex-col items-center gap-3">
       <img src={testzoneLogo} alt="Test Zone" className="h-12 w-12 rounded-xl" />
-      <p className="text-sm text-muted-foreground">Loading…</p>
+      <div className="h-1.5 w-32 overflow-hidden rounded-full bg-muted">
+        <div className="h-full w-1/2 animate-[shimmer_1.1s_ease-in-out_infinite] rounded-full bg-primary" />
+      </div>
+      <p className="text-sm text-muted-foreground">Loading Test Zone…</p>
     </div>
   </div>
 );
@@ -112,20 +116,26 @@ const AppRoutes = () => (
 );
 
 const App = () => (
-  <HelmetProvider>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppRoutes />
-            <HiveAIButton />
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  </HelmetProvider>
+  <ErrorBoundary label="Application shell">
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ErrorBoundary label="Routes">
+                <AppRoutes />
+              </ErrorBoundary>
+              <ErrorBoundary label="Hive AI button" fallback={null}>
+                <HiveAIButton />
+              </ErrorBoundary>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
+  </ErrorBoundary>
 );
 
 export default App;
