@@ -4,6 +4,8 @@ import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import MentionsPanel from '@/components/dashboard/MentionsPanel';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 // Lazy-load every module — only the active one is fetched/parsed.
 const AgenticAIModule = lazy(() => import('@/components/workspace/AgenticAIModule'));
@@ -38,14 +40,29 @@ export interface ResumeData {
 }
 
 const ModuleFallback: React.FC = () => (
-  <div className="h-full w-full p-6 space-y-4">
-    <Skeleton className="h-10 w-1/3" />
-    <Skeleton className="h-6 w-2/3" />
+  <div className="h-full w-full p-6 space-y-4 bg-background text-foreground">
+    <Skeleton className="h-10 w-[min(18rem,60%)]" />
+    <Skeleton className="h-6 w-[min(28rem,80%)]" />
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
       <Skeleton className="h-40 w-full" />
       <Skeleton className="h-40 w-full" />
       <Skeleton className="h-40 w-full" />
       <Skeleton className="h-40 w-full" />
+    </div>
+  </div>
+);
+
+const ModuleCrashFallback: React.FC<{ onRecover: () => void }> = ({ onRecover }) => (
+  <div className="flex h-full w-full items-center justify-center bg-background p-6 text-foreground">
+    <div className="w-full max-w-lg rounded-2xl border border-border bg-card/80 p-6 text-center shadow-lg">
+      <h2 className="text-lg font-semibold">Module temporarily unavailable</h2>
+      <p className="mt-2 text-sm text-muted-foreground">
+        This module failed safely. Test Zone stayed online instead of showing a blank screen.
+      </p>
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+        <Button type="button" onClick={onRecover}>Back to Mentions</Button>
+        <Button type="button" variant="outline" onClick={() => window.location.reload()}>Reload app</Button>
+      </div>
     </div>
   </div>
 );
@@ -86,25 +103,32 @@ const DashboardPage: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0">
         <DashboardHeader activeModule={activeModule} onModuleChange={setActiveModule} />
         <main className="flex-1 overflow-hidden bg-background/80">
-          <div key={activeModule} className="h-full module-enter">
-            <Suspense fallback={<ModuleFallback />}>
-              {activeModule === 'mentions' && <MentionsPanel />}
-              {activeModule === 'chat' && <CurrentChatModule />}
-              {activeModule === 'tickets' && <MyTicketsModule />}
-              {activeModule === 'history' && <HistoryModule onResumeAction={handleResumeAction} />}
-              {activeModule === 'agentic-ai' && <AgenticAIModule />}
-              {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule onNavigateBack={() => setActiveModule('mentions')} />}
-              {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule resumeData={resumeData} />}
-              {activeModule === 'test-case-generator' && <TestCaseGeneratorModule resumeData={resumeData} />}
-              {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
-              {activeModule === 'defect-analyzer' && <DefectAnalyzerModule />}
-              {activeModule === 'ai-settings' && <AIConfigurationModule />}
-              {activeModule === 'profile' && <ProfileModule />}
-              {activeModule === 'account-settings' && <AccountSettingsModule />}
-              {activeModule === 'about' && <AboutUsModule onOpenFounder={() => setActiveModule('founder')} />}
-              {activeModule === 'founder' && <FounderPage onBack={() => setActiveModule('about')} />}
-            </Suspense>
-          </div>
+          <ErrorBoundary
+            key={activeModule}
+            label={`Module: ${activeModule}`}
+            resetKeys={[activeModule]}
+            fallback={<ModuleCrashFallback onRecover={() => setActiveModule('mentions')} />}
+          >
+            <div className="h-full module-enter">
+              <Suspense fallback={<ModuleFallback />}>
+                {activeModule === 'mentions' && <MentionsPanel />}
+                {activeModule === 'chat' && <CurrentChatModule />}
+                {activeModule === 'tickets' && <MyTicketsModule />}
+                {activeModule === 'history' && <HistoryModule onResumeAction={handleResumeAction} />}
+                {activeModule === 'agentic-ai' && <AgenticAIModule />}
+                {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule onNavigateBack={() => setActiveModule('mentions')} />}
+                {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule resumeData={resumeData} />}
+                {activeModule === 'test-case-generator' && <TestCaseGeneratorModule resumeData={resumeData} />}
+                {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
+                {activeModule === 'defect-analyzer' && <DefectAnalyzerModule />}
+                {activeModule === 'ai-settings' && <AIConfigurationModule />}
+                {activeModule === 'profile' && <ProfileModule />}
+                {activeModule === 'account-settings' && <AccountSettingsModule />}
+                {activeModule === 'about' && <AboutUsModule onOpenFounder={() => setActiveModule('founder')} />}
+                {activeModule === 'founder' && <FounderPage onBack={() => setActiveModule('about')} />}
+              </Suspense>
+            </div>
+          </ErrorBoundary>
         </main>
       </div>
     </div>
