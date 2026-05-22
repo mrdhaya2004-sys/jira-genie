@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -56,33 +56,38 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
 }) => {
   const { user } = useAuth();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  
+  const frameRef = useRef<number | null>(null);
   const prevMessageCount = useRef(messages.length);
+
+  const scrollToLatest = () => {
+    if (frameRef.current) cancelAnimationFrame(frameRef.current);
+    frameRef.current = requestAnimationFrame(() => {
+      const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+      if (viewport) viewport.scrollTo({ top: 0, behavior: 'auto' });
+      frameRef.current = null;
+    });
+  };
 
   // Auto-scroll to top on new messages (newest first layout)
   useEffect(() => {
     if (messages.length >= prevMessageCount.current) {
-      requestAnimationFrame(() => {
-        if (scrollAreaRef.current) {
-          const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-          if (viewport) viewport.scrollTop = 0;
-        }
-      });
+      scrollToLatest();
     }
     prevMessageCount.current = messages.length;
-  }, [messages]);
+    return () => {
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+    };
+  }, [messages.length]);
 
   // Scroll to top on initial load
   useEffect(() => {
     if (!isLoading && messages.length > 0) {
-      requestAnimationFrame(() => {
-        if (scrollAreaRef.current) {
-          const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-          if (viewport) viewport.scrollTop = 0;
-        }
-      });
+      scrollToLatest();
     }
-  }, [isLoading]);
+    return () => {
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+    };
+  }, [isLoading, messages.length]);
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -96,12 +101,12 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
     try { return format(new Date(dateString), 'MMMM d, yyyy'); } catch { return ''; }
   };
 
-  const groupedMessages = messages.reduce((groups, message) => {
+  const groupedMessages = useMemo(() => messages.reduce((groups, message) => {
     const date = formatMessageDate(message.created_at);
     if (!groups[date]) groups[date] = [];
     groups[date].push(message);
     return groups;
-  }, {} as Record<string, ChatMessageData[]>);
+  }, {} as Record<string, ChatMessageData[]>), [messages]);
 
   if (isLoading) {
     return (
@@ -149,7 +154,7 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
                         )}
                       </div>
                     )}
-                    <div className={cn("max-w-[70%] flex flex-col", isOwn ? "items-end" : "items-start")}>
+                    <div className={cn("max-w-[min(70%,42rem)] min-w-0 flex flex-col", isOwn ? "items-end" : "items-start")}>
                       {!isOwn && showAvatar && message.sender?.full_name && (
                         <span className="text-xs text-muted-foreground mb-1 ml-1">{message.sender.full_name}</span>
                       )}
@@ -174,7 +179,7 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
                           </div>
                         )}
                         <div className={cn(
-                          "px-4 py-2 rounded-2xl text-sm transition-colors",
+                          "min-w-0 max-w-full overflow-hidden px-4 py-2 rounded-2xl text-sm transition-colors break-words",
                           isOwn ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted rounded-bl-md",
                           message.is_deleted && "italic opacity-60"
                         )}>
@@ -182,7 +187,7 @@ const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
                             part.type === 'code' ? (
                               <CodeSnippet key={i} code={part.content} language={part.language} />
                             ) : (
-                              <span key={i} className="whitespace-pre-wrap">{part.content}</span>
+                              <span key={i} className="whitespace-pre-wrap break-words">{part.content}</span>
                             )
                           ))}
                         </div>
