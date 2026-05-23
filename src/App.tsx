@@ -40,7 +40,7 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   
   if (isLoading) {
-    return null;
+    return <PageLoader />;
   }
   
   if (isAuthenticated) {

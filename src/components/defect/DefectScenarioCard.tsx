@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import {
   CheckCircle2,
   XCircle,
@@ -261,6 +261,10 @@ const DefectScenarioCard: React.FC<{
                         </button>
                       </DialogTrigger>
                       <DialogContent className="max-w-5xl p-2">
+                        <DialogTitle className="sr-only">Screenshot preview</DialogTitle>
+                        <DialogDescription className="sr-only">
+                          Enlarged screenshot with filename and dimensions.
+                        </DialogDescription>
                         <img
                           src={shot.dataUrl}
                           alt={shot.name}
