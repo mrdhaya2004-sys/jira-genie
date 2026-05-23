@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { LinkIcon, RefreshCw, X } from 'lucide-react';
 import jiraLogo from '@/assets/jira-logo.png';
@@ -25,6 +25,14 @@ const JiraConnectionGate: React.FC<JiraConnectionGateProps> = ({
   return (
     <Dialog open={true} onOpenChange={(open) => { if (!open) onCancel(); }}>
       <DialogContent className="sm:max-w-[440px] bg-card border-border/50 shadow-2xl p-0 overflow-hidden">
+        <DialogTitle className="sr-only">
+          {isExpired ? 'Reconnect to Jira' : 'Connect to Jira'}
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          {isExpired
+            ? 'Your Jira connection has expired. Please reconnect to continue using the Jira Ticket Raiser.'
+            : 'To use Jira Ticket Raiser, please connect your Jira account.'}
+        </DialogDescription>
         {/* Header gradient */}
         <div className="bg-gradient-to-br from-blue-600/10 via-blue-500/5 to-transparent px-8 pt-8 pb-6 text-center">
           <div className="mx-auto mb-4 h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/25">
