@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { assertSafeExternalUrl, allowedSuffixesForProvider } from "../_shared/ssrfGuard.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -89,6 +90,18 @@ serve(async (req) => {
 
       default:
         throw new Error(`Unsupported provider: ${provider}`);
+    }
+
+    // SSRF guard: validate target URL for user-supplied endpoints
+    try {
+      assertSafeExternalUrl(url, {
+        allowedHostSuffixes: allowedSuffixesForProvider(provider),
+      });
+    } catch (e) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: e instanceof Error ? e.message : 'Invalid endpoint URL',
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const response = await fetch(url, { method: 'POST', headers, body });

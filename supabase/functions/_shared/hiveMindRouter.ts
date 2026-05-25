@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { assertSafeExternalUrl, allowedSuffixesForProvider } from "./ssrfGuard.ts";
 
 interface AIProviderConfig {
   provider: string;
@@ -95,6 +96,8 @@ async function callCustomProvider(
     url = 'https://api.openai.com/v1/chat/completions';
     headers['Authorization'] = `Bearer ${config.api_key_encrypted}`;
   }
+
+  assertSafeExternalUrl(url, { allowedHostSuffixes: allowedSuffixesForProvider(config.provider) });
 
   return fetch(url, {
     method: 'POST',
