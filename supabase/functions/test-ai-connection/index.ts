@@ -92,6 +92,18 @@ serve(async (req) => {
         throw new Error(`Unsupported provider: ${provider}`);
     }
 
+    // SSRF guard: validate target URL for user-supplied endpoints
+    try {
+      assertSafeExternalUrl(url, {
+        allowedHostSuffixes: allowedSuffixesForProvider(provider),
+      });
+    } catch (e) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: e instanceof Error ? e.message : 'Invalid endpoint URL',
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const response = await fetch(url, { method: 'POST', headers, body });
     const responseText = await response.text();
 
