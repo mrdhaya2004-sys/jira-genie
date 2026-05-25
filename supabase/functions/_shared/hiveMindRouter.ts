@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { assertSafeExternalUrl, allowedSuffixesForProvider } from "./ssrfGuard.ts";
 
 interface AIProviderConfig {
   provider: string;
