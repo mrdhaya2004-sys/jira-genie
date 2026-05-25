@@ -221,7 +221,7 @@ ${agent.systemPrompt}`;
       ...messages,
     ];
 
-    // Check for custom AI provider config
+    // Check for custom AI provider config (user-specific first, then any active shared config)
     const { data: providerConfigs } = await supabaseClient
       .from('ai_provider_configs')
       .select('provider, api_key_encrypted, model_name, endpoint_url, is_active')
@@ -229,7 +229,26 @@ ${agent.systemPrompt}`;
       .eq('is_active', true)
       .limit(1);
 
-    const customConfig = providerConfigs && providerConfigs.length > 0 ? providerConfigs[0] as AIProviderConfig : null;
+    let customConfig = providerConfigs && providerConfigs.length > 0 ? providerConfigs[0] as AIProviderConfig : null;
+
+    // Fallback: if this user has no config, use any active config (workspace-shared admin key)
+    // so that published-site users can use the owner's custom AI without their own setup.
+    if (!customConfig) {
+      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      if (serviceKey) {
+        const adminClient = createClient(supabaseUrl, serviceKey);
+        const { data: sharedConfigs } = await adminClient
+          .from('ai_provider_configs')
+          .select('provider, api_key_encrypted, model_name, endpoint_url, is_active')
+          .eq('is_active', true)
+          .order('updated_at', { ascending: false })
+          .limit(1);
+        if (sharedConfigs && sharedConfigs.length > 0) {
+          customConfig = sharedConfigs[0] as AIProviderConfig;
+          console.log('Hive Mind: Using shared admin AI config as fallback');
+        }
+      }
+    }
 
     let aiResponse: Response;
 
