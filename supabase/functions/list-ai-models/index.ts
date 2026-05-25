@@ -88,6 +88,12 @@ serve(async (req) => {
         return json({ success: false, error: `Unsupported provider: ${provider}` });
     }
 
+    try {
+      assertSafeExternalUrl(url, { allowedHostSuffixes: allowedSuffixesForProvider(provider) });
+    } catch (e) {
+      return json({ success: false, error: e instanceof Error ? e.message : 'Invalid endpoint URL' });
+    }
+
     const resp = await fetch(url, { method: 'GET', headers });
     const text = await resp.text();
     if (!resp.ok) {
