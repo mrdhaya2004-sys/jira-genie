@@ -97,6 +97,8 @@ async function callCustomProvider(
     headers['Authorization'] = `Bearer ${config.api_key_encrypted}`;
   }
 
+  assertSafeExternalUrl(url, { allowedHostSuffixes: allowedSuffixesForProvider(config.provider) });
+
   return fetch(url, {
     method: 'POST',
     headers,
