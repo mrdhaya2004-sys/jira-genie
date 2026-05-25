@@ -28,8 +28,10 @@ export async function routeAIRequest(
 
   const { data: { user } } = await supabaseClient.auth.getUser();
 
+  let customConfig: AIProviderConfig | null = null;
+
   if (user) {
-    // Check for custom AI provider
+    // Per-user custom AI provider
     const { data: configs } = await supabaseClient
       .from('ai_provider_configs')
       .select('provider, api_key_encrypted, model_name, endpoint_url, is_active')
@@ -37,15 +39,34 @@ export async function routeAIRequest(
       .eq('is_active', true)
       .limit(1);
 
-    const customConfig = configs && configs.length > 0 ? configs[0] as unknown as AIProviderConfig : null;
+    customConfig = configs && configs.length > 0 ? configs[0] as unknown as AIProviderConfig : null;
+  }
 
-    if (customConfig) {
-      console.log(`Hive Mind: Routing through custom provider: ${customConfig.provider}`);
-      try {
-        return await callCustomProvider(customConfig, messages, stream);
-      } catch (err) {
-        console.error('Custom provider failed, falling back to default:', err);
+  // Fallback: any active config (shared admin key) so published-site users
+  // can use the workspace owner's custom AI when Lovable AI is unavailable.
+  if (!customConfig) {
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (serviceKey) {
+      const adminClient = createClient(supabaseUrl, serviceKey);
+      const { data: sharedConfigs } = await adminClient
+        .from('ai_provider_configs')
+        .select('provider, api_key_encrypted, model_name, endpoint_url, is_active')
+        .eq('is_active', true)
+        .order('updated_at', { ascending: false })
+        .limit(1);
+      if (sharedConfigs && sharedConfigs.length > 0) {
+        customConfig = sharedConfigs[0] as unknown as AIProviderConfig;
+        console.log('Hive Mind Router: Using shared admin AI config as fallback');
       }
+    }
+  }
+
+  if (customConfig) {
+    console.log(`Hive Mind: Routing through custom provider: ${customConfig.provider}`);
+    try {
+      return await callCustomProvider(customConfig, messages, stream);
+    } catch (err) {
+      console.error('Custom provider failed, falling back to default:', err);
     }
   }
 
