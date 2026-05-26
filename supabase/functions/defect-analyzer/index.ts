@@ -352,21 +352,18 @@ Produce the structured JSON defined in the system prompt. Remember: every scenar
       userContent.push({ type: 'image_url', image_url: { url: s.dataUrl } });
     }
 
-    const aiResponse = await fetch(AI_GATEWAY_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
+    const aiResponse = await routeAIRequest(
+      authHeader,
+      [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: safeShots.length > 0 ? userContent : userTextPrompt },
+      ],
+      false,
+      {
+        defaultModel: 'google/gemini-2.5-pro',
+        extraBody: { response_format: { type: 'json_object' } },
       },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-pro',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: safeShots.length > 0 ? userContent : userTextPrompt },
-        ],
-        response_format: { type: 'json_object' },
-      }),
-    });
+    );
 
     if (!aiResponse.ok) {
       const txt = await aiResponse.text();
