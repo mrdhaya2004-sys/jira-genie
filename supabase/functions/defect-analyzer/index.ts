@@ -1,8 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, corsHeaders, unauthorizedResponse } from "../_shared/auth.ts";
-
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+import { routeAIRequest } from "../_shared/hiveMindRouter.ts";
 
 interface ScreenshotPayload {
   index: number;
