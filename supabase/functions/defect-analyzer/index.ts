@@ -302,11 +302,7 @@ serve(async (req) => {
     const auth = await validateAuth(req);
     if (!auth.user) return unauthorizedResponse(auth.error || 'Unauthorized');
 
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "AI gateway not configured" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const authHeader = req.headers.get("Authorization")!;
 
     const body = await req.json() as DefectRequest;
     const { workspaceName, os, reportSummaries, reportDigest, parseMetrics, screenshots } = body;
