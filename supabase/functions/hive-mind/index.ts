@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { routeAIRequest, resolveCustomConfig, buildAIErrorResponse } from "../_shared/hiveMindRouter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -48,110 +49,11 @@ const CAPABILITY_TO_AGENT: Record<string, string> = {
   qa_chat: 'TestCaseAgent',
 };
 
-// Provider API configurations
-const PROVIDER_CONFIGS: Record<string, { url: string; headerKey: string }> = {
-  openai: { url: 'https://api.openai.com/v1/chat/completions', headerKey: 'Authorization' },
-  azure_openai: { url: '', headerKey: 'api-key' }, // URL comes from endpoint_url
-  anthropic: { url: 'https://api.anthropic.com/v1/messages', headerKey: 'x-api-key' },
-  google_gemini: { url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', headerKey: 'Authorization' },
-  custom: { url: '', headerKey: 'Authorization' }, // URL comes from endpoint_url
-  local_llm: { url: '', headerKey: 'Authorization' }, // URL comes from endpoint_url
-};
-
-interface AIProviderConfig {
-  provider: string;
-  api_key_encrypted: string;
-  model_name: string;
-  endpoint_url: string | null;
-  is_active: boolean;
-}
-
-async function callCustomProvider(
-  config: AIProviderConfig,
-  messages: Array<{ role: string; content: string }>,
-  stream: boolean
-): Promise<Response> {
-  const providerConfig = PROVIDER_CONFIGS[config.provider];
-  
-  let url: string;
-  if (config.provider === 'azure_openai' || config.provider === 'custom' || config.provider === 'local_llm') {
-    if (!config.endpoint_url) throw new Error('Endpoint URL required for this provider');
-    url = config.endpoint_url;
-  } else {
-    url = providerConfig.url;
-  }
-
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-
-  if (config.provider === 'anthropic') {
-    headers['x-api-key'] = config.api_key_encrypted;
-    headers['anthropic-version'] = '2023-06-01';
-
-    // Anthropic uses a different format
-    const systemMsg = messages.find(m => m.role === 'system');
-    const nonSystemMsgs = messages.filter(m => m.role !== 'system');
-
-    const body: Record<string, unknown> = {
-      model: config.model_name,
-      max_tokens: 4096,
-      messages: nonSystemMsgs,
-      stream,
-    };
-    if (systemMsg) body.system = systemMsg.content;
-
-    return fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
-  }
-
-  if (config.provider === 'azure_openai') {
-    headers['api-key'] = config.api_key_encrypted;
-  } else {
-    headers['Authorization'] = `Bearer ${config.api_key_encrypted}`;
-  }
-
-  return fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model: config.model_name,
-      messages,
-      stream,
-    }),
-  });
-}
-
-async function callDefaultProvider(
-  messages: Array<{ role: string; content: string }>,
-  stream: boolean
-): Promise<Response> {
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
-
-  return fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-3-flash-preview',
-      messages,
-      stream,
-    }),
-  });
-}
-
 // Validate AI response structure
-function validateResponse(content: string, agentName: string): { valid: boolean; issues: string[] } {
+function validateResponse(content: string): { valid: boolean; issues: string[] } {
   const issues: string[] = [];
-
-  if (!content || content.trim().length === 0) {
-    issues.push('Empty response received');
-  }
-
-  if (content.length < 20) {
-    issues.push('Response too short - may be incomplete');
-  }
-
+  if (!content || content.trim().length === 0) issues.push('Empty response received');
+  if (content.length < 20) issues.push('Response too short - may be incomplete');
   return { valid: issues.length === 0, issues };
 }
 
@@ -221,67 +123,15 @@ ${agent.systemPrompt}`;
       ...messages,
     ];
 
-    // Check for custom AI provider config (user-specific first, then any active shared config)
-    const { data: providerConfigs } = await supabaseClient
-      .from('ai_provider_configs')
-      .select('provider, api_key_encrypted, model_name, endpoint_url, is_active')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .limit(1);
+    // Resolve which AI provider will actually be used (for diagnostics in the response)
+    const customConfig = await resolveCustomConfig(authHeader);
 
-    let customConfig = providerConfigs && providerConfigs.length > 0 ? providerConfigs[0] as AIProviderConfig : null;
-
-    // Fallback: if this user has no config, use any active config (workspace-shared admin key)
-    // so that published-site users can use the owner's custom AI without their own setup.
-    if (!customConfig) {
-      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-      if (serviceKey) {
-        const adminClient = createClient(supabaseUrl, serviceKey);
-        const { data: sharedConfigs } = await adminClient
-          .from('ai_provider_configs')
-          .select('provider, api_key_encrypted, model_name, endpoint_url, is_active')
-          .eq('is_active', true)
-          .order('updated_at', { ascending: false })
-          .limit(1);
-        if (sharedConfigs && sharedConfigs.length > 0) {
-          customConfig = sharedConfigs[0] as AIProviderConfig;
-          console.log('Hive Mind: Using shared admin AI config as fallback');
-        }
-      }
-    }
-
-    let aiResponse: Response;
-
-    if (customConfig) {
-      // Route through custom provider
-      console.log(`Hive Mind: Routing ${agentName} through custom provider: ${customConfig.provider}`);
-      try {
-        aiResponse = await callCustomProvider(customConfig, fullMessages, stream);
-      } catch (providerError) {
-        // Fallback to default if custom provider fails
-        console.error('Custom provider failed, falling back to default:', providerError);
-        aiResponse = await callDefaultProvider(fullMessages, stream);
-      }
-    } else {
-      // Use default Lovable AI
-      console.log(`Hive Mind: Routing ${agentName} through default AI`);
-      aiResponse = await callDefaultProvider(fullMessages, stream);
-    }
+    // Route through centralized Test Zone AI Gateway
+    const aiResponse = await routeAIRequest(authHeader, fullMessages, stream);
 
     if (!aiResponse.ok) {
-      if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: 'Payment required. Please add credits.' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
       const errorText = await aiResponse.text();
-      console.error(`AI provider error (${aiResponse.status}):`, errorText);
-      throw new Error(`AI request failed with status ${aiResponse.status}`);
+      return buildAIErrorResponse(aiResponse.status, errorText, corsHeaders);
     }
 
     if (stream) {
@@ -293,7 +143,7 @@ ${agent.systemPrompt}`;
     // Non-streaming: validate response
     const result = await aiResponse.json();
     const content = result.choices?.[0]?.message?.content || '';
-    const validation = validateResponse(content, agentName);
+    const validation = validateResponse(content);
 
     if (!validation.valid) {
       console.warn('Hive Mind validation issues:', validation.issues);

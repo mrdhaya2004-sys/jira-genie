@@ -1,8 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, corsHeaders, unauthorizedResponse } from "../_shared/auth.ts";
-
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+import { routeAIRequest } from "../_shared/hiveMindRouter.ts";
 
 interface ScreenshotPayload {
   index: number;
@@ -304,11 +302,7 @@ serve(async (req) => {
     const auth = await validateAuth(req);
     if (!auth.user) return unauthorizedResponse(auth.error || 'Unauthorized');
 
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "AI gateway not configured" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const authHeader = req.headers.get("Authorization")!;
 
     const body = await req.json() as DefectRequest;
     const { workspaceName, os, reportSummaries, reportDigest, parseMetrics, screenshots } = body;
@@ -358,21 +352,18 @@ Produce the structured JSON defined in the system prompt. Remember: every scenar
       userContent.push({ type: 'image_url', image_url: { url: s.dataUrl } });
     }
 
-    const aiResponse = await fetch(AI_GATEWAY_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
+    const aiResponse = await routeAIRequest(
+      authHeader,
+      [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: safeShots.length > 0 ? userContent : userTextPrompt },
+      ],
+      false,
+      {
+        defaultModel: 'google/gemini-2.5-pro',
+        extraBody: { response_format: { type: 'json_object' } },
       },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-pro',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: safeShots.length > 0 ? userContent : userTextPrompt },
-        ],
-        response_format: { type: 'json_object' },
-      }),
-    });
+    );
 
     if (!aiResponse.ok) {
       const txt = await aiResponse.text();
