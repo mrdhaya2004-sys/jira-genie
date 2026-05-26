@@ -86,8 +86,7 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const authHeader = req.headers.get("Authorization")!;
 
     // Check last user message for module intent
     const lastUserMsg = [...messages].reverse().find((m: { role: string }) => m.role === "user");
@@ -96,49 +95,30 @@ serve(async (req) => {
     // If module intent detected, return a redirect message without calling AI
     if (detectedModule) {
       const redirectMsg = `This functionality is available in the **${detectedModule}** module. Please navigate to that module from the sidebar to use it. 🚀\n\nIs there anything else I can help you with?`;
-      
+
       // Return as SSE format for consistency
       const sseData = `data: ${JSON.stringify({
         choices: [{ delta: { content: redirectMsg }, finish_reason: "stop" }]
       })}\n\ndata: [DONE]\n\n`;
-      
+
       return new Response(sseData, {
         headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
       });
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...messages,
-        ],
-        stream: true,
-      }),
-    });
+    // Route through centralized Test Zone AI Gateway (custom provider when configured)
+    const response = await routeAIRequest(
+      authHeader,
+      [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...messages,
+      ],
+      true,
+    );
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      return new Response(JSON.stringify({ error: "AI service unavailable" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return buildAIErrorResponse(response.status, t, corsHeaders);
     }
 
     return new Response(response.body, {
