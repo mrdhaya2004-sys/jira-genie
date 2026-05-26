@@ -123,67 +123,15 @@ ${agent.systemPrompt}`;
       ...messages,
     ];
 
-    // Check for custom AI provider config (user-specific first, then any active shared config)
-    const { data: providerConfigs } = await supabaseClient
-      .from('ai_provider_configs')
-      .select('provider, api_key_encrypted, model_name, endpoint_url, is_active')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .limit(1);
+    // Resolve which AI provider will actually be used (for diagnostics in the response)
+    const customConfig = await resolveCustomConfig(authHeader);
 
-    let customConfig = providerConfigs && providerConfigs.length > 0 ? providerConfigs[0] as AIProviderConfig : null;
-
-    // Fallback: if this user has no config, use any active config (workspace-shared admin key)
-    // so that published-site users can use the owner's custom AI without their own setup.
-    if (!customConfig) {
-      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-      if (serviceKey) {
-        const adminClient = createClient(supabaseUrl, serviceKey);
-        const { data: sharedConfigs } = await adminClient
-          .from('ai_provider_configs')
-          .select('provider, api_key_encrypted, model_name, endpoint_url, is_active')
-          .eq('is_active', true)
-          .order('updated_at', { ascending: false })
-          .limit(1);
-        if (sharedConfigs && sharedConfigs.length > 0) {
-          customConfig = sharedConfigs[0] as AIProviderConfig;
-          console.log('Hive Mind: Using shared admin AI config as fallback');
-        }
-      }
-    }
-
-    let aiResponse: Response;
-
-    if (customConfig) {
-      // Route through custom provider
-      console.log(`Hive Mind: Routing ${agentName} through custom provider: ${customConfig.provider}`);
-      try {
-        aiResponse = await callCustomProvider(customConfig, fullMessages, stream);
-      } catch (providerError) {
-        // Fallback to default if custom provider fails
-        console.error('Custom provider failed, falling back to default:', providerError);
-        aiResponse = await callDefaultProvider(fullMessages, stream);
-      }
-    } else {
-      // Use default Lovable AI
-      console.log(`Hive Mind: Routing ${agentName} through default AI`);
-      aiResponse = await callDefaultProvider(fullMessages, stream);
-    }
+    // Route through centralized Test Zone AI Gateway
+    const aiResponse = await routeAIRequest(authHeader, fullMessages, stream);
 
     if (!aiResponse.ok) {
-      if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: 'Payment required. Please add credits.' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
       const errorText = await aiResponse.text();
-      console.error(`AI provider error (${aiResponse.status}):`, errorText);
-      throw new Error(`AI request failed with status ${aiResponse.status}`);
+      return buildAIErrorResponse(aiResponse.status, errorText, corsHeaders);
     }
 
     if (stream) {
@@ -195,7 +143,7 @@ ${agent.systemPrompt}`;
     // Non-streaming: validate response
     const result = await aiResponse.json();
     const content = result.choices?.[0]?.message?.content || '';
-    const validation = validateResponse(content, agentName);
+    const validation = validateResponse(content);
 
     if (!validation.valid) {
       console.warn('Hive Mind validation issues:', validation.issues);
