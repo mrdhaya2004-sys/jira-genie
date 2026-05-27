@@ -9,6 +9,28 @@ interface AIProviderConfig {
   is_active: boolean;
 }
 
+/**
+ * Reject endpoint URLs that clearly aren't a chat-completions API
+ * (e.g. a provider's model landing page like https://build.nvidia.com/google/gemma-2-2b-it).
+ * OpenAI-compatible providers must point at an actual completions path.
+ */
+function assertChatCompletionsEndpoint(rawUrl: string, provider: string): void {
+  let parsed: URL;
+  try { parsed = new URL(rawUrl); } catch {
+    throw new Error(`Invalid endpoint URL for ${provider}. Provide a full https URL ending in /v1/chat/completions.`);
+  }
+  const path = parsed.pathname.toLowerCase();
+  const ok = path.includes('/chat/completions') || path.includes('/completions') || path.includes('/v1/messages');
+  if (!ok) {
+    throw new Error(
+      `Endpoint URL for ${provider} must point to a chat-completions API ` +
+      `(e.g. https://integrate.api.nvidia.com/v1/chat/completions). ` +
+      `Got "${rawUrl}", which looks like a model page, not an API endpoint.`,
+    );
+  }
+}
+
+
 export interface RouteOptions {
   /** Default model to use when no custom config is configured and Lovable AI fallback is used. */
   defaultModel?: string;
