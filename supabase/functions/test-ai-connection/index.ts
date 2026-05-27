@@ -130,12 +130,23 @@ serve(async (req) => {
       });
     }
 
+    const responseCT = (response.headers.get('content-type') || '').toLowerCase();
+    if (!responseCT.includes('application/json') && !responseCT.includes('text/plain')) {
+      return new Response(JSON.stringify({
+        success: false,
+        error:
+          `Provider returned ${responseCT || 'non-JSON content'} instead of a chat-completions response. ` +
+          `The endpoint URL is likely wrong — it must point to "/v1/chat/completions" or equivalent.`,
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     return new Response(JSON.stringify({
       success: true,
       message: 'Connection verified successfully',
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+
 
   } catch (error) {
     console.error('Test connection error:', error);
