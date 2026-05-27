@@ -81,13 +81,160 @@ export async function routeAIRequest(
 ): Promise<Response> {
   const customConfig = await resolveCustomConfig(authHeader);
 
+  let upstream: Response;
+  let providerName: string;
+
   if (customConfig) {
     console.log(`AI Router: Routing through custom provider: ${customConfig.provider} (${customConfig.model_name})`);
-    return callCustomProvider(customConfig, messages, stream, options.extraBody);
+    upstream = await callCustomProvider(customConfig, messages, stream, options.extraBody);
+    providerName = customConfig.provider;
+  } else {
+    console.log('AI Router: No custom AI configured — using Lovable AI gateway');
+    upstream = await callDefaultProvider(messages, stream, options);
+    providerName = 'lovable';
   }
 
-  console.log('AI Router: No custom AI configured — using Lovable AI gateway');
-  return callDefaultProvider(messages, stream, options);
+  if (!upstream.ok) return upstream;
+  if (!stream) return upstream;
+
+  // Normalize every provider's streaming output to OpenAI-style SSE the frontend expects:
+  //   data: {"choices":[{"delta":{"content":"..."}}]}\n\n  ...  data: [DONE]\n\n
+  return normalizeStream(upstream, providerName);
+}
+
+/**
+ * Wrap any provider response (OpenAI SSE, Anthropic SSE, native Gemini, or non-streaming JSON)
+ * into a unified OpenAI-style SSE stream. Frontend modules only parse
+ * `choices[0].delta.content`, so this layer guarantees that shape and prevents silent empty UI.
+ */
+function normalizeStream(upstream: Response, provider: string): Response {
+  const contentType = upstream.headers.get('content-type') || '';
+  const isSSE = contentType.includes('text/event-stream') || contentType.includes('stream');
+
+  const encoder = new TextEncoder();
+  const sseChunk = (text: string) =>
+    encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`);
+  const doneChunk = encoder.encode(`data: [DONE]\n\n`);
+
+  const readable = new ReadableStream({
+    async start(controller) {
+      try {
+        if (!isSSE || !upstream.body) {
+          const raw = await upstream.text();
+          let text = '';
+          try {
+            text = extractContentFromJson(JSON.parse(raw), provider);
+          } catch {
+            text = raw;
+          }
+          if (!text) {
+            console.error('AI Router: empty/unparseable upstream body for provider', provider, raw.slice(0, 500));
+            text = '⚠️ The AI provider returned an empty response. Please verify your AI Configuration (model name, API key, endpoint) and try again.';
+          }
+          controller.enqueue(sseChunk(text));
+          controller.enqueue(doneChunk);
+          controller.close();
+          return;
+        }
+
+        const reader = upstream.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let emittedAny = false;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          let nl: number;
+          while ((nl = buffer.indexOf('\n')) !== -1) {
+            const rawLine = buffer.slice(0, nl);
+            buffer = buffer.slice(nl + 1);
+            const line = rawLine.trim();
+            if (!line || line.startsWith(':')) continue;
+            if (!line.startsWith('data:')) continue;
+            const payload = line.slice(5).trim();
+            if (!payload || payload === '[DONE]') continue;
+
+            let parsed: unknown;
+            try { parsed = JSON.parse(payload); } catch { continue; }
+
+            const delta = extractDeltaFromChunk(parsed, provider);
+            if (delta) {
+              emittedAny = true;
+              controller.enqueue(sseChunk(delta));
+            }
+          }
+        }
+
+        if (!emittedAny) {
+          console.error('AI Router: stream completed with no content for provider', provider);
+          controller.enqueue(sseChunk('⚠️ The AI provider returned no content. Please verify your AI Configuration and try again.'));
+        }
+        controller.enqueue(doneChunk);
+        controller.close();
+      } catch (err) {
+        console.error('AI Router: stream normalization error', err);
+        try {
+          controller.enqueue(sseChunk(`⚠️ AI stream error: ${err instanceof Error ? err.message : 'unknown'}`));
+          controller.enqueue(doneChunk);
+        } catch { /* ignore */ }
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(readable, {
+    status: 200,
+    headers: { 'Content-Type': 'text/event-stream' },
+  });
+}
+
+/** Extract incremental delta text from a single SSE chunk across provider shapes. */
+function extractDeltaFromChunk(chunk: any, _provider: string): string {
+  // OpenAI / Azure / Gemini-OpenAI-compat / Lovable / custom OpenAI-compatible
+  const openaiDelta = chunk?.choices?.[0]?.delta?.content;
+  if (typeof openaiDelta === 'string' && openaiDelta) return openaiDelta;
+
+  const openaiMsg = chunk?.choices?.[0]?.message?.content;
+  if (typeof openaiMsg === 'string' && openaiMsg) return openaiMsg;
+
+  // Anthropic streaming events
+  if (chunk?.type === 'content_block_delta' && typeof chunk?.delta?.text === 'string') {
+    return chunk.delta.text;
+  }
+  if (chunk?.type === 'message_delta' && typeof chunk?.delta?.text === 'string') {
+    return chunk.delta.text;
+  }
+
+  // Native Gemini streaming
+  const geminiParts = chunk?.candidates?.[0]?.content?.parts;
+  if (Array.isArray(geminiParts)) {
+    return geminiParts.map((p: any) => (typeof p?.text === 'string' ? p.text : '')).join('');
+  }
+
+  return '';
+}
+
+/** Extract complete text from a non-streaming JSON body across provider shapes. */
+function extractContentFromJson(json: any, _provider: string): string {
+  const openai = json?.choices?.[0]?.message?.content;
+  if (typeof openai === 'string' && openai) return openai;
+
+  if (Array.isArray(json?.content)) {
+    return json.content.map((p: any) => (typeof p?.text === 'string' ? p.text : '')).join('');
+  }
+
+  const geminiParts = json?.candidates?.[0]?.content?.parts;
+  if (Array.isArray(geminiParts)) {
+    return geminiParts.map((p: any) => (typeof p?.text === 'string' ? p.text : '')).join('');
+  }
+
+  if (typeof json?.text === 'string') return json.text;
+  if (typeof json?.output_text === 'string') return json.output_text;
+
+  return '';
 }
 
 async function callCustomProvider(
