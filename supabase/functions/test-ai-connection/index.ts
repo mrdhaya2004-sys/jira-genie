@@ -81,12 +81,25 @@ serve(async (req) => {
         break;
 
       case 'custom':
-      case 'local_llm':
+      case 'local_llm': {
         if (!endpointUrl) throw new Error('Endpoint URL required');
+        let parsed: URL;
+        try { parsed = new URL(endpointUrl); } catch {
+          throw new Error('Invalid endpoint URL. Provide a full https URL ending in /v1/chat/completions.');
+        }
+        const p = parsed.pathname.toLowerCase();
+        if (!(p.includes('/chat/completions') || p.includes('/completions'))) {
+          throw new Error(
+            `Endpoint URL must point to a chat-completions API (e.g. https://integrate.api.nvidia.com/v1/chat/completions). ` +
+            `Got "${endpointUrl}", which looks like a model page, not an API endpoint.`,
+          );
+        }
         url = endpointUrl;
         headers['Authorization'] = `Bearer ${apiKey}`;
         body = JSON.stringify({ model, messages: testMessages, max_tokens: 20 });
         break;
+      }
+
 
       default:
         throw new Error(`Unsupported provider: ${provider}`);
@@ -117,12 +130,23 @@ serve(async (req) => {
       });
     }
 
+    const responseCT = (response.headers.get('content-type') || '').toLowerCase();
+    if (!responseCT.includes('application/json') && !responseCT.includes('text/plain')) {
+      return new Response(JSON.stringify({
+        success: false,
+        error:
+          `Provider returned ${responseCT || 'non-JSON content'} instead of a chat-completions response. ` +
+          `The endpoint URL is likely wrong — it must point to "/v1/chat/completions" or equivalent.`,
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     return new Response(JSON.stringify({
       success: true,
       message: 'Connection verified successfully',
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+
 
   } catch (error) {
     console.error('Test connection error:', error);

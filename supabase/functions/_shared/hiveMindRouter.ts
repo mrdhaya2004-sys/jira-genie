@@ -9,6 +9,28 @@ interface AIProviderConfig {
   is_active: boolean;
 }
 
+/**
+ * Reject endpoint URLs that clearly aren't a chat-completions API
+ * (e.g. a provider's model landing page like https://build.nvidia.com/google/gemma-2-2b-it).
+ * OpenAI-compatible providers must point at an actual completions path.
+ */
+function assertChatCompletionsEndpoint(rawUrl: string, provider: string): void {
+  let parsed: URL;
+  try { parsed = new URL(rawUrl); } catch {
+    throw new Error(`Invalid endpoint URL for ${provider}. Provide a full https URL ending in /v1/chat/completions.`);
+  }
+  const path = parsed.pathname.toLowerCase();
+  const ok = path.includes('/chat/completions') || path.includes('/completions') || path.includes('/v1/messages');
+  if (!ok) {
+    throw new Error(
+      `Endpoint URL for ${provider} must point to a chat-completions API ` +
+      `(e.g. https://integrate.api.nvidia.com/v1/chat/completions). ` +
+      `Got "${rawUrl}", which looks like a model page, not an API endpoint.`,
+    );
+  }
+}
+
+
 export interface RouteOptions {
   /** Default model to use when no custom config is configured and Lovable AI fallback is used. */
   defaultModel?: string;
@@ -95,7 +117,35 @@ export async function routeAIRequest(
   }
 
   if (!upstream.ok) return upstream;
+
+  // Reject HTML / non-API responses up front — common cause is a misconfigured
+  // endpoint URL (e.g. a model landing page) returning a Next.js HTML shell
+  // instead of an OpenAI-compatible JSON or SSE response.
+  const upstreamCT = (upstream.headers.get('content-type') || '').toLowerCase();
+  const looksLikeApi =
+    upstreamCT.includes('application/json') ||
+    upstreamCT.includes('text/event-stream') ||
+    upstreamCT.includes('stream') ||
+    upstreamCT.includes('text/plain'); // some local LLMs
+  if (!looksLikeApi) {
+    const sample = await upstream.text().catch(() => '');
+    console.error(
+      `AI Router: provider returned non-API content-type "${upstreamCT}" for ${providerName}. Sample:`,
+      sample.slice(0, 300),
+    );
+    const msg =
+      `AI provider returned ${upstreamCT || 'an unknown content type'} instead of a chat-completions response. ` +
+      `This usually means the endpoint URL in AI Configuration is wrong. ` +
+      `For OpenAI-compatible providers the URL must end with "/v1/chat/completions" ` +
+      `(e.g. https://integrate.api.nvidia.com/v1/chat/completions, not a model page).`;
+    return new Response(JSON.stringify({ error: msg, provider: providerName }), {
+      status: 502,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   if (!stream) return upstream;
+
 
   // Normalize every provider's streaming output to OpenAI-style SSE the frontend expects:
   //   data: {"choices":[{"delta":{"content":"..."}}]}\n\n  ...  data: [DONE]\n\n
@@ -273,6 +323,7 @@ async function callCustomProvider(
   } else if (config.provider === 'custom' || config.provider === 'local_llm') {
     if (!config.endpoint_url) throw new Error('Endpoint URL required');
     url = config.endpoint_url;
+    assertChatCompletionsEndpoint(url, config.provider);
     headers['Authorization'] = `Bearer ${config.api_key_encrypted}`;
   } else if (config.provider === 'google_gemini') {
     url = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
@@ -282,6 +333,7 @@ async function callCustomProvider(
     url = 'https://api.openai.com/v1/chat/completions';
     headers['Authorization'] = `Bearer ${config.api_key_encrypted}`;
   }
+
 
   assertSafeExternalUrl(url, { allowedHostSuffixes: allowedSuffixesForProvider(config.provider) });
 
