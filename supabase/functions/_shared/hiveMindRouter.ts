@@ -301,6 +301,7 @@ async function callCustomProvider(
   } else if (config.provider === 'custom' || config.provider === 'local_llm') {
     if (!config.endpoint_url) throw new Error('Endpoint URL required');
     url = config.endpoint_url;
+    assertChatCompletionsEndpoint(url, config.provider);
     headers['Authorization'] = `Bearer ${config.api_key_encrypted}`;
   } else if (config.provider === 'google_gemini') {
     url = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
@@ -310,6 +311,7 @@ async function callCustomProvider(
     url = 'https://api.openai.com/v1/chat/completions';
     headers['Authorization'] = `Bearer ${config.api_key_encrypted}`;
   }
+
 
   assertSafeExternalUrl(url, { allowedHostSuffixes: allowedSuffixesForProvider(config.provider) });
 
