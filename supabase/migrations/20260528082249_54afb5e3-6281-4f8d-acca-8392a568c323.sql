@@ -1,0 +1,1 @@
+UPDATE public.ai_provider_configs SET endpoint_url = 'https://integrate.api.nvidia.com/v1/chat/completions', model_name = 'google/gemma-2-2b-it' WHERE id = 'a02fccb8-ff94-4cb6-8705-eb044e05ebbe';
