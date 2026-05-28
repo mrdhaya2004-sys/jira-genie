@@ -161,11 +161,12 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
             ))}
 
             {(isLoading || isStreaming) && phase === 'generating' && (
-              <div className="flex items-center gap-2 text-muted-foreground">
+              <div data-skip-anchor="true" className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="text-sm">Generating test cases...</span>
               </div>
             )}
+
           </div>
         </ScrollArea>
 
