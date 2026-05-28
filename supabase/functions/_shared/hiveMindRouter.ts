@@ -116,7 +116,15 @@ export async function routeAIRequest(
     providerName = 'lovable';
   }
 
-  if (!upstream.ok) return upstream;
+  if (!upstream.ok) {
+    const errText = await upstream.text().catch(() => '');
+    console.error(`AI Router: upstream ${upstream.status} from ${providerName}:`, errText.slice(0, 500));
+    const msg = `AI provider "${providerName}" returned ${upstream.status}. ${errText.slice(0, 400) || 'No error body returned.'}`;
+    return new Response(JSON.stringify({ error: msg, provider: providerName, status: upstream.status }), {
+      status: upstream.status === 401 || upstream.status === 403 ? 502 : upstream.status,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   // Reject HTML / non-API responses up front — common cause is a misconfigured
   // endpoint URL (e.g. a model landing page) returning a Next.js HTML shell
