@@ -116,7 +116,15 @@ export async function routeAIRequest(
     providerName = 'lovable';
   }
 
-  if (!upstream.ok) return upstream;
+  if (!upstream.ok) {
+    const errText = await upstream.text().catch(() => '');
+    console.error(`AI Router: upstream ${upstream.status} from ${providerName}:`, errText.slice(0, 500));
+    const msg = `AI provider "${providerName}" returned ${upstream.status}. ${errText.slice(0, 400) || 'No error body returned.'}`;
+    return new Response(JSON.stringify({ error: msg, provider: providerName, status: upstream.status }), {
+      status: upstream.status === 401 || upstream.status === 403 ? 502 : upstream.status,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   // Reject HTML / non-API responses up front — common cause is a misconfigured
   // endpoint URL (e.g. a model landing page) returning a Next.js HTML shell
@@ -337,13 +345,38 @@ async function callCustomProvider(
 
   assertSafeExternalUrl(url, { allowedHostSuffixes: allowedSuffixesForProvider(config.provider) });
 
+  // Many OpenAI-compatible providers (NVIDIA NIM with Gemma, some local LLMs)
+  // reject `role: "system"`. For custom/local_llm we merge the system prompt
+  // into the first user message to maximize compatibility.
+  let outgoingMessages = messages;
+  if (config.provider === 'custom' || config.provider === 'local_llm') {
+    const sys = messages.filter((m) => m.role === 'system')
+      .map((m) => (typeof m.content === 'string' ? m.content : JSON.stringify(m.content)))
+      .join('\n\n');
+    const rest = messages.filter((m) => m.role !== 'system');
+    if (sys) {
+      const firstUserIdx = rest.findIndex((m) => m.role === 'user');
+      if (firstUserIdx >= 0) {
+        const first = rest[firstUserIdx];
+        const firstContent = typeof first.content === 'string' ? first.content : JSON.stringify(first.content);
+        rest[firstUserIdx] = { ...first, content: `${sys}\n\n${firstContent}` };
+      } else {
+        rest.unshift({ role: 'user', content: sys });
+      }
+    }
+    outgoingMessages = rest;
+  }
+
   const body: Record<string, unknown> = {
     model: config.model_name,
-    messages,
+    messages: outgoingMessages,
     stream,
+    temperature: 0.7,
+    max_tokens: 4096,
     ...(extraBody || {}),
   };
 
+  console.log(`AI Router: POST ${url} model=${config.model_name} msgs=${outgoingMessages.length} stream=${stream}`);
   return fetch(url, {
     method: 'POST',
     headers,
