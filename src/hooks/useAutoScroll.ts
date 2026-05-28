@@ -99,19 +99,41 @@ export function useAutoScroll<T extends HTMLElement = HTMLDivElement>(
       if (v.children.length === 1 && v.firstElementChild) {
         contentRoot = v.firstElementChild as HTMLElement;
       }
-      const last = contentRoot.lastElementChild as HTMLElement | null;
-      if (!last) return;
 
+      // Pick the anchor element. Prefer the last element explicitly marked
+      // as a message anchor; otherwise walk children from the end and skip
+      // anything tagged `data-skip-anchor` (typing indicators, loaders,
+      // dynamic input forms, etc.) so we never align the viewport to those.
+      const marked = contentRoot.querySelectorAll<HTMLElement>(
+        '[data-message-anchor="true"]'
+      );
+      let anchor: HTMLElement | null = marked.length
+        ? marked[marked.length - 1]
+        : null;
+      if (!anchor) {
+        const children = Array.from(contentRoot.children) as HTMLElement[];
+        for (let i = children.length - 1; i >= 0; i--) {
+          const c = children[i];
+          if (c.dataset.skipAnchor === 'true') continue;
+          anchor = c;
+          break;
+        }
+      }
+      if (!anchor) return;
+
+      // ChatGPT-style: align the START of the newest message ~8px below
+      // viewport top. Use scrollTo on the viewport (not scrollIntoView) so
+      // we don't disturb any outer scroll containers (page/layout).
       const vRect = v.getBoundingClientRect();
-      const lastRect = last.getBoundingClientRect();
-      // Position the start of the new message ~8px below viewport top.
+      const aRect = anchor.getBoundingClientRect();
       const targetTop = Math.max(
         0,
-        lastRect.top - vRect.top + v.scrollTop - 8
+        aRect.top - vRect.top + v.scrollTop - 8
       );
       v.scrollTo({ top: targetTop, behavior: smooth ? 'smooth' : 'auto' });
     });
     return () => cancelAnimationFrame(id);
+
   }, [enabled, smooth, messageCount, getViewport]);
 
   // Legacy fallback: when `messageCount` is NOT provided, keep the previous
