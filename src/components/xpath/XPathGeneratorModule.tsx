@@ -131,7 +131,7 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
             ))}
 
             {(isLoading || isStreaming) && phase === 'generating' && (
-              <div className="flex items-center gap-3 text-muted-foreground glass-effect rounded-xl px-4 py-3 w-fit">
+              <div data-skip-anchor="true" className="flex items-center gap-3 text-muted-foreground glass-effect rounded-xl px-4 py-3 w-fit">
                 <div className="relative">
                   <Loader2 className="h-4 w-4 animate-spin text-primary" />
                   <div className="absolute inset-0 h-4 w-4 rounded-full bg-primary/30 blur-md animate-pulse" />
@@ -139,6 +139,7 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
                 <span className="text-sm font-medium">Generating XPaths...</span>
               </div>
             )}
+
           </div>
         </ScrollArea>
         <ScrollToBottomButton visible={!isAtBottom} onClick={() => scrollToBottom('smooth')} />

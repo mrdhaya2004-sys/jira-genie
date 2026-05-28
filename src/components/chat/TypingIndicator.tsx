@@ -3,7 +3,7 @@ import { Bot } from 'lucide-react';
 
 const TypingIndicator: React.FC = () => {
   return (
-    <div className="flex gap-3 animate-fade-in">
+    <div data-skip-anchor="true" className="flex gap-3 animate-fade-in">
       <div className="flex-shrink-0 h-8 w-8 rounded-lg bg-accent flex items-center justify-center">
         <Bot className="h-4 w-4 text-accent-foreground" />
       </div>

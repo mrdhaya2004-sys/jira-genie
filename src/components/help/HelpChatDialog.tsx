@@ -187,7 +187,8 @@ const HelpChatDialog: React.FC<HelpChatDialogProps> = ({ open, onOpenChange }) =
           ))}
 
           {isStreaming && messages[messages.length - 1]?.role !== 'assistant' && (
-            <div className="flex gap-3">
+            <div data-skip-anchor="true" className="flex gap-3">
+
               <div className="flex-shrink-0 h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Bot className="h-4 w-4 text-primary" />
               </div>

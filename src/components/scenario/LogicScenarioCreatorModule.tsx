@@ -159,13 +159,14 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
             ))}
 
             {(isLoading || isStreaming) && (phase === 'generating' || phase === 'code_generating') && (
-              <div className="flex items-center gap-2 text-muted-foreground">
+              <div data-skip-anchor="true" className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="text-sm">
                   {phase === 'code_generating' ? 'Generating automation code...' : 'Generating scenarios...'}
                 </span>
               </div>
             )}
+
           </div>
         </ScrollArea>
         <ScrollToBottomButton visible={!isAtBottom} onClick={() => scrollToBottom('smooth')} />
