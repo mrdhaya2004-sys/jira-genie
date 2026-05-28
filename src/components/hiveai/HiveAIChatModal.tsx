@@ -279,7 +279,8 @@ const HiveAIChatModal: React.FC<HiveAIChatModalProps> = ({ open, onClose }) => {
           ))}
 
           {isStreaming && messages[messages.length - 1]?.role !== 'assistant' && (
-            <div className="flex gap-2.5">
+            <div data-skip-anchor="true" className="flex gap-2.5">
+
               <div className="flex-shrink-0 h-7 w-7 rounded-full bg-gradient-to-br from-emerald-400/20 to-cyan-400/20 flex items-center justify-center">
                 <Bot className="h-3.5 w-3.5 text-teal-500" />
               </div>
