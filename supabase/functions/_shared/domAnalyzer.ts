@@ -61,6 +61,12 @@ export interface LocatorSet {
   } | null;
 }
 
+export interface HierarchyInfo {
+  parent: { id: number; tag: string; name: string } | null;
+  siblings: { id: number; tag: string; name: string; element_type: ElementType }[];
+  children: { id: number; tag: string; name: string; element_type: ElementType }[];
+}
+
 export interface ElementAnalysis {
   id: number;
   screen: string;
@@ -68,6 +74,8 @@ export interface ElementAnalysis {
   element_type: ElementType;
   tag: string;
   attributes_summary: string;
+  attributes: Record<string, string>;
+  hierarchy: HierarchyInfo;
   locators: LocatorSet;
   confidence: number; // 0-100
   stability: "high" | "medium" | "low";
@@ -608,7 +616,7 @@ export function selectCandidates(
   const tokens = filter.text
     .replace(/[^a-z0-9 ]/g, " ")
     .split(/\s+/)
-    .filter((t) => t.length >= 3 && !["the", "and", "for", "all", "give", "generate", "create", "show", "with", "from", "xpath", "xpaths"].includes(t));
+    .filter((t) => t.length >= 3 && !["the", "and", "for", "all", "give", "generate", "create", "show", "with", "from", "xpath", "xpaths", "locator", "locators", "element", "elements", "find", "get"].includes(t));
 
   type Scored = { node: DomNode; score: number };
   const scored: Scored[] = [];
@@ -616,7 +624,6 @@ export function selectCandidates(
   for (const n of nodes) {
     let s = 0;
     if (filter.types && filter.types.includes(n.type)) s += 30;
-    if (filter.types && n.type === "unknown") s -= 5;
     if (filter.screenHint && n.screen.toLowerCase().includes(filter.screenHint)) s += 15;
     const hay = [
       n.attrs["text"],
@@ -624,17 +631,25 @@ export function selectCandidates(
       n.attrs["aria-label"],
       n.attrs["label"],
       n.attrs["name"],
+      n.attrs["value"],
       n.attrs["resource-id"],
       n.attrs["id"],
       n.attrs["data-testid"],
+      n.attrs["accessibilityidentifier"],
       n.text,
+      n.tag,
+      n.screen,
     ]
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
-    for (const tok of tokens) if (hay.includes(tok)) s += 12;
-    // Prefer interactive elements when no explicit type
-    if (!filter.types && ["button", "input", "link", "checkbox", "radio", "dropdown"].includes(n.type)) s += 5;
+    for (const tok of tokens) {
+      if (hay.includes(tok)) s += 14;
+    }
+    // Mild preference for interactive elements when query has no explicit type
+    if (!filter.types && ["button", "input", "link", "checkbox", "radio", "dropdown"].includes(n.type)) s += 6;
+    // Slight boost for elements with strong identifiers (more useful results)
+    if (n.attrs["resource-id"] || n.attrs["accessibilityidentifier"] || n.attrs["data-testid"]) s += 3;
     if (s > 0) scored.push({ node: n, score: s });
   }
 
@@ -643,7 +658,8 @@ export function selectCandidates(
   if (filter.wantsAll) {
     return scored.slice(0, limit * 4).map((s) => s.node);
   }
-  return scored.slice(0, limit).map((s) => s.node);
+  // Broad recall: also include closely-related variants (e.g. Login → button + label + container + header)
+  return scored.slice(0, Math.max(limit, 10)).map((s) => s.node);
 }
 
 // ---------------------------------------------------------------------------
@@ -655,6 +671,27 @@ export function analyzeCatalog(dom: string, platform: Platform): AnalysisCatalog
   const screens = Array.from(new Set(nodes.map((n) => n.screen)));
   const risks = analyzeRisks(nodes);
   return { platform, totalNodes: nodes.length, screens, nodes, risks };
+}
+
+function buildHierarchy(node: DomNode, nodes: DomNode[]): HierarchyInfo {
+  const parentNode = node.parent !== null ? nodes[node.parent] : null;
+  const parent = parentNode
+    ? { id: parentNode.id, tag: parentNode.tag, name: nameFor(parentNode) }
+    : null;
+
+  const siblings = parentNode
+    ? nodes
+        .filter((n) => n.parent === parentNode.id && n.id !== node.id)
+        .slice(0, 8)
+        .map((n) => ({ id: n.id, tag: n.tag, name: nameFor(n), element_type: n.type }))
+    : [];
+
+  const children = nodes
+    .filter((n) => n.parent === node.id)
+    .slice(0, 12)
+    .map((n) => ({ id: n.id, tag: n.tag, name: nameFor(n), element_type: n.type }));
+
+  return { parent, siblings, children };
 }
 
 export function buildElementAnalyses(
@@ -672,6 +709,8 @@ export function buildElementAnalyses(
       element_type: node.type,
       tag: node.tag,
       attributes_summary: attrSummary(node),
+      attributes: { ...node.attrs },
+      hierarchy: buildHierarchy(node, catalog.nodes),
       locators,
       ...score,
     };
