@@ -10,6 +10,7 @@ import type { XPathChatMessage as ChatMessageType, Platform, XPathType } from '@
 import { Badge } from '@/components/ui/badge';
 import XPathResultCard from './XPathResultCard';
 import DomIntelligencePanel from './DomIntelligencePanel';
+import AppTreePanel from './AppTreePanel';
 
 interface XPathChatMessageProps {
   message: ChatMessageType;
