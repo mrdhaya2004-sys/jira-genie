@@ -176,20 +176,23 @@ serve(async (req) => {
     const filter = parseQuery(query);
     const candidateNodes = selectCandidates(catalog.nodes, filter, filter.wantsAll ? 24 : 8);
 
+    const appTree = buildAppTree(catalog);
+
     if (candidateNodes.length === 0) {
       return json({
         elements: [],
         risks: catalog.risks,
         screens: catalog.screens,
         totalNodes: catalog.totalNodes,
+        appTree,
         error_code: "ELEMENT_NOT_FOUND",
-        message: `No elements matching "${query}" were found across ${catalog.totalNodes} parsed nodes.`,
+        message: `No "${query}" found in the uploaded App Source. The analyzer scanned ${catalog.totalNodes.toLocaleString()} nodes across ${catalog.screens.length} screen(s) and did not match your query. Try a different keyword, or browse the Application Tree below.`,
       });
     }
 
     const elements = buildElementAnalyses(catalog, candidateNodes);
 
-    // Ask AI to refine ranking + reasoning (best-effort; deterministic locators stand on their own)
+    // AI ranking is best-effort — never inflates confidence beyond uniqueness math.
     let ranking = new Map<number, AIRanking>();
     try {
       ranking = await rankWithAI(authHeader, query, platform, elements);
@@ -199,9 +202,9 @@ serve(async (req) => {
 
     const enriched = elements.map((el) => {
       const r = ranking.get(el.id);
+      // AI may only REFINE reasoning — confidence stays anchored to deterministic uniqueness.
       return {
         ...el,
-        confidence: r?.confidence ?? el.confidence,
         reasoning: r?.reasoning || el.reasoning,
       };
     }).sort((a, b) => b.confidence - a.confidence);
@@ -211,6 +214,7 @@ serve(async (req) => {
       risks: catalog.risks,
       screens: catalog.screens,
       totalNodes: catalog.totalNodes,
+      appTree,
       module: appModule,
       platform,
     });
