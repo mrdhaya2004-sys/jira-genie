@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { resolveCustomConfig, routeAIRequest } from "../_shared/hiveMindRouter.ts";
 import {
   analyzeCatalog,
+  buildAppTree,
   buildElementAnalyses,
   parseQuery,
   selectCandidates,
