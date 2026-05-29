@@ -468,44 +468,61 @@ export function scoreElement(
   node: DomNode,
   locators: LocatorSet,
   idCounts: Map<string, number>,
+  uniqueness: number,
 ): { confidence: number; stability: "high" | "medium" | "low"; reasoning: string } {
   const a = node.attrs;
-  let score = 40;
   const reasons: string[] = [];
 
-  const rid = a["resource-id"];
+  // Confidence = Uniqueness (0-40) + Accessibility (0-25) + Resource-ID stability (0-25) + DOM validation (0-10)
+  let uniquenessScore = 10;
+  if (uniqueness === 1) { uniquenessScore = 40; reasons.push("primary locator matches exactly 1 element"); }
+  else if (uniqueness === 2) { uniquenessScore = 22; reasons.push(`primary locator matches ${uniqueness} elements — needs disambiguation`); }
+  else if (uniqueness > 2 && uniqueness <= 5) { uniquenessScore = 12; reasons.push(`primary locator matches ${uniqueness} elements`); }
+  else if (uniqueness > 5) { uniquenessScore = 4; reasons.push(`primary locator matches ${uniqueness} elements — too broad`); }
+
+  let accessibility = 0;
+  if (a["accessibilityidentifier"] || a["data-testid"]) { accessibility = 25; reasons.push("dedicated test identifier"); }
+  else if (a["content-desc"] || a["aria-label"]) { accessibility = 20; reasons.push("accessibility label present"); }
+  else if (a["name"] && !isDynamic(a["name"])) { accessibility = 15; reasons.push("stable name attribute"); }
+  else if (a["label"]) { accessibility = 10; reasons.push("label attribute present"); }
+  else { reasons.push("no accessibility identifier"); }
+
+  let ridScore = 0;
+  const rid = a["resource-id"] || a["id"];
   if (rid) {
-    const count = idCounts.get(rid) || 1;
-    if (count === 1 && !isDynamic(rid)) {
-      score += 45;
-      reasons.push("unique resource-id");
-    } else if (count > 1) {
-      score += 10;
-      reasons.push(`resource-id reused ${count}× — needs disambiguation`);
-    } else if (isDynamic(rid)) {
-      score += 5;
-      reasons.push("resource-id looks dynamic");
-    }
-  }
-  if (a["content-desc"]) { score += 15; reasons.push("content-desc present"); }
-  if (a["accessibilityidentifier"] || a["data-testid"]) { score += 20; reasons.push("test-id present"); }
-  if (a["name"] && !isDynamic(a["name"])) { score += 20; reasons.push("stable name attribute"); }
-  if (a["text"] && a["text"].length < 30) { score += 5; reasons.push("short text label"); }
-  if (locators.primary_xpath.includes("[") && /\[\d+\]/.test(locators.primary_xpath)) {
-    score -= 15;
-    reasons.push("falls back to positional index");
-  }
-  if (locators.primary_xpath.startsWith("/" + node.tag) === false && locators.primary_xpath.startsWith("//")) {
-    score += 5;
+    const dup = idCounts.get(rid) || 1;
+    if (!isDynamic(rid) && dup === 1) { ridScore = 25; reasons.push("unique stable resource-id"); }
+    else if (!isDynamic(rid) && dup <= 3) { ridScore = 15; reasons.push(`resource-id reused ${dup}×`); }
+    else if (isDynamic(rid)) { ridScore = 5; reasons.push("resource-id looks dynamic"); }
+    else { ridScore = 8; }
   }
 
-  score = Math.max(5, Math.min(98, score));
-  const stability = score >= 80 ? "high" : score >= 55 ? "medium" : "low";
-  return {
-    confidence: score,
-    stability,
-    reasoning: reasons.join("; ") || "Generated from structural position; consider adding a stable identifier.",
-  };
+  let validation = 8;
+  if (/\[\d+\]/.test(locators.primary_xpath) && !rid && !a["text"] && !a["name"]) {
+    validation = 2; reasons.push("falls back to positional index");
+  } else if (locators.primary_xpath.startsWith("//*[@")) {
+    validation = 10;
+  }
+
+  const score = Math.max(5, Math.min(100, uniquenessScore + accessibility + ridScore + validation));
+  const stability: "high" | "medium" | "low" = score >= 80 ? "high" : score >= 55 ? "medium" : "low";
+  return { confidence: score, stability, reasoning: reasons.join("; ") };
+}
+
+/** Replay the primary locator's exact attribute predicate against the catalog
+ *  to compute deterministic uniqueness (how many nodes the locator matches). */
+export function validateLocatorUniqueness(node: DomNode, locator: LocatorSet, nodes: DomNode[]): number {
+  const a = node.attrs;
+  const p = locator.primary_xpath;
+  const rid = a["resource-id"];
+  if (rid && p.includes("@resource-id=")) return nodes.filter((n) => n.attrs["resource-id"] === rid).length;
+  if (a["content-desc"] && p.includes("@content-desc=")) return nodes.filter((n) => n.attrs["content-desc"] === a["content-desc"]).length;
+  if (a["name"] && p.includes("@name=")) return nodes.filter((n) => n.tag === node.tag && n.attrs["name"] === a["name"]).length;
+  if (a["label"] && p.includes("@label=")) return nodes.filter((n) => n.tag === node.tag && n.attrs["label"] === a["label"]).length;
+  if (a["text"] && p.includes("@text=")) return nodes.filter((n) => n.tag === node.tag && n.attrs["text"] === a["text"]).length;
+  if (a["data-testid"] && p.includes("@data-testid=")) return nodes.filter((n) => n.attrs["data-testid"] === a["data-testid"]).length;
+  if (a["id"] && p.includes("@id=")) return nodes.filter((n) => n.attrs["id"] === a["id"]).length;
+  return 1;
 }
 
 export function analyzeRisks(nodes: DomNode[]): DomRisk[] {
@@ -616,54 +633,48 @@ export function selectCandidates(
   const tokens = filter.text
     .replace(/[^a-z0-9 ]/g, " ")
     .split(/\s+/)
-    .filter((t) => t.length >= 3 && !["the", "and", "for", "all", "give", "generate", "create", "show", "with", "from", "xpath", "xpaths", "locator", "locators", "element", "elements", "find", "get"].includes(t));
+    .filter((t) => t.length >= 3 && !["the", "and", "for", "all", "give", "generate", "create", "show", "with", "from", "xpath", "xpaths", "locator", "locators", "element", "elements", "find", "get", "please", "need"].includes(t));
 
-  type Scored = { node: DomNode; score: number };
+  type Scored = { node: DomNode; score: number; tokenHits: number };
   const scored: Scored[] = [];
 
   for (const n of nodes) {
     let s = 0;
-    if (filter.types && filter.types.includes(n.type)) s += 30;
-    if (filter.screenHint && n.screen.toLowerCase().includes(filter.screenHint)) s += 15;
+    let tokenHits = 0;
     const hay = [
-      n.attrs["text"],
-      n.attrs["content-desc"],
-      n.attrs["aria-label"],
-      n.attrs["label"],
-      n.attrs["name"],
-      n.attrs["value"],
-      n.attrs["resource-id"],
-      n.attrs["id"],
-      n.attrs["data-testid"],
-      n.attrs["accessibilityidentifier"],
-      n.text,
-      n.tag,
-      n.screen,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-    for (const tok of tokens) {
-      if (hay.includes(tok)) s += 14;
-    }
-    // Mild preference for interactive elements when query has no explicit type
-    if (!filter.types && ["button", "input", "link", "checkbox", "radio", "dropdown"].includes(n.type)) s += 6;
-    // Slight boost for elements with strong identifiers (more useful results)
-    if (n.attrs["resource-id"] || n.attrs["accessibilityidentifier"] || n.attrs["data-testid"]) s += 3;
-    if (s > 0) scored.push({ node: n, score: s });
+      n.attrs["text"], n.attrs["content-desc"], n.attrs["aria-label"], n.attrs["label"],
+      n.attrs["name"], n.attrs["value"], n.attrs["resource-id"], n.attrs["id"],
+      n.attrs["data-testid"], n.attrs["accessibilityidentifier"], n.text, n.tag, n.screen,
+    ].filter(Boolean).join(" ").toLowerCase();
+
+    for (const tok of tokens) if (hay.includes(tok)) { s += 14; tokenHits++; }
+    if (filter.types && filter.types.includes(n.type)) s += 20;
+    if (filter.screenHint && n.screen.toLowerCase().includes(filter.screenHint)) s += 10;
+    if (n.attrs["resource-id"] || n.attrs["accessibilityidentifier"] || n.attrs["data-testid"]) s += 2;
+
+    if (s > 0) scored.push({ node: n, score: s, tokenHits });
   }
 
   scored.sort((a, b) => b.score - a.score);
 
-  if (filter.wantsAll) {
-    return scored.slice(0, limit * 4).map((s) => s.node);
+  // STRICT MODE — never return guesses. If user has search tokens, require ≥1 token match.
+  // Pure "all elements on Login screen" type queries can return type+screen matches.
+  if (tokens.length > 0) {
+    const matched = scored.filter((x) => x.tokenHits > 0);
+    if (matched.length === 0) return [];
+    return matched.slice(0, filter.wantsAll ? limit * 4 : Math.max(limit, 8)).map((s) => s.node);
   }
-  // Broad recall: also include closely-related variants (e.g. Login → button + label + container + header)
-  return scored.slice(0, Math.max(limit, 10)).map((s) => s.node);
+
+  if (filter.wantsAll || filter.screenHint || filter.types) {
+    return scored.slice(0, filter.wantsAll ? limit * 4 : limit).map((s) => s.node);
+  }
+
+  // No tokens, no type, no screen — refuse to invent results.
+  return [];
 }
 
 // ---------------------------------------------------------------------------
-// Full pipeline helper
+// Full pipeline helpers
 // ---------------------------------------------------------------------------
 
 export function analyzeCatalog(dom: string, platform: Platform): AnalysisCatalog {
@@ -694,6 +705,42 @@ function buildHierarchy(node: DomNode, nodes: DomNode[]): HierarchyInfo {
   return { parent, siblings, children };
 }
 
+export interface AppTreeElement {
+  id: number;
+  name: string;
+  tag: string;
+  element_type: ElementType;
+}
+export interface AppTreeScreen {
+  screen: string;
+  total: number;
+  interactive: AppTreeElement[];
+}
+
+/** Build a compact, Inspector-style application tree: screens → interactive elements. */
+export function buildAppTree(catalog: AnalysisCatalog, perScreenLimit = 30): AppTreeScreen[] {
+  const interactiveTypes = new Set<ElementType>([
+    "button", "input", "link", "checkbox", "radio", "dropdown", "tab", "nav",
+  ]);
+  const byScreen = new Map<string, DomNode[]>();
+  for (const n of catalog.nodes) {
+    if (!byScreen.has(n.screen)) byScreen.set(n.screen, []);
+    byScreen.get(n.screen)!.push(n);
+  }
+  return Array.from(byScreen.entries()).map(([screen, nodes]) => {
+    const interactive = nodes
+      .filter((n) => interactiveTypes.has(n.type) || n.attrs["clickable"] === "true")
+      .slice(0, perScreenLimit)
+      .map((n) => ({
+        id: n.id,
+        name: nameFor(n),
+        tag: n.tag,
+        element_type: n.type,
+      }));
+    return { screen, total: nodes.length, interactive };
+  });
+}
+
 export function buildElementAnalyses(
   catalog: AnalysisCatalog,
   candidates: DomNode[],
@@ -701,7 +748,8 @@ export function buildElementAnalyses(
   const idCounts = buildIdCounts(catalog.nodes);
   return candidates.map((node) => {
     const locators = buildLocators(node, catalog.platform, catalog.nodes);
-    const score = scoreElement(node, locators, idCounts);
+    const uniqueness = validateLocatorUniqueness(node, locators, catalog.nodes);
+    const score = scoreElement(node, locators, idCounts, uniqueness);
     return {
       id: node.id,
       screen: node.screen,
@@ -712,6 +760,7 @@ export function buildElementAnalyses(
       attributes: { ...node.attrs },
       hierarchy: buildHierarchy(node, catalog.nodes),
       locators,
+      uniqueness,
       ...score,
     };
   });
