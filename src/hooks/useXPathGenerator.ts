@@ -323,11 +323,28 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
 
       // Friendly typed errors from edge function (HTTP 200 with error_code)
       if (payload.error_code && (!payload.elements || payload.elements.length === 0)) {
-        addMessage({
-          role: 'assistant',
-          content: getXPathErrorMessage(payload.error_code),
-          type: 'text',
-        });
+        // ELEMENT_NOT_FOUND should surface the App Tree so the user can browse
+        if (payload.error_code === 'ELEMENT_NOT_FOUND') {
+          addMessage({
+            role: 'assistant',
+            content: payload.message || getXPathErrorMessage(payload.error_code),
+            type: 'xpath_structured',
+            analysis: {
+              elements: [],
+              risks: payload.risks || [],
+              screens: payload.screens || [],
+              totalNodes: payload.totalNodes || 0,
+              appTree: payload.appTree || [],
+              platform: selectedPlatform,
+            },
+          });
+        } else {
+          addMessage({
+            role: 'assistant',
+            content: getXPathErrorMessage(payload.error_code),
+            type: 'text',
+          });
+        }
         setPhase('ready_for_query');
         return;
       }
@@ -337,6 +354,7 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
         risks: payload.risks || [],
         screens: payload.screens || [],
         totalNodes: payload.totalNodes || 0,
+        appTree: payload.appTree || [],
         module: payload.module,
         platform: payload.platform,
       };
