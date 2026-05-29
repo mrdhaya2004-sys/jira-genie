@@ -32,6 +32,19 @@ export interface LocatorSet {
   } | null;
 }
 
+export interface HierarchyNodeRef {
+  id: number;
+  tag: string;
+  name: string;
+  element_type?: ElementType;
+}
+
+export interface HierarchyInfo {
+  parent: HierarchyNodeRef | null;
+  siblings: HierarchyNodeRef[];
+  children: HierarchyNodeRef[];
+}
+
 export interface ElementAnalysis {
   id: number;
   screen: string;
@@ -39,6 +52,8 @@ export interface ElementAnalysis {
   element_type: ElementType;
   tag: string;
   attributes_summary: string;
+  attributes?: Record<string, string>;
+  hierarchy?: HierarchyInfo;
   locators: LocatorSet;
   confidence: number;
   stability: 'high' | 'medium' | 'low';
