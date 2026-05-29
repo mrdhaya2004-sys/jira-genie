@@ -85,6 +85,7 @@ export interface XPathAnalysisResult {
   risks: DomRisk[];
   screens: string[];
   totalNodes: number;
+  appTree?: AppTreeScreen[];
   module?: string;
   platform?: Platform;
 }
