@@ -1,71 +1,121 @@
-# AI Defect Analyzer Module
 
-A new module in Test Zone that ingests automation execution reports and uses AI to analyze failures, root causes, XPath issues, and stability — wrapped in the existing iOS 26 glassmorphism design system.
+# Enterprise XPath Generator – Hive Mind Workspace Integration
+
+This upgrades the existing XPath Generator into an enterprise-grade analyzer that handles huge DOM/app-source snapshots, auto-classifies elements, and emits multi-platform locators with confidence scoring — all driven from the selected Hive Mind Workspace + Environment.
 
 ## Scope
 
-Add a new sidebar entry **AI Defect Analyzer** that opens a chat-style module mirroring the look & feel of XPath Generator / Test Case Generator. The module guides the user through:
+Reuse existing pieces:
+- `useEnvironmentContext` already loads env-scoped DOM + build files (no re-upload required).
+- `XPathGeneratorModule` + `useXPathGenerator` already drive workspace/module/platform/env selection and history/episodic memory.
+- `routeAIRequest` (custom NVIDIA provider) handles all AI traffic.
 
-1. **Select Hive Mind Workspace** (reuse existing workspace picker pattern from `useWorkspaces` + chat options).
-2. **Upload report** — supports `.html`, `.json`, `.log`, `.txt`, `.zip` (folder), and multi-file via drag-and-drop.
-3. **Select Execution OS** — Android / iOS / Web (chat option chips).
-4. **Execute & Analyze** primary CTA → streaming AI analysis.
-5. **Results dashboard** with glass cards: stats, scenario breakdown, root cause distribution, XPath recommendations.
+What changes is **how DOM is processed** before the AI sees it, and **what output the AI must return**.
 
-## File plan
+## Flow
 
 ```
-src/types/defectAnalyzer.ts                               // types
-src/hooks/useDefectAnalyzer.ts                            // state machine + edge fn calls
-src/components/defect/DefectAnalyzerModule.tsx            // main module shell (chat layout)
-src/components/defect/DefectChatMessage.tsx               // message renderer
-src/components/defect/DefectChatInput.tsx                 // upload + OS selector + execute
-src/components/defect/DefectReportUploader.tsx            // drag/drop + parse
-src/components/defect/DefectAnalysisDashboard.tsx        // stats + cards
-src/components/defect/DefectScenarioCard.tsx              // per-scenario glass card
-src/components/defect/XPathFixCard.tsx                    // old vs new XPath
-supabase/functions/defect-analyzer/index.ts               // AI gateway call
-supabase/functions/defect-xpath-regenerate/index.ts       // (or reuse xpath-generator)
-src/pages/DashboardPage.tsx                               // register module
-src/components/dashboard/DashboardSidebar.tsx             // sidebar entry
+Workspace → Environment → Auto-load DOM + Build
+        │
+        ▼
+[Chunk + Index + Classify DOM]  ← deterministic, in edge function
+        │
+        ▼
+[Build compact element catalog]  ← screens/forms/buttons/inputs/…
+        │
+        ▼
+User query ("Login button", "all elements on Dashboard", …)
+        │
+        ▼
+[Locator Generation per element]  ← XPath/CSS/UIAutomator/Predicate/Class Chain
+        │
+        ▼
+[Confidence + Stability + Risk scoring]
+        │
+        ▼
+Streamed structured response to UI
 ```
 
-## Technical details
+## Files to change/create
 
-- **Module type**: Add `'defect-analyzer'` to `ActiveModule` in `DashboardPage.tsx`. Sidebar gets new icon (`Bug` or `ShieldAlert` from lucide).
-- **State machine** (`useDefectAnalyzer`): phases `workspace_selection → report_upload → os_selection → ready → analyzing → results`.
-- **Report parsing** (client-side first pass):
-  - HTML: parse with `DOMParser`, extract test names + status + error blocks.
-  - JSON: try common shapes (Mocha, Cypress, Playwright, Cucumber, TestNG).
-  - Logs/txt: raw text passed to AI.
-  - ZIP: use `JSZip` (already common); list, then read text-like entries.
-  - Send a normalized digest (truncated) to the edge function — never raw 20MB blobs.
-- **Edge function `defect-analyzer`**:
-  - `verify_jwt = false` + manual `validateAuth` (per project rule).
-  - Calls Lovable AI Gateway with `google/gemini-2.5-pro` (large context, multi-file reasoning).
-  - Returns structured JSON: `{ summary, scenarios[], rootCauses[], xpathIssues[], confidence, stabilityScore }`.
-  - Uses `tool_choice` JSON schema so the response is reliably structured.
-- **XPath intelligence**: when the analyzer flags `xpathIssues`, the module surfaces a "Regenerate with Hive Mind" CTA that calls the existing `xpath-generator` edge function with the workspace context (no duplicate function needed).
-- **Auto-scroll**: reuse `useAutoScroll` hook for the chat surface, matching other modules.
-- **UI tokens**: only `glass-effect`, `glass-card`, `glass-primary` button variant, semantic tokens (`primary`, `muted`, `success`, `destructive`, `warning`). No raw colors.
-- **Visuals**:
-  - Scanning animation — pulsing radial glow over uploaded report card while `analyzing`.
-  - Streaming "AI is analyzing..." typing indicator (reuse `TypingIndicator`).
-  - Stat tiles with `animate-float` on hover, soft `glow-pulse` on the AI confidence badge.
-- **Validations**:
-  - No workspace → toast + chat system message.
-  - Unsupported file → inline message listing accepted formats.
-  - Parse failure → AI recovery prompt: "Couldn't parse this report — paste the failure log instead."
+**Edge functions**
+- `supabase/functions/_shared/domAnalyzer.ts` (new) — DOM parser/chunker/classifier; locator generators per platform; scoring engine.
+- `supabase/functions/xpath-generator/index.ts` (rewrite request handling) — load env DOM, run analyzer, build compact prompt, call `routeAIRequest`, stream back.
 
-## Dashboard cards rendered
+**Frontend**
+- `src/types/xpath.ts` — extend `GeneratedXPath` with platform variants (css, uiautomator, resource_id, content_desc, predicate, class_chain, accessibility_id), `confidence`, `stability`, `reasoning`, plus `ElementAnalysis` and `DomRisk` types.
+- `src/components/xpath/XPathChatMessage.tsx` — render new structured cards (Screen → Element → locator tabs + scores + risks).
+- `src/components/xpath/XPathResultCard.tsx` (new) — per-element card with tabbed locators, copy buttons, confidence badge, risk chips.
+- `src/components/xpath/DomIntelligencePanel.tsx` (new) — surfaces duplicate IDs, dynamic elements, missing a11y labels, weak selectors.
+- `src/hooks/useXPathGenerator.ts` — parse new structured streaming payload (JSON lines or fenced JSON), map to typed `elements[]`, route specific error codes to friendly messages.
+- `src/lib/xpathErrors.ts` (new) — error code → user-facing message map (DOM_NOT_LOADED, ELEMENT_NOT_FOUND, AI_TIMEOUT, INVALID_APP_SOURCE, UNSUPPORTED_FORMAT, WORKSPACE_DATA_MISSING).
 
-- Stat row: Total / Passed / Failed / Stability Score / AI Confidence.
-- Root Cause Distribution: horizontal bars (use `Progress` component).
-- Most Failed Module: highlighted glass card.
-- Scenario list: `DefectScenarioCard` per failure with status pill, reason, root cause, suggested fix.
-- XPath section: `XPathFixCard` showing old vs new XPath in side-by-side `<pre>` blocks with copy buttons.
+## DOM processing strategy (50k+ lines)
 
-## Out of scope (this iteration)
+In `domAnalyzer.ts` we never send the raw DOM to the AI. Instead:
 
-- Persisting analyses to a `defect_reports` table — kept ephemeral. Easy to add later if requested.
-- Cross-report pattern learning (mentioned as "Advanced AI") — added as a placeholder section labeled "Coming soon" so the UI hints at the roadmap without faking data.
+1. **Parse** — tolerant line/tag walker that supports Appium-style XML (Android `hierarchy`/`android.widget.*`, iOS `XCUIElementType*`) and web HTML.
+2. **Index** — assign each node a stable internal id, capture: tag, attributes, text, parent id, sibling index, depth, screen container (nearest screen/activity/view-controller ancestor).
+3. **Classify** — rule-based: button / input / dropdown / checkbox / radio / link / table / list / nav / dialog / tab / card / a11y based on tag + attribute heuristics per platform.
+4. **Chunk** — group nodes by screen container; each chunk capped (e.g. 150 elements / ~6k chars). Catalog is what we send to the AI, not raw XML.
+5. **Score (deterministic, pre-AI)** — for each candidate locator we compute stability: unique `resource-id`/`name`/`data-testid` = high; text-only = medium; index-based or absolute = low. AI uses these scores; doesn't invent them.
+6. **Risk pass** — detect duplicate ids, missing `content-desc`/`accessibility-id`, dynamic-looking values (UUID/hash/numeric suffix), index-only addressable nodes.
+
+For queries like "Login button", we filter the catalog to the matching screen + classified type + fuzzy text match, then ask the AI only to (a) pick best matches, (b) explain reasoning, (c) format output. Locator strings themselves are generated deterministically in code so they're always valid.
+
+For "all elements on Dashboard" we stream chunk-by-chunk (progressive analysis), emitting one element card per AI turn so the UI updates in real time.
+
+## Locator generation (deterministic, per platform)
+
+Per element we always produce:
+- **Universal:** primary XPath (relative, attribute-based), alternative XPath, dynamic XPath (contains/starts-with for partial matches), CSS selector (web only).
+- **Android:** UIAutomator (`new UiSelector().resourceId(...)`), resource-id, content-desc, accessibility id.
+- **iOS:** predicate string (`name == 'Login'`), class chain (`**/XCUIElementTypeButton[\`name == "Login"\`]`), accessibility identifier.
+
+Rules: never emit absolute XPath as primary; avoid `[n]` indices when a unique attribute exists; flag dynamic ids; prefer `resource-id` → `content-desc` → `text` → structural.
+
+## AI output contract
+
+Edge function streams **JSON lines**, each line = one element result:
+
+```json
+{"screen":"Login","element_name":"Login Button","element_type":"button",
+ "locators":{"primary_xpath":"//*[@resource-id='com.app:id/login_btn']",
+   "alternative_xpath":"//android.widget.Button[@text='Login']",
+   "css":null,"android":{"uiautomator":"new UiSelector().resourceId(\"com.app:id/login_btn\")",
+     "resource_id":"com.app:id/login_btn","content_desc":"Login"},
+   "ios":null,"accessibility_id":"login_btn"},
+ "confidence":94,"stability":"high","reasoning":"Stable resource-id, unique on screen, no dynamic suffix."}
+```
+
+Plus a trailing `{"type":"dom_intelligence", "risks":[...]}` summary line.
+
+Frontend parses each line as it streams and renders one `XPathResultCard` per element.
+
+## Error handling
+
+Edge function returns typed errors (HTTP 200 with `{error_code, message}` payload or specific status):
+- `DOM_NOT_LOADED` — no dom snapshot for env+platform.
+- `WORKSPACE_DATA_MISSING` — workspace has no files.
+- `INVALID_APP_SOURCE` / `UNSUPPORTED_FORMAT` — parser rejection.
+- `ELEMENT_NOT_FOUND` — query had no matching candidates after classification.
+- `AI_TIMEOUT` — upstream timeout/abort.
+
+Frontend maps each to the friendly message specified by the user (never the generic "Sorry, I encountered an error").
+
+## Performance
+
+- Parsing/classification done in edge worker, O(n) over nodes, streamed.
+- Catalog cached in memory per request; large DOMs processed in chunks streamed to AI.
+- Frontend renders cards as they arrive (no waiting for full response).
+- Realtime status messages ("Indexing DOM…", "Classifying 8 screens…", "Generating locators for Login…") sent as `{type:"status"}` lines before element data.
+
+## Out of scope (this pass)
+
+- Visual screen previews (would need rendered screenshots).
+- Persisted element catalog across sessions (re-parsed per query for now).
+- Web-platform DOM parsing beyond standard HTML (no shadow DOM traversal yet).
+
+## Confirmation
+
+This is a large change touching one edge function + analyzer + 4–5 frontend files. Confirm and I'll implement straight through.
