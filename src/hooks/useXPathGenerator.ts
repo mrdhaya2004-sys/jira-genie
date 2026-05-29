@@ -6,11 +6,13 @@ import { useEpisodicMemory } from '@/hooks/useEpisodicMemory';
 import { automationHistoryService } from '@/lib/automationHistory';
 import { useEnvironmentContext } from '@/hooks/useEnvironmentContext';
 import { getRememberedEnv, rememberEnv, getEnvironmentMeta, type Environment } from '@/types/environment';
+import { getXPathErrorMessage } from '@/lib/xpathErrors';
 import type { 
   XPathFlowPhase, 
   XPathChatMessage,
   Platform,
   GeneratedXPath,
+  XPathAnalysisResult,
 } from '@/types/xpath';
 import type { Workspace, WorkspaceFile } from '@/types/workspace';
 
