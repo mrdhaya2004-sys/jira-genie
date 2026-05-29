@@ -1,38 +1,110 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { routeAIRequest } from "../_shared/hiveMindRouter.ts";
+import { resolveCustomConfig, routeAIRequest } from "../_shared/hiveMindRouter.ts";
+import {
+  analyzeCatalog,
+  buildElementAnalyses,
+  parseQuery,
+  selectCandidates,
+  type Platform,
+  type ElementAnalysis,
+} from "../_shared/domAnalyzer.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Platform-specific XPath generation guidance
-const PLATFORM_PROMPTS: Record<string, string> = {
-  android: `For Android elements, use these attributes:
-- resource-id: Most reliable, use format //android.widget.Button[@resource-id='com.app:id/login_btn']
-- content-desc: For accessibility, use //*[@content-desc='Login button']
-- text: For visible text, use //android.widget.TextView[@text='Login']
-- class: Widget types like android.widget.Button, android.widget.EditText, android.widget.TextView
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
 
-Common Android XPath patterns:
-- By resource-id: //*[@resource-id='com.app:id/elementId']
-- By text: //*[@text='Button Text']
-- By content-desc: //*[@content-desc='Accessibility label']
-- Combined: //android.widget.Button[@text='Login' and @enabled='true']`,
+function errorPayload(code: string, message: string, status = 200) {
+  return json({ error_code: code, message }, status);
+}
 
-  ios: `For iOS elements, use these attributes:
-- name: Primary identifier, use //XCUIElementTypeButton[@name='Login']
-- label: Accessibility label, use //*[@label='Login button']
-- value: Current value for inputs, use //XCUIElementTypeTextField[@value='username']
-- type: Element types like XCUIElementTypeButton, XCUIElementTypeTextField, XCUIElementTypeStaticText
+interface AIRanking {
+  id: number;
+  reasoning?: string;
+  confidence?: number;
+}
 
-Common iOS XPath patterns:
-- By name: //XCUIElementTypeButton[@name='loginButton']
-- By label: //*[@label='Login']
-- By type and name: //XCUIElementTypeStaticText[@name='Welcome']
-- Combined: //XCUIElementTypeButton[@name='Login' and @enabled='true']`,
-};
+async function rankWithAI(
+  authHeader: string,
+  query: string,
+  platform: Platform,
+  elements: ElementAnalysis[],
+): Promise<Map<number, AIRanking>> {
+  if (elements.length === 0) return new Map();
+
+  const compact = elements.map((e) => ({
+    id: e.id,
+    screen: e.screen,
+    name: e.element_name,
+    type: e.element_type,
+    tag: e.tag,
+    attrs: e.attributes_summary,
+    primary: e.locators.primary_xpath,
+    base_confidence: e.confidence,
+  }));
+
+  const system = `You are an expert mobile/web test-automation locator analyst. You receive a JSON array of element candidates already filtered from a large DOM. Your ONLY job is to rank them for the user query, refine confidence scores (0-100), and add a one-sentence "reasoning" explaining why each locator is or isn't ideal. DO NOT invent new locators. Respond with a JSON array of objects: [{"id": number, "confidence": number, "reasoning": string}]. Return ONLY the JSON array, no prose, no code fences.`;
+
+  const user = `Platform: ${platform}\nUser query: ${query}\n\nCandidates:\n${JSON.stringify(compact)}`;
+
+  try {
+    const resp = await routeAIRequest(
+      authHeader,
+      [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+      false,
+    );
+
+    if (!resp.ok) {
+      console.warn("xpath-generator: AI ranking failed", resp.status);
+      return new Map();
+    }
+
+    const data = await resp.json().catch(() => null);
+    // routeAIRequest returns upstream non-stream body when stream=false
+    let text: string =
+      data?.choices?.[0]?.message?.content ||
+      data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text || "").join("") ||
+      "";
+
+    if (!text) {
+      // routeAIRequest may have already normalized to SSE on non-ok; safety net
+      return new Map();
+    }
+
+    text = text.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+    const start = text.indexOf("[");
+    const end = text.lastIndexOf("]");
+    if (start < 0 || end < 0) return new Map();
+    const parsed = JSON.parse(text.slice(start, end + 1));
+    const map = new Map<number, AIRanking>();
+    if (Array.isArray(parsed)) {
+      for (const item of parsed) {
+        if (typeof item?.id === "number") {
+          map.set(item.id, {
+            id: item.id,
+            reasoning: typeof item.reasoning === "string" ? item.reasoning : undefined,
+            confidence: typeof item.confidence === "number" ? Math.max(0, Math.min(100, item.confidence)) : undefined,
+          });
+        }
+      }
+    }
+    return map;
+  } catch (e) {
+    console.warn("xpath-generator: AI ranking exception", e);
+    return new Map();
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -40,200 +112,113 @@ serve(async (req) => {
   }
 
   try {
-    // Get auth token
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Missing authorization header" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!authHeader) return json({ error: "Missing authorization header" }, 401);
 
-    // Initialize Supabase client with user's auth context
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Verify user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Invalid token" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (authError || !user) return json({ error: "Invalid token" }, 401);
 
-    // Parse request body
-    const { workspaceId, module: appModule, platform, query, context, episodicMemory } = await req.json();
+    const body = await req.json();
+    const {
+      workspaceId,
+      module: appModule,
+      platform,
+      query,
+      context,
+    }: {
+      workspaceId: string;
+      module: string;
+      platform: Platform;
+      query: string;
+      context: { domSnapshot?: string | null; environment?: string };
+    } = body;
 
-    console.log("XPath generation request:", { workspaceId, appModule, platform, query });
+    console.log("xpath-generator request:", { workspaceId, appModule, platform, env: context?.environment });
 
-    // Verify workspace ownership
-    const { data: workspace, error: wsError } = await supabase
+    const { data: workspace } = await supabase
       .from("workspaces")
       .select("*")
       .eq("id", workspaceId)
       .eq("owner_id", user.id)
       .single();
+    if (!workspace) return json({ error: "Workspace not found or access denied" }, 403);
 
-    if (wsError || !workspace) {
-      return new Response(JSON.stringify({ error: "Workspace not found or access denied" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const dom = context?.domSnapshot;
+    if (!dom || !dom.trim()) {
+      return errorPayload(
+        "DOM_NOT_LOADED",
+        "No DOM snapshot is available for the selected environment & platform.",
+      );
+    }
+    if (dom.length > 4_000_000) {
+      return errorPayload("UNSUPPORTED_FORMAT", "DOM snapshot exceeds 4MB processing limit.");
+    }
+
+    let catalog;
+    try {
+      catalog = analyzeCatalog(dom, platform);
+    } catch (e) {
+      console.error("xpath-generator: parse failure", e);
+      return errorPayload("INVALID_APP_SOURCE", "The DOM/app source could not be parsed.");
+    }
+
+    if (catalog.totalNodes === 0) {
+      return errorPayload("INVALID_APP_SOURCE", "The DOM parser found no elements.");
+    }
+
+    const filter = parseQuery(query);
+    const candidateNodes = selectCandidates(catalog.nodes, filter, filter.wantsAll ? 24 : 8);
+
+    if (candidateNodes.length === 0) {
+      return json({
+        elements: [],
+        risks: catalog.risks,
+        screens: catalog.screens,
+        totalNodes: catalog.totalNodes,
+        error_code: "ELEMENT_NOT_FOUND",
+        message: `No elements matching "${query}" were found across ${catalog.totalNodes} parsed nodes.`,
       });
     }
 
-    // Build system prompt
-    const platformPrompt = PLATFORM_PROMPTS[platform] || PLATFORM_PROMPTS.android;
-    
-    let contextInfo = "";
-    if (context?.userStories) {
-      contextInfo += `\n\n## User Stories (Application Context):\n${context.userStories}`;
-    }
-    if (context?.hasApk) {
-      contextInfo += "\n\n## Android App (APK) is available - use Android element types and attributes.";
-    }
-    if (context?.hasIpa) {
-      contextInfo += "\n\n## iOS App (IPA) is available - use iOS element types and attributes.";
-    }
-    if (context?.appFiles?.length > 0) {
-      contextInfo += `\n\n## Available App Files:\n${context.appFiles.map((f: any) => `- ${f.name} (${f.type})`).join("\n")}`;
+    const elements = buildElementAnalyses(catalog, candidateNodes);
+
+    // Ask AI to refine ranking + reasoning (best-effort; deterministic locators stand on their own)
+    let ranking = new Map<number, AIRanking>();
+    try {
+      ranking = await rankWithAI(authHeader, query, platform, elements);
+    } catch (e) {
+      console.warn("xpath-generator: ranking skipped", e);
     }
 
-    const systemPrompt = `You are an expert Mobile Automation Engineer specializing in XPath generation for Appium-based test automation.
+    const enriched = elements.map((el) => {
+      const r = ranking.get(el.id);
+      return {
+        ...el,
+        confidence: r?.confidence ?? el.confidence,
+        reasoning: r?.reasoning || el.reasoning,
+      };
+    }).sort((a, b) => b.confidence - a.confidence);
 
-## Your Task
-Generate ALL types of XPaths for elements in the "${appModule}" module on ${platform === 'android' ? 'Android' : 'iOS'}.
-
-## Platform-Specific Guidelines
-${platformPrompt}
-
-## XPath Types to Generate
-For each element requested, provide ALL of these XPath types:
-
-### 1. Absolute XPath
-Full path from root to element. Example:
-\`\`\`xpath
-/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.Button[1]
-\`\`\`
-
-### 2. Relative XPath (⭐ Recommended)
-Uses unique attributes for stable element location. This is usually the BEST choice.
-\`\`\`xpath
-//*[@resource-id='com.app:id/login_btn']
-\`\`\`
-
-### 3. Chained XPath
-Combines multiple conditions for precision.
-\`\`\`xpath
-//android.widget.Button[@text='Login' and @enabled='true']
-\`\`\`
-
-### 4. Following XPath
-Locates elements that appear after a reference element.
-\`\`\`xpath
-//android.widget.TextView[@text='Username']/following::android.widget.EditText[1]
-\`\`\`
-
-### 5. Following-Sibling XPath
-Locates sibling elements after the current node.
-\`\`\`xpath
-//android.widget.TextView[@text='Password']/following-sibling::android.widget.EditText
-\`\`\`
-
-### 6. Preceding XPath
-Locates elements before a reference element.
-\`\`\`xpath
-//android.widget.Button[@text='Submit']/preceding::android.widget.EditText[1]
-\`\`\`
-
-### 7. Preceding-Sibling XPath
-Locates sibling elements before the current node.
-\`\`\`xpath
-//android.widget.Button[@text='Cancel']/preceding-sibling::android.widget.TextView
-\`\`\`
-
-## Output Format
-For each element, format your response like this:
-
-### Element: [Element Name]
-
-**⭐ Recommended XPath:**
-\`\`\`xpath
-[most stable and reliable XPath]
-\`\`\`
-_Why: [Brief explanation of why this is recommended]_
-
-**All XPath Options:**
-
-| Type | XPath |
-|------|-------|
-| Absolute | \`[xpath]\` |
-| Relative | \`[xpath]\` |
-| Chained | \`[xpath]\` |
-| Following | \`[xpath]\` |
-| Following-Sibling | \`[xpath]\` |
-| Preceding | \`[xpath]\` |
-| Preceding-Sibling | \`[xpath]\` |
-
-## Important Rules
-1. XPaths must be stable and avoid dynamic attributes
-2. Prefer relative XPaths with unique identifiers
-3. Use meaningful attribute values from user stories
-4. Ensure XPaths are automation-ready (copy-paste to code)
-5. Avoid indices when possible (brittle)
-6. Consider element visibility and enabled states
-7. Use appropriate element types for the platform
-
-## Workspace Context
-${contextInfo || "No additional context available. Generate XPaths based on common UI patterns for the module."}`;
-
-    // Build messages with episodic memory
-    const aiMessages: Array<{ role: string; content: string }> = [
-      { role: "system", content: systemPrompt },
-    ];
-
-    if (episodicMemory && Array.isArray(episodicMemory) && episodicMemory.length > 0) {
-      aiMessages[0].content += '\n\n[EPISODIC MEMORY] The user is continuing a previous conversation. Maintain context from the prior messages.';
-      for (const ep of episodicMemory) {
-        aiMessages.push({ role: ep.role, content: ep.content });
-      }
-    }
-
-    aiMessages.push({ role: "user", content: `Generate XPaths for: ${query}\n\nModule: ${appModule}\nPlatform: ${platform}` });
-
-    // Route through Hive Mind
-    const response = await routeAIRequest(authHeader!, aiMessages, true);
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limits exceeded, please try again later." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Payment required, please add funds." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      return new Response(JSON.stringify({ error: "AI gateway error" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+    return json({
+      elements: enriched,
+      risks: catalog.risks,
+      screens: catalog.screens,
+      totalNodes: catalog.totalNodes,
+      module: appModule,
+      platform,
     });
   } catch (error) {
-    console.error("XPath generator error:", error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    console.error("xpath-generator error:", error);
+    return errorPayload(
+      "AI_PROVIDER_ERROR",
+      error instanceof Error ? error.message : "Unknown error",
+      500,
+    );
   }
 });
