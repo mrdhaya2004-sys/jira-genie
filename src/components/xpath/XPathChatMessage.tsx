@@ -8,6 +8,8 @@ import { Copy, Check, Bot, User, Star, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { XPathChatMessage as ChatMessageType, Platform, XPathType } from '@/types/xpath';
 import { Badge } from '@/components/ui/badge';
+import XPathResultCard from './XPathResultCard';
+import DomIntelligencePanel from './DomIntelligencePanel';
 
 interface XPathChatMessageProps {
   message: ChatMessageType;
@@ -165,6 +167,26 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
   };
 
   const renderXPathContent = () => {
+    // Structured enterprise analysis output
+    if (message.type === 'xpath_structured' && message.analysis) {
+      const { elements, risks, screens, totalNodes, platform } = message.analysis;
+      const plat: Platform = (platform as Platform) || 'android';
+      return (
+        <div className="space-y-3">
+          <div
+            className="text-sm prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
+          />
+          <DomIntelligencePanel risks={risks} totalNodes={totalNodes} screens={screens} />
+          <div className="space-y-3">
+            {elements.map((el, idx) => (
+              <XPathResultCard key={el.id} element={el} platform={plat} isTopRecommendation={idx === 0} />
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     if (message.type !== 'xpath_result' || !message.content) {
       return (
         <div 

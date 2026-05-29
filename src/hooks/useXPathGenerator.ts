@@ -6,11 +6,13 @@ import { useEpisodicMemory } from '@/hooks/useEpisodicMemory';
 import { automationHistoryService } from '@/lib/automationHistory';
 import { useEnvironmentContext } from '@/hooks/useEnvironmentContext';
 import { getRememberedEnv, rememberEnv, getEnvironmentMeta, type Environment } from '@/types/environment';
+import { getXPathErrorMessage } from '@/lib/xpathErrors';
 import type { 
   XPathFlowPhase, 
   XPathChatMessage,
   Platform,
   GeneratedXPath,
+  XPathAnalysisResult,
 } from '@/types/xpath';
 import type { Workspace, WorkspaceFile } from '@/types/workspace';
 
@@ -282,7 +284,7 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
       const hasApk = appFiles.some(f => f.file_type === 'apk');
       const hasIpa = appFiles.some(f => f.file_type === 'ipa');
 
-      // Call edge function with user's JWT token
+      // Call edge function — non-streaming, returns structured JSON
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/xpath-generator`,
         {
@@ -306,82 +308,54 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
               domSnapshot: envCtx.domContent || null,
               buildName: envCtx.build?.file_name || null,
             },
-            episodicMemory: episodicContext.length > 0 ? episodicContext : undefined,
           }),
         }
       );
 
       if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Session expired. Please refresh the page and log in again.');
-        }
-        if (response.status === 429) {
-          throw new Error('Rate limit exceeded. Please try again later.');
-        }
-        if (response.status === 402) {
-          throw new Error('AI credits exhausted. Please add more credits.');
-        }
-        throw new Error('Failed to generate XPaths');
+        if (response.status === 401) throw new Error('Session expired. Please refresh the page and log in again.');
+        if (response.status === 429) throw new Error('Rate limit exceeded. Please try again later.');
+        if (response.status === 402) throw new Error('AI credits exhausted. Please configure a custom AI provider.');
       }
 
-      // Handle streaming response
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let assistantContent = '';
-      const assistantId = crypto.randomUUID();
+      const payload = await response.json().catch(() => null);
+      if (!payload) throw new Error('AI provider returned an unparseable response.');
 
-      // Add placeholder assistant message
-      setMessages(prev => [...prev, {
-        id: assistantId,
+      // Friendly typed errors from edge function (HTTP 200 with error_code)
+      if (payload.error_code && (!payload.elements || payload.elements.length === 0)) {
+        addMessage({
+          role: 'assistant',
+          content: getXPathErrorMessage(payload.error_code),
+          type: 'text',
+        });
+        setPhase('ready_for_query');
+        return;
+      }
+
+      const analysis: XPathAnalysisResult = {
+        elements: payload.elements || [],
+        risks: payload.risks || [],
+        screens: payload.screens || [],
+        totalNodes: payload.totalNodes || 0,
+        module: payload.module,
+        platform: payload.platform,
+      };
+
+      const summary = `Generated ${analysis.elements.length} ${selectedPlatform === 'android' ? 'Android' : 'iOS'} locator set(s) for "${query}" across ${analysis.screens.length} screen(s) (${analysis.totalNodes.toLocaleString()} nodes analyzed).`;
+
+      addMessage({
         role: 'assistant',
-        content: '',
-        type: 'xpath_result',
-        timestamp: new Date().toISOString(),
-      }]);
+        content: summary,
+        type: 'xpath_structured',
+        analysis,
+      });
 
-      if (reader) {
-        let buffer = '';
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          
-          let newlineIndex: number;
-          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
-            const line = buffer.slice(0, newlineIndex).trim();
-            buffer = buffer.slice(newlineIndex + 1);
-
-            if (!line || line.startsWith(':')) continue;
-            if (!line.startsWith('data: ')) continue;
-
-            const jsonStr = line.slice(6).trim();
-            if (jsonStr === '[DONE]') continue;
-
-            try {
-              const parsed = JSON.parse(jsonStr);
-              const delta = parsed.choices?.[0]?.delta?.content;
-              if (delta) {
-                assistantContent += delta;
-                setMessages(prev => 
-                  prev.map(m => m.id === assistantId 
-                    ? { ...m, content: assistantContent }
-                    : m
-                  )
-                );
-              }
-            } catch {
-              // Incomplete JSON, continue
-            }
-          }
-        }
-      }
-
-      // Save to local history
+      // History
+      const assistantContent = summary;
       automationHistoryService.addEntry({
         toolType: 'xpath',
         title: query.slice(0, 50) + (query.length > 50 ? '...' : ''),
-        summary: `Generated ${selectedPlatform === 'android' ? 'Android' : 'iOS'} XPaths for ${selectedModule}`,
+        summary: `${analysis.elements.length} locator set(s) for ${selectedModule}`,
         metadata: {
           workspace: selectedWorkspace?.name,
           module: selectedModule || undefined,
@@ -389,21 +363,19 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
         },
       });
 
-      // Save to persistent history and get log ID
       let logId = activeHistoryLogId;
       if (!logId) {
         logId = await addLog({
           module_name: 'xpath-generator',
           action_type: 'generate',
           input_prompt: query,
-          output_summary: `Generated ${selectedPlatform === 'android' ? 'Android' : 'iOS'} XPaths for ${selectedModule}`,
+          output_summary: summary,
           workspace_id: selectedWorkspace?.id,
           metadata: { module: selectedModule, platform: selectedPlatform },
         }) || null;
         if (logId) setActiveHistoryLogId(logId);
       }
 
-      // Save episode pair
       if (logId) {
         const turnIdx = await getNextTurnIndex(logId);
         await saveEpisodePair({
