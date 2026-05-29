@@ -468,44 +468,61 @@ export function scoreElement(
   node: DomNode,
   locators: LocatorSet,
   idCounts: Map<string, number>,
+  uniqueness: number,
 ): { confidence: number; stability: "high" | "medium" | "low"; reasoning: string } {
   const a = node.attrs;
-  let score = 40;
   const reasons: string[] = [];
 
-  const rid = a["resource-id"];
+  // Confidence = Uniqueness (0-40) + Accessibility (0-25) + Resource-ID stability (0-25) + DOM validation (0-10)
+  let uniquenessScore = 10;
+  if (uniqueness === 1) { uniquenessScore = 40; reasons.push("primary locator matches exactly 1 element"); }
+  else if (uniqueness === 2) { uniquenessScore = 22; reasons.push(`primary locator matches ${uniqueness} elements — needs disambiguation`); }
+  else if (uniqueness > 2 && uniqueness <= 5) { uniquenessScore = 12; reasons.push(`primary locator matches ${uniqueness} elements`); }
+  else if (uniqueness > 5) { uniquenessScore = 4; reasons.push(`primary locator matches ${uniqueness} elements — too broad`); }
+
+  let accessibility = 0;
+  if (a["accessibilityidentifier"] || a["data-testid"]) { accessibility = 25; reasons.push("dedicated test identifier"); }
+  else if (a["content-desc"] || a["aria-label"]) { accessibility = 20; reasons.push("accessibility label present"); }
+  else if (a["name"] && !isDynamic(a["name"])) { accessibility = 15; reasons.push("stable name attribute"); }
+  else if (a["label"]) { accessibility = 10; reasons.push("label attribute present"); }
+  else { reasons.push("no accessibility identifier"); }
+
+  let ridScore = 0;
+  const rid = a["resource-id"] || a["id"];
   if (rid) {
-    const count = idCounts.get(rid) || 1;
-    if (count === 1 && !isDynamic(rid)) {
-      score += 45;
-      reasons.push("unique resource-id");
-    } else if (count > 1) {
-      score += 10;
-      reasons.push(`resource-id reused ${count}× — needs disambiguation`);
-    } else if (isDynamic(rid)) {
-      score += 5;
-      reasons.push("resource-id looks dynamic");
-    }
-  }
-  if (a["content-desc"]) { score += 15; reasons.push("content-desc present"); }
-  if (a["accessibilityidentifier"] || a["data-testid"]) { score += 20; reasons.push("test-id present"); }
-  if (a["name"] && !isDynamic(a["name"])) { score += 20; reasons.push("stable name attribute"); }
-  if (a["text"] && a["text"].length < 30) { score += 5; reasons.push("short text label"); }
-  if (locators.primary_xpath.includes("[") && /\[\d+\]/.test(locators.primary_xpath)) {
-    score -= 15;
-    reasons.push("falls back to positional index");
-  }
-  if (locators.primary_xpath.startsWith("/" + node.tag) === false && locators.primary_xpath.startsWith("//")) {
-    score += 5;
+    const dup = idCounts.get(rid) || 1;
+    if (!isDynamic(rid) && dup === 1) { ridScore = 25; reasons.push("unique stable resource-id"); }
+    else if (!isDynamic(rid) && dup <= 3) { ridScore = 15; reasons.push(`resource-id reused ${dup}×`); }
+    else if (isDynamic(rid)) { ridScore = 5; reasons.push("resource-id looks dynamic"); }
+    else { ridScore = 8; }
   }
 
-  score = Math.max(5, Math.min(98, score));
-  const stability = score >= 80 ? "high" : score >= 55 ? "medium" : "low";
-  return {
-    confidence: score,
-    stability,
-    reasoning: reasons.join("; ") || "Generated from structural position; consider adding a stable identifier.",
-  };
+  let validation = 8;
+  if (/\[\d+\]/.test(locators.primary_xpath) && !rid && !a["text"] && !a["name"]) {
+    validation = 2; reasons.push("falls back to positional index");
+  } else if (locators.primary_xpath.startsWith("//*[@")) {
+    validation = 10;
+  }
+
+  const score = Math.max(5, Math.min(100, uniquenessScore + accessibility + ridScore + validation));
+  const stability: "high" | "medium" | "low" = score >= 80 ? "high" : score >= 55 ? "medium" : "low";
+  return { confidence: score, stability, reasoning: reasons.join("; ") };
+}
+
+/** Replay the primary locator's exact attribute predicate against the catalog
+ *  to compute deterministic uniqueness (how many nodes the locator matches). */
+export function validateLocatorUniqueness(node: DomNode, locator: LocatorSet, nodes: DomNode[]): number {
+  const a = node.attrs;
+  const p = locator.primary_xpath;
+  const rid = a["resource-id"];
+  if (rid && p.includes("@resource-id=")) return nodes.filter((n) => n.attrs["resource-id"] === rid).length;
+  if (a["content-desc"] && p.includes("@content-desc=")) return nodes.filter((n) => n.attrs["content-desc"] === a["content-desc"]).length;
+  if (a["name"] && p.includes("@name=")) return nodes.filter((n) => n.tag === node.tag && n.attrs["name"] === a["name"]).length;
+  if (a["label"] && p.includes("@label=")) return nodes.filter((n) => n.tag === node.tag && n.attrs["label"] === a["label"]).length;
+  if (a["text"] && p.includes("@text=")) return nodes.filter((n) => n.tag === node.tag && n.attrs["text"] === a["text"]).length;
+  if (a["data-testid"] && p.includes("@data-testid=")) return nodes.filter((n) => n.attrs["data-testid"] === a["data-testid"]).length;
+  if (a["id"] && p.includes("@id=")) return nodes.filter((n) => n.attrs["id"] === a["id"]).length;
+  return 1;
 }
 
 export function analyzeRisks(nodes: DomNode[]): DomRisk[] {
