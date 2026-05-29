@@ -8,6 +8,8 @@ import { Copy, Check, Bot, User, Star, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { XPathChatMessage as ChatMessageType, Platform, XPathType } from '@/types/xpath';
 import { Badge } from '@/components/ui/badge';
+import XPathResultCard from './XPathResultCard';
+import DomIntelligencePanel from './DomIntelligencePanel';
 
 interface XPathChatMessageProps {
   message: ChatMessageType;
