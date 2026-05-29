@@ -170,7 +170,7 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
   const renderXPathContent = () => {
     // Structured enterprise analysis output
     if (message.type === 'xpath_structured' && message.analysis) {
-      const { elements, risks, screens, totalNodes, platform } = message.analysis;
+      const { elements, risks, screens, totalNodes, platform, appTree } = message.analysis;
       const plat: Platform = (platform as Platform) || 'android';
       return (
         <div className="space-y-3">
@@ -178,11 +178,24 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
             className="text-sm prose prose-sm max-w-none"
             dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
           />
-          <DomIntelligencePanel risks={risks} totalNodes={totalNodes} screens={screens} />
-          <div className="space-y-3">
-            {elements.map((el, idx) => (
-              <XPathResultCard key={el.id} element={el} platform={plat} isTopRecommendation={idx === 0} />
-            ))}
+          <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-3">
+            <div className="space-y-3">
+              {appTree && appTree.length > 0 && (
+                <AppTreePanel appTree={appTree} totalNodes={totalNodes} />
+              )}
+              <DomIntelligencePanel risks={risks} totalNodes={totalNodes} screens={screens} />
+            </div>
+            <div className="space-y-3 min-w-0">
+              {elements.length === 0 ? (
+                <Card className="p-4 text-sm text-muted-foreground border-dashed">
+                  No matching elements. Browse the Application Tree on the left to find available locators.
+                </Card>
+              ) : (
+                elements.map((el, idx) => (
+                  <XPathResultCard key={el.id} element={el} platform={plat} isTopRecommendation={idx === 0} />
+                ))
+              )}
+            </div>
           </div>
         </div>
       );
