@@ -56,8 +56,21 @@ export interface ElementAnalysis {
   hierarchy?: HierarchyInfo;
   locators: LocatorSet;
   confidence: number;
+  uniqueness?: number;
   stability: 'high' | 'medium' | 'low';
   reasoning: string;
+}
+
+export interface AppTreeElement {
+  id: number;
+  name: string;
+  tag: string;
+  element_type: ElementType;
+}
+export interface AppTreeScreen {
+  screen: string;
+  total: number;
+  interactive: AppTreeElement[];
 }
 
 export interface DomRisk {
