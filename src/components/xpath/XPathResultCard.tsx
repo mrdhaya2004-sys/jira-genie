@@ -118,11 +118,25 @@ const XPathResultCard: React.FC<XPathResultCardProps> = ({ element, platform, is
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
             <Badge className={cn('text-[10px] capitalize border', stab)}>
               <ShieldCheck className="h-3 w-3 mr-1" />
               {element.stability}
             </Badge>
+            {typeof element.uniqueness === 'number' && (
+              <Badge
+                variant="outline"
+                className={cn(
+                  'text-[10px] font-mono',
+                  element.uniqueness === 1
+                    ? 'border-emerald-500/40 text-emerald-600'
+                    : 'border-amber-500/40 text-amber-600',
+                )}
+                title="How many elements the primary locator matches"
+              >
+                matches {element.uniqueness}
+              </Badge>
+            )}
             <Badge variant="secondary" className="text-[10px] font-mono">
               {element.confidence}%
             </Badge>
