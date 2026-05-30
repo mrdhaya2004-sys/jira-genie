@@ -122,6 +122,28 @@ export const useAIConfig = () => {
 
       const result = await response.json();
 
+      // Persist verification outcome on the active config for this user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const patch = result.success
+          ? { status: 'connected', last_verified_at: new Date().toISOString(), last_error: null }
+          : { status: 'error', last_verified_at: new Date().toISOString(), last_error: (result.error || 'Connection failed').slice(0, 500) };
+        await (supabase as any)
+          .from('ai_provider_configs')
+          .update(patch)
+          .eq('user_id', user.id)
+          .eq('is_active', true);
+        await (supabase as any).from('ai_config_audit').insert({
+          user_id: user.id,
+          provider: values.provider,
+          model: values.model,
+          event: result.success ? 'verified' : 'verify_failed',
+          details: { error: result.error ?? null },
+        });
+        window.dispatchEvent(new CustomEvent('ai-config-updated'));
+        await fetchConfig();
+      }
+
       if (result.success) {
         toast({ title: 'Connection Successful', description: 'AI provider is reachable and responding' });
         return true;
@@ -143,7 +165,7 @@ export const useAIConfig = () => {
     } finally {
       setIsTesting(false);
     }
-  }, [toast]);
+  }, [toast, fetchConfig]);
 
   const detectModels = useCallback(async (values: {
     provider: AIProvider;
