@@ -39,48 +39,34 @@ export interface RouteOptions {
 }
 
 /**
- * Resolve the active AI provider config for the current request.
- * 1. Per-user config (if logged in).
- * 2. Shared admin config (most recently updated active config) as fallback.
- *    This lets every user on the published site use the workspace owner's custom AI.
+ * Resolve the active AI provider config for the CURRENT authenticated user only.
+ *
+ * Enterprise multi-tenant rule: a user's AI configuration is private to that user.
+ * There is NO shared fallback, NO admin-wide config, NO cross-user inheritance.
+ * If the current user has not configured a provider, this returns null and the
+ * caller must block the AI request with AI_NOT_CONFIGURED.
  */
 export async function resolveCustomConfig(authHeader: string | null): Promise<AIProviderConfig | null> {
+  if (!authHeader) return null;
+
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return null;
 
-  if (authHeader) {
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (user) {
-      const { data: configs } = await supabaseClient
-        .from('ai_provider_configs')
-        .select('provider, api_key_encrypted, model_name, endpoint_url, is_active')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .limit(1);
-      if (configs && configs.length > 0) {
-        return configs[0] as unknown as AIProviderConfig;
-      }
-    }
+  const { data: configs } = await supabaseClient
+    .from('ai_provider_configs')
+    .select('provider, api_key_encrypted, model_name, endpoint_url, is_active')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .limit(1);
+
+  if (configs && configs.length > 0) {
+    return configs[0] as unknown as AIProviderConfig;
   }
-
-  if (serviceKey) {
-    const adminClient = createClient(supabaseUrl, serviceKey);
-    const { data: sharedConfigs } = await adminClient
-      .from('ai_provider_configs')
-      .select('provider, api_key_encrypted, model_name, endpoint_url, is_active')
-      .eq('is_active', true)
-      .order('updated_at', { ascending: false })
-      .limit(1);
-    if (sharedConfigs && sharedConfigs.length > 0) {
-      console.log('AI Router: Using shared admin AI config');
-      return sharedConfigs[0] as unknown as AIProviderConfig;
-    }
-  }
-
   return null;
 }
 
