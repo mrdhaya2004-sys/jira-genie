@@ -117,8 +117,15 @@ serve(async (req) => {
     );
 
     if (!response.ok) {
-      const t = await response.text();
-      return buildAIErrorResponse(response.status, t, corsHeaders);
+      // Forward the router's structured error verbatim so the real provider
+      // status/message (e.g. 403 "Authorization failed") reaches the client
+      // instead of being masked as a generic 502.
+      const body = await response.text();
+      const ct = response.headers.get("content-type") || "application/json";
+      return new Response(body, {
+        status: response.status,
+        headers: { ...corsHeaders, "Content-Type": ct },
+      });
     }
 
     return new Response(response.body, {
