@@ -42,13 +42,13 @@ export const useAIConfig = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Deactivate existing configs
+      // Deactivate existing configs for this user only
       await (supabase as any)
         .from('ai_provider_configs')
         .update({ is_active: false })
         .eq('user_id', user.id);
 
-      // Insert new config
+      // Insert new config (status reset to not_verified until tested)
       const { data, error } = await (supabase as any)
         .from('ai_provider_configs')
         .insert({
@@ -59,13 +59,27 @@ export const useAIConfig = () => {
           endpoint_url: values.endpointUrl || null,
           display_name: values.displayName || null,
           is_active: true,
+          status: 'not_verified',
+          last_verified_at: null,
+          last_error: null,
         })
         .select()
         .single();
 
       if (error) throw error;
       setConfig(data as AIProviderConfig);
-      toast({ title: 'Success', description: 'AI configuration saved successfully' });
+
+      // Audit entry — RLS scopes to this user
+      await (supabase as any).from('ai_config_audit').insert({
+        user_id: user.id,
+        provider: values.provider,
+        model: values.model,
+        event: 'config_saved',
+        details: { display_name: values.displayName ?? null },
+      });
+
+      window.dispatchEvent(new CustomEvent('ai-config-updated'));
+      toast({ title: 'Success', description: 'AI configuration saved. Test the connection to activate it.' });
       return true;
     } catch (error) {
       console.error('Error saving AI config:', error);
