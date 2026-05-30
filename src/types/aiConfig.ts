@@ -1,5 +1,12 @@
 export type AIProvider = 'openai' | 'azure_openai' | 'anthropic' | 'google_gemini' | 'custom' | 'local_llm';
 
+export type AIConfigStatus =
+  | 'connected'
+  | 'not_verified'
+  | 'error'
+  | 'verifying'
+  | 'quota_exhausted';
+
 export interface AIProviderConfig {
   id: string;
   user_id: string;
@@ -9,6 +16,9 @@ export interface AIProviderConfig {
   endpoint_url: string | null;
   is_active: boolean;
   display_name: string | null;
+  status?: AIConfigStatus;
+  last_verified_at?: string | null;
+  last_error?: string | null;
   created_at: string;
   updated_at: string;
 }
