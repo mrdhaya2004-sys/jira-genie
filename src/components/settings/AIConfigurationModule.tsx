@@ -13,6 +13,7 @@ import HiveAIDisableDialog from '@/components/hiveai/HiveAIDisableDialog';
 import { useAIConfig } from '@/hooks/useAIConfig';
 import { useHiveAISettings } from '@/hooks/useHiveAISettings';
 import { AI_PROVIDERS, type AIProvider } from '@/types/aiConfig';
+import AIStatusCard from '@/components/ai/AIStatusCard';
 import {
   Brain,
   Key,
@@ -112,6 +113,9 @@ const AIConfigurationModule: React.FC = () => {
           </p>
         </div>
       </div>
+      {/* Live per-user AI status */}
+      <AIStatusCard onRetry={handleTest} />
+
 
       {/* Hive Mind Architecture Info */}
       <Card className="glass-shine border-primary/20">
