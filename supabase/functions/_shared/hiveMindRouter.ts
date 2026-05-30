@@ -89,22 +89,42 @@ export async function routeAIRequest(
 ): Promise<Response> {
   const customConfig = await resolveCustomConfig(authHeader);
 
-  let upstream: Response;
-  let providerName: string;
-
-  if (customConfig) {
-    console.log(`AI Router: Routing through custom provider: ${customConfig.provider} (${customConfig.model_name})`);
-    upstream = await callCustomProvider(customConfig, messages, stream, options.extraBody);
-    providerName = customConfig.provider;
-  } else {
-    console.log('AI Router: No custom AI configured — using Lovable AI gateway');
-    upstream = await callDefaultProvider(messages, stream, options);
-    providerName = 'lovable';
+  // Enterprise multi-tenant: no per-user AI config -> hard block.
+  if (!customConfig) {
+    return new Response(JSON.stringify({
+      error: 'AI_NOT_CONFIGURED',
+      message: 'No AI provider is configured for your account. Open AI Configuration to connect Gemini, OpenAI, Claude, NVIDIA, Azure OpenAI or another supported provider.',
+    }), {
+      status: 412,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
+
+  console.log(`AI Router: Routing through user provider: ${customConfig.provider} (${customConfig.model_name})`);
+  const upstream = await callCustomProvider(customConfig, messages, stream, options.extraBody);
+  const providerName = customConfig.provider;
 
   if (!upstream.ok) {
     const errText = await upstream.text().catch(() => '');
     console.error(`AI Router: upstream ${upstream.status} from ${providerName}:`, errText.slice(0, 500));
+
+    // Quota / billing / rate limit -> normalize to a clear quota error
+    const lower = errText.toLowerCase();
+    const isQuota =
+      upstream.status === 429 ||
+      upstream.status === 402 ||
+      lower.includes('quota') ||
+      lower.includes('insufficient') ||
+      lower.includes('billing') ||
+      lower.includes('credit');
+    if (isQuota) {
+      return new Response(JSON.stringify({
+        error: 'AI_QUOTA_EXHAUSTED',
+        provider: providerName,
+        message: 'Your AI provider has run out of credits or quota. Top up your provider account or switch providers in AI Configuration.',
+      }), { status: 429, headers: { 'Content-Type': 'application/json' } });
+    }
+
     const msg = `AI provider "${providerName}" returned ${upstream.status}. ${errText.slice(0, 400) || 'No error body returned.'}`;
     return new Response(JSON.stringify({ error: msg, provider: providerName, status: upstream.status }), {
       status: upstream.status === 401 || upstream.status === 403 ? 502 : upstream.status,
