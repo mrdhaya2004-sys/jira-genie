@@ -1,12 +1,11 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAIStatus } from '@/hooks/useAIStatus';
 
 interface Props {
-  /** Route to open AI Configuration. Defaults to the dashboard "more" panel where AI Config lives. */
-  configRoute?: string;
+  /** Optional click handler to navigate to AI Configuration. */
+  onOpenConfig?: () => void;
 }
 
 /**
@@ -14,8 +13,7 @@ interface Props {
  * when the current user has no active AI configuration, or when their
  * provider quota is exhausted. Hidden when AI is connected.
  */
-const AIActivationBanner: React.FC<Props> = ({ configRoute = '/dashboard?view=ai-config' }) => {
-  const navigate = useNavigate();
+const AIActivationBanner: React.FC<Props> = ({ onOpenConfig }) => {
   const { isLoading, isActivated, status, config } = useAIStatus();
 
   if (isLoading) return null;
@@ -39,10 +37,12 @@ const AIActivationBanner: React.FC<Props> = ({ configRoute = '/dashboard?view=ai
           <h4 className="text-sm font-semibold text-foreground">⚠ {title}</h4>
           <p className="text-sm text-muted-foreground">{body}</p>
         </div>
-        <Button size="sm" variant="outline" onClick={() => navigate(configRoute)} className="shrink-0">
-          <Settings2 className="mr-2 h-4 w-4" />
-          {isQuota ? 'Manage AI Configuration' : 'Open AI Configuration'}
-        </Button>
+        {onOpenConfig && (
+          <Button size="sm" variant="outline" onClick={onOpenConfig} className="shrink-0">
+            <Settings2 className="mr-2 h-4 w-4" />
+            {isQuota ? 'Manage AI Configuration' : 'Open AI Configuration'}
+          </Button>
+        )}
       </div>
     </div>
   );
