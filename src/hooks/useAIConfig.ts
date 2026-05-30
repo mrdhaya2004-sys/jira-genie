@@ -228,8 +228,19 @@ export const useAIConfig = () => {
         .eq('id', config.id);
 
       if (error) throw error;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await (supabase as any).from('ai_config_audit').insert({
+          user_id: user.id,
+          provider: config.provider,
+          model: config.model_name,
+          event: 'config_removed',
+          details: {},
+        });
+      }
       setConfig(null);
-      toast({ title: 'Removed', description: 'Custom AI configuration removed. Using default AI.' });
+      window.dispatchEvent(new CustomEvent('ai-config-updated'));
+      toast({ title: 'Removed', description: 'AI configuration removed. AI features are paused until a new provider is connected.' });
     } catch (error) {
       toast({
         title: 'Error',
