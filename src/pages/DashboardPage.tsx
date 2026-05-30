@@ -6,6 +6,7 @@ import MentionsPanel from '@/components/dashboard/MentionsPanel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import AIActivationBanner from '@/components/ai/AIActivationBanner';
 
 // Lazy-load every module — only the active one is fetched/parsed.
 const AgenticAIModule = lazy(() => import('@/components/workspace/AgenticAIModule'));
@@ -109,24 +110,29 @@ const DashboardPage: React.FC = () => {
             resetKeys={[activeModule]}
             fallback={<ModuleCrashFallback onRecover={() => setActiveModule('mentions')} />}
           >
-            <div className="h-full module-enter">
-              <Suspense fallback={<ModuleFallback />}>
-                {activeModule === 'mentions' && <MentionsPanel />}
-                {activeModule === 'chat' && <CurrentChatModule />}
-                {activeModule === 'tickets' && <MyTicketsModule />}
-                {activeModule === 'history' && <HistoryModule onResumeAction={handleResumeAction} />}
-                {activeModule === 'agentic-ai' && <AgenticAIModule />}
-                {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule onNavigateBack={() => setActiveModule('mentions')} />}
-                {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule resumeData={resumeData} />}
-                {activeModule === 'test-case-generator' && <TestCaseGeneratorModule resumeData={resumeData} />}
-                {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
-                {activeModule === 'defect-analyzer' && <DefectAnalyzerModule />}
-                {activeModule === 'ai-settings' && <AIConfigurationModule />}
-                {activeModule === 'profile' && <ProfileModule />}
-                {activeModule === 'account-settings' && <AccountSettingsModule />}
-                {activeModule === 'about' && <AboutUsModule onOpenFounder={() => setActiveModule('founder')} />}
-                {activeModule === 'founder' && <FounderPage onBack={() => setActiveModule('about')} />}
-              </Suspense>
+            <div className="h-full module-enter flex flex-col">
+              {(['agentic-ai','logic-scenario-creator','test-case-generator','xpath-generator','defect-analyzer'] as ActiveModule[]).includes(activeModule) && (
+                <AIActivationBanner onOpenConfig={() => setActiveModule('ai-settings')} />
+              )}
+              <div className="flex-1 min-h-0">
+                <Suspense fallback={<ModuleFallback />}>
+                  {activeModule === 'mentions' && <MentionsPanel />}
+                  {activeModule === 'chat' && <CurrentChatModule />}
+                  {activeModule === 'tickets' && <MyTicketsModule />}
+                  {activeModule === 'history' && <HistoryModule onResumeAction={handleResumeAction} />}
+                  {activeModule === 'agentic-ai' && <AgenticAIModule />}
+                  {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule onNavigateBack={() => setActiveModule('mentions')} />}
+                  {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule resumeData={resumeData} />}
+                  {activeModule === 'test-case-generator' && <TestCaseGeneratorModule resumeData={resumeData} />}
+                  {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
+                  {activeModule === 'defect-analyzer' && <DefectAnalyzerModule />}
+                  {activeModule === 'ai-settings' && <AIConfigurationModule />}
+                  {activeModule === 'profile' && <ProfileModule />}
+                  {activeModule === 'account-settings' && <AccountSettingsModule />}
+                  {activeModule === 'about' && <AboutUsModule onOpenFounder={() => setActiveModule('founder')} />}
+                  {activeModule === 'founder' && <FounderPage onBack={() => setActiveModule('about')} />}
+                </Suspense>
+              </div>
             </div>
           </ErrorBoundary>
         </main>

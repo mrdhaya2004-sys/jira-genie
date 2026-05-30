@@ -39,48 +39,34 @@ export interface RouteOptions {
 }
 
 /**
- * Resolve the active AI provider config for the current request.
- * 1. Per-user config (if logged in).
- * 2. Shared admin config (most recently updated active config) as fallback.
- *    This lets every user on the published site use the workspace owner's custom AI.
+ * Resolve the active AI provider config for the CURRENT authenticated user only.
+ *
+ * Enterprise multi-tenant rule: a user's AI configuration is private to that user.
+ * There is NO shared fallback, NO admin-wide config, NO cross-user inheritance.
+ * If the current user has not configured a provider, this returns null and the
+ * caller must block the AI request with AI_NOT_CONFIGURED.
  */
 export async function resolveCustomConfig(authHeader: string | null): Promise<AIProviderConfig | null> {
+  if (!authHeader) return null;
+
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return null;
 
-  if (authHeader) {
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (user) {
-      const { data: configs } = await supabaseClient
-        .from('ai_provider_configs')
-        .select('provider, api_key_encrypted, model_name, endpoint_url, is_active')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .limit(1);
-      if (configs && configs.length > 0) {
-        return configs[0] as unknown as AIProviderConfig;
-      }
-    }
+  const { data: configs } = await supabaseClient
+    .from('ai_provider_configs')
+    .select('provider, api_key_encrypted, model_name, endpoint_url, is_active')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .limit(1);
+
+  if (configs && configs.length > 0) {
+    return configs[0] as unknown as AIProviderConfig;
   }
-
-  if (serviceKey) {
-    const adminClient = createClient(supabaseUrl, serviceKey);
-    const { data: sharedConfigs } = await adminClient
-      .from('ai_provider_configs')
-      .select('provider, api_key_encrypted, model_name, endpoint_url, is_active')
-      .eq('is_active', true)
-      .order('updated_at', { ascending: false })
-      .limit(1);
-    if (sharedConfigs && sharedConfigs.length > 0) {
-      console.log('AI Router: Using shared admin AI config');
-      return sharedConfigs[0] as unknown as AIProviderConfig;
-    }
-  }
-
   return null;
 }
 
@@ -103,22 +89,42 @@ export async function routeAIRequest(
 ): Promise<Response> {
   const customConfig = await resolveCustomConfig(authHeader);
 
-  let upstream: Response;
-  let providerName: string;
-
-  if (customConfig) {
-    console.log(`AI Router: Routing through custom provider: ${customConfig.provider} (${customConfig.model_name})`);
-    upstream = await callCustomProvider(customConfig, messages, stream, options.extraBody);
-    providerName = customConfig.provider;
-  } else {
-    console.log('AI Router: No custom AI configured — using Lovable AI gateway');
-    upstream = await callDefaultProvider(messages, stream, options);
-    providerName = 'lovable';
+  // Enterprise multi-tenant: no per-user AI config -> hard block.
+  if (!customConfig) {
+    return new Response(JSON.stringify({
+      error: 'AI_NOT_CONFIGURED',
+      message: 'No AI provider is configured for your account. Open AI Configuration to connect Gemini, OpenAI, Claude, NVIDIA, Azure OpenAI or another supported provider.',
+    }), {
+      status: 412,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
+
+  console.log(`AI Router: Routing through user provider: ${customConfig.provider} (${customConfig.model_name})`);
+  const upstream = await callCustomProvider(customConfig, messages, stream, options.extraBody);
+  const providerName = customConfig.provider;
 
   if (!upstream.ok) {
     const errText = await upstream.text().catch(() => '');
     console.error(`AI Router: upstream ${upstream.status} from ${providerName}:`, errText.slice(0, 500));
+
+    // Quota / billing / rate limit -> normalize to a clear quota error
+    const lower = errText.toLowerCase();
+    const isQuota =
+      upstream.status === 429 ||
+      upstream.status === 402 ||
+      lower.includes('quota') ||
+      lower.includes('insufficient') ||
+      lower.includes('billing') ||
+      lower.includes('credit');
+    if (isQuota) {
+      return new Response(JSON.stringify({
+        error: 'AI_QUOTA_EXHAUSTED',
+        provider: providerName,
+        message: 'Your AI provider has run out of credits or quota. Top up your provider account or switch providers in AI Configuration.',
+      }), { status: 429, headers: { 'Content-Type': 'application/json' } });
+    }
+
     const msg = `AI provider "${providerName}" returned ${upstream.status}. ${errText.slice(0, 400) || 'No error body returned.'}`;
     return new Response(JSON.stringify({ error: msg, provider: providerName, status: upstream.status }), {
       status: upstream.status === 401 || upstream.status === 403 ? 502 : upstream.status,

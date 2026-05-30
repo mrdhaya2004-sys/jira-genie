@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_config_audit: {
+        Row: {
+          created_at: string
+          details: Json | null
+          event: string
+          id: string
+          model: string | null
+          provider: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          event: string
+          id?: string
+          model?: string | null
+          provider?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          event?: string
+          id?: string
+          model?: string | null
+          provider?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_provider_configs: {
         Row: {
           api_key_encrypted: string
@@ -22,8 +52,11 @@ export type Database = {
           endpoint_url: string | null
           id: string
           is_active: boolean
+          last_error: string | null
+          last_verified_at: string | null
           model_name: string
           provider: string
+          status: string
           updated_at: string
           user_id: string
         }
@@ -34,8 +67,11 @@ export type Database = {
           endpoint_url?: string | null
           id?: string
           is_active?: boolean
+          last_error?: string | null
+          last_verified_at?: string | null
           model_name: string
           provider: string
+          status?: string
           updated_at?: string
           user_id: string
         }
@@ -46,8 +82,11 @@ export type Database = {
           endpoint_url?: string | null
           id?: string
           is_active?: boolean
+          last_error?: string | null
+          last_verified_at?: string | null
           model_name?: string
           provider?: string
+          status?: string
           updated_at?: string
           user_id?: string
         }
