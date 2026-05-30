@@ -6,6 +6,7 @@ import MentionsPanel from '@/components/dashboard/MentionsPanel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import AIActivationBanner from '@/components/ai/AIActivationBanner';
 
 // Lazy-load every module — only the active one is fetched/parsed.
 const AgenticAIModule = lazy(() => import('@/components/workspace/AgenticAIModule'));
