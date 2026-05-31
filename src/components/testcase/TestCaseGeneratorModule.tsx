@@ -78,7 +78,7 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
   return (
     <div className="h-full flex flex-col bg-gradient-to-b from-primary/5 via-background to-background">
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-card to-[hsl(var(--chart-2))]/10 dark:from-primary/15 dark:via-card dark:to-[hsl(var(--chart-2))]/15 backdrop-blur-md px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-[hsl(var(--chart-2))] to-success" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-[hsl(var(--chart-2))] to-success rounded-none" />
         <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[hsl(var(--chart-2))]/10 blur-3xl pointer-events-none animate-pulse" />
 

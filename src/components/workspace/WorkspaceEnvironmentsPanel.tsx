@@ -75,7 +75,7 @@ const WorkspaceEnvironmentsPanel: React.FC<WorkspaceEnvironmentsPanelProps> = ({
   return (
     <div className="space-y-4 max-w-6xl mx-auto w-full">
       <Card className="relative overflow-hidden border-primary/20 shadow-sm">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-[hsl(var(--chart-2))] to-success" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-[hsl(var(--chart-2))] to-success rounded-none" />
         <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
         <CardHeader className="relative pb-3">
           <CardTitle className="text-base flex items-center gap-2">
