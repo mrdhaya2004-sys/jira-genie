@@ -68,10 +68,10 @@ const AIStatusCard: React.FC<Props> = ({ onRetry, className = '' }) => {
       <div className="flex items-center gap-4">
         <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background/50">
           <Icon className={`h-6 w-6 ${iconClass}`} />
-          <span className={`absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full ${dotColor} ring-4 ${ring} animate-pulse`} />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
+            <span className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${dotColor} ring-2 ${ring} animate-pulse`} />
             <h3 className="text-base font-semibold leading-none text-foreground">{title}</h3>
           </div>
           <p className="mt-1.5 text-sm text-muted-foreground">{detail}</p>
