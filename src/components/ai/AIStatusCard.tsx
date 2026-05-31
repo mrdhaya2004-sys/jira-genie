@@ -65,6 +65,7 @@ const AIStatusCard: React.FC<Props> = ({ onRetry, className = '' }) => {
 
   return (
     <div className={`glass-shine relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl ${className}`}>
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-[hsl(var(--chart-2))] to-success rounded-none" />
       <div className="flex items-center gap-4">
         <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background/50">
           <Icon className={`h-6 w-6 ${iconClass}`} />
