@@ -111,9 +111,6 @@ const DashboardPage: React.FC = () => {
             fallback={<ModuleCrashFallback onRecover={() => setActiveModule('mentions')} />}
           >
             <div className="h-full module-enter flex flex-col">
-              {(['agentic-ai','logic-scenario-creator','test-case-generator','xpath-generator','defect-analyzer'] as ActiveModule[]).includes(activeModule) && (
-                <AIActivationBanner onOpenConfig={() => setActiveModule('ai-settings')} />
-              )}
               <div className="flex-1 min-h-0">
                 <Suspense fallback={<ModuleFallback />}>
                   {activeModule === 'mentions' && <MentionsPanel />}
@@ -137,6 +134,11 @@ const DashboardPage: React.FC = () => {
           </ErrorBoundary>
         </main>
       </div>
+      {/* Global bottom AI activation notification — sticky across all modules */}
+      {activeModule !== 'ai-settings' && (
+        <AIActivationBanner onOpenConfig={() => setActiveModule('ai-settings')} />
+      )}
+
     </div>
   );
 };
