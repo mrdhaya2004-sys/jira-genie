@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useHiveAISettings } from '@/hooks/useHiveAISettings';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import HiveAIChatModal from './HiveAIChatModal';
+import hiveAvatar from '@/assets/hive-ai-avatar.png.asset.json';
 
 const STORAGE_KEY = 'hive-ai-position';
 const DEFAULT_POS = { x: -24, y: -24 };
@@ -218,14 +219,14 @@ const HiveAIButton: React.FC = () => {
           className="absolute inset-0 rounded-full pointer-events-none"
           style={{ border: '1px solid rgba(255,255,255,0.3)' }}
         />
-        {/* Text */}
-        <span className="relative z-10 flex flex-col items-center leading-none">
-          <span
-            className="text-[11px] font-bold tracking-wider text-white"
-            style={{ textShadow: '0 1px 3px rgba(0,0,0,0.25)' }}
-          >
-            HIVE AI
-          </span>
+        {/* Avatar */}
+        <span className="relative z-10 flex items-center justify-center h-9 w-9 rounded-full overflow-hidden ring-1 ring-white/40 shadow-inner">
+          <img
+            src={hiveAvatar.url}
+            alt="Hive AI"
+            className="h-full w-full object-cover"
+            draggable={false}
+          />
         </span>
       </button>
 

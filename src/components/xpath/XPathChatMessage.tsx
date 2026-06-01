@@ -4,7 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Copy, Check, Bot, User, Star, Sparkles } from 'lucide-react';
+import { Copy, Check, User, Star, Sparkles } from 'lucide-react';
+import HiveAIAvatar from '@/components/ai/HiveAIAvatar';
 import { cn } from '@/lib/utils';
 import type { XPathChatMessage as ChatMessageType, Platform, XPathType } from '@/types/xpath';
 import { Badge } from '@/components/ui/badge';
@@ -372,19 +373,15 @@ const XPathChatMessage: React.FC<XPathChatMessageProps> = ({
       isBot ? "mr-auto" : "ml-auto flex-row-reverse"
     )}>
       <div className="relative flex-shrink-0">
-        {isBot && (
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/50 to-primary/10 blur-md" />
+        {isBot ? (
+          <HiveAIAvatar size={32} />
+        ) : (
+          <Avatar className="relative h-8 w-8 ring-1 ring-border/60">
+            <AvatarFallback className="bg-muted">
+              <User className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
         )}
-        <Avatar className={cn(
-          "relative h-8 w-8 ring-1",
-          isBot ? "ring-primary/30" : "ring-border/60"
-        )}>
-          <AvatarFallback className={cn(
-            isBot ? "bg-gradient-to-br from-primary to-primary/70 text-primary-foreground" : "bg-muted"
-          )}>
-            {isBot ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
-          </AvatarFallback>
-        </Avatar>
       </div>
 
       <div className={cn(

@@ -3,7 +3,8 @@ import DOMPurify from 'dompurify';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Bot, User } from 'lucide-react';
+import { User } from 'lucide-react';
+import HiveAIAvatar from '@/components/ai/HiveAIAvatar';
 import { cn } from '@/lib/utils';
 import { AUTOMATION_FRAMEWORKS } from '@/types/scenario';
 import type { ScenarioChatMessage as ChatMessageType, AutomationFramework, CodeFramework } from '@/types/scenario';
@@ -56,14 +57,15 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
       "flex gap-3 max-w-4xl",
       isBot ? "mr-auto" : "ml-auto flex-row-reverse"
     )}>
-      <Avatar className={cn(
-        "h-8 w-8 flex-shrink-0",
-        isBot ? "bg-primary" : "bg-muted"
-      )}>
-        <AvatarFallback className={isBot ? "bg-primary text-primary-foreground" : "bg-muted"}>
-          {isBot ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
-        </AvatarFallback>
-      </Avatar>
+      {isBot ? (
+        <HiveAIAvatar size={32} />
+      ) : (
+        <Avatar className="h-8 w-8 flex-shrink-0 bg-muted">
+          <AvatarFallback className="bg-muted">
+            <User className="h-4 w-4" />
+          </AvatarFallback>
+        </Avatar>
+      )}
 
       <div className={cn(
         "flex flex-col gap-2 max-w-[85%]",
