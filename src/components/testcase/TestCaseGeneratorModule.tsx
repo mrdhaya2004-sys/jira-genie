@@ -91,7 +91,7 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
             fetchPriority="high"
             width={44}
             height={44}
-            className="h-10 w-10 sm:h-11 sm:w-11 object-contain shrink-0"
+            className="h-10 w-10 sm:h-11 sm:w-11 object-contain shrink-0 rounded-sm"
           />
           <div className="min-w-0 flex-1">
             <h2 className="font-bold tracking-tight flex items-center gap-2 text-sm sm:text-base truncate">
