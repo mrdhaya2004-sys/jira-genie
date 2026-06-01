@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, X, Bot, User, Minimize2, Code2, Copy, Check } from 'lucide-react';
+import { Send, X, User, Minimize2, Code2, Copy, Check } from 'lucide-react';
+import HiveAIAvatar from '@/components/ai/HiveAIAvatar';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
@@ -228,14 +229,13 @@ const HiveAIChatModal: React.FC<HiveAIChatModalProps> = ({ open, onClose }) => {
           <div ref={scrollRef} className="absolute inset-0 overflow-y-auto p-3 space-y-3">
           {messages.map((msg, i) => (
             <div key={i} className={cn('flex gap-2.5', msg.role === 'user' && 'flex-row-reverse')}>
-              <div className={cn(
-                'flex-shrink-0 h-7 w-7 rounded-full flex items-center justify-center text-xs',
-                msg.role === 'assistant'
-                  ? 'bg-gradient-to-br from-emerald-400/20 to-cyan-400/20'
-                  : 'bg-muted'
-              )}>
-                {msg.role === 'assistant' ? <Bot className="h-3.5 w-3.5 text-teal-500" /> : <User className="h-3.5 w-3.5 text-muted-foreground" />}
-              </div>
+              {msg.role === 'assistant' ? (
+                <HiveAIAvatar size={28} />
+              ) : (
+                <div className="flex-shrink-0 h-7 w-7 rounded-full bg-muted flex items-center justify-center">
+                  <User className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+              )}
               <div className={cn(
                 'max-w-[80%] px-3 py-2 rounded-2xl text-sm',
                 msg.role === 'assistant'
@@ -280,10 +280,7 @@ const HiveAIChatModal: React.FC<HiveAIChatModalProps> = ({ open, onClose }) => {
 
           {isStreaming && messages[messages.length - 1]?.role !== 'assistant' && (
             <div data-skip-anchor="true" className="flex gap-2.5">
-
-              <div className="flex-shrink-0 h-7 w-7 rounded-full bg-gradient-to-br from-emerald-400/20 to-cyan-400/20 flex items-center justify-center">
-                <Bot className="h-3.5 w-3.5 text-teal-500" />
-              </div>
+              <HiveAIAvatar size={28} />
               <div className="bg-muted px-3 py-2 rounded-2xl rounded-bl-md">
                 <div className="flex items-center gap-1">
                   <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:0ms]" />

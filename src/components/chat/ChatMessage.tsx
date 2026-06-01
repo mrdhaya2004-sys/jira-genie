@@ -1,7 +1,8 @@
 import React from 'react';
 import DOMPurify from 'dompurify';
 import { ChatMessage as ChatMessageType } from '@/types/ticket';
-import { Bot, User, Info, ExternalLink, AlertTriangle, ClipboardCheck } from 'lucide-react';
+import { User, Info, ExternalLink, AlertTriangle, ClipboardCheck } from 'lucide-react';
+import HiveAIAvatar from '@/components/ai/HiveAIAvatar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -59,18 +60,20 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
       )}
     >
       {/* Avatar */}
-      <div
-        className={cn(
-          "flex-shrink-0 h-8 w-8 rounded-lg flex items-center justify-center",
-          isUser && "bg-primary",
-          isBot && "bg-accent",
-          isSystem && "bg-muted"
-        )}
-      >
-        {isUser && <User className="h-4 w-4 text-primary-foreground" />}
-        {isBot && <Bot className="h-4 w-4 text-accent-foreground" />}
-        {isSystem && <Info className="h-4 w-4 text-muted-foreground" />}
-      </div>
+      {isBot ? (
+        <HiveAIAvatar size={32} />
+      ) : (
+        <div
+          className={cn(
+            "flex-shrink-0 h-8 w-8 rounded-lg flex items-center justify-center",
+            isUser && "bg-primary",
+            isSystem && "bg-muted"
+          )}
+        >
+          {isUser && <User className="h-4 w-4 text-primary-foreground" />}
+          {isSystem && <Info className="h-4 w-4 text-muted-foreground" />}
+        </div>
+      )}
 
       {/* Message Content */}
       <div
