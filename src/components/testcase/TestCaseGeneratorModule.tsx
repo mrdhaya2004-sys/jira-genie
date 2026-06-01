@@ -83,20 +83,16 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
         <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[hsl(var(--chart-2))]/10 blur-3xl pointer-events-none animate-pulse" />
 
         <div className="relative flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          <div className="h-10 w-10 sm:h-11 sm:w-11 bg-gradient-to-br from-primary to-[hsl(var(--chart-2))] flex items-center justify-center shrink-0 shadow-primary/30 p-1.5 rounded-sm shadow-sm">
-            <div className="h-full w-full rounded-sm bg-white flex items-center justify-center overflow-hidden">
-              <img
-                src={testCaseLogo}
-                alt="Test Case Generator logo"
-                loading="eager"
-                decoding="async"
-                fetchPriority="high"
-                width={40}
-                height={40}
-                className="h-full w-full object-contain rounded-full"
-              />
-            </div>
-          </div>
+          <img
+            src={testCaseLogo}
+            alt="Test Case Generator logo"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+            width={44}
+            height={44}
+            className="h-10 w-10 sm:h-11 sm:w-11 object-contain shrink-0"
+          />
           <div className="min-w-0 flex-1">
             <h2 className="font-bold tracking-tight flex items-center gap-2 text-sm sm:text-base truncate">
               <span className="truncate text-foreground">Test Case Generator</span>
