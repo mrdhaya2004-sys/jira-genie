@@ -70,14 +70,15 @@ const TestCaseChatMessage: React.FC<TestCaseChatMessageProps> = ({
       "flex gap-3 max-w-4xl",
       isBot ? "mr-auto" : "ml-auto flex-row-reverse"
     )}>
-      <Avatar className={cn(
-        "h-8 w-8 flex-shrink-0",
-        isBot ? "bg-primary" : "bg-muted"
-      )}>
-        <AvatarFallback className={isBot ? "bg-primary text-primary-foreground" : "bg-muted"}>
-          {isBot ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
-        </AvatarFallback>
-      </Avatar>
+      {isBot ? (
+        <HiveAIAvatar size={32} />
+      ) : (
+        <Avatar className="h-8 w-8 flex-shrink-0 bg-muted">
+          <AvatarFallback className="bg-muted">
+            <User className="h-4 w-4" />
+          </AvatarFallback>
+        </Avatar>
+      )}
 
       <div className={cn(
         "flex flex-col gap-2 max-w-[85%]",
