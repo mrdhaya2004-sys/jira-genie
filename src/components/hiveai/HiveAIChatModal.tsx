@@ -206,9 +206,7 @@ const HiveAIChatModal: React.FC<HiveAIChatModalProps> = ({ open, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10">
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-white text-sm">
-              🐝
-            </div>
+            <HiveAIAvatar size={32} />
             <div>
               <h3 className="text-sm font-semibold text-foreground">Hive AI</h3>
               <p className="text-[10px] text-muted-foreground">Your Test Zone Assistant</p>
