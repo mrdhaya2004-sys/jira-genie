@@ -367,12 +367,14 @@
     box-shadow: var(--menu-hover-shadow);
   }
   .menu-item.is-active {
-    background-color: hsl(var(--menu-accent));
-    color: hsl(var(--menu-accent-fg));
+    color: hsl(var(--menu-fg));
+    font-weight: 600;
   }
   .menu-item.is-active:hover {
     transform: none;
+    background: hsl(var(--menu-fg) / 0.09);
   }
+
 
   /* Active indicator — premium, theme-aware, subtle.
      Light: soft frosted neutral surface. Dark: low-contrast charcoal.
