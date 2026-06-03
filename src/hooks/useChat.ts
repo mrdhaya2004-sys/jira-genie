@@ -193,10 +193,29 @@ export function useChat() {
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
 
-      const messagesWithSenders = (data || []).map(msg => ({
-        ...msg,
-        sender: profileMap.get(msg.sender_id)
-      })) as ChatMessageData[];
+      // Fetch reply-to message previews
+      const replyIds = [...new Set((data || [])
+        .map(m => (m as any).reply_to_id)
+        .filter(Boolean))] as string[];
+      const replyMap = new Map<string, { id: string; content: string; sender_id: string; is_deleted: boolean }>();
+      if (replyIds.length > 0) {
+        const { data: replies } = await supabase
+          .from('chat_messages')
+          .select('id, content, sender_id, is_deleted')
+          .in('id', replyIds);
+        (replies || []).forEach(r => replyMap.set(r.id, r));
+      }
+
+      const messagesWithSenders = (data || []).map(msg => {
+        const r = (msg as any).reply_to_id ? replyMap.get((msg as any).reply_to_id) : null;
+        return {
+          ...msg,
+          sender: profileMap.get(msg.sender_id),
+          reply_to: r
+            ? { ...r, sender_name: profileMap.get(r.sender_id)?.full_name }
+            : null,
+        };
+      }) as ChatMessageData[];
 
       setMessages(messagesWithSenders);
 
