@@ -10,6 +10,8 @@ export interface Conversation {
   updated_at: string;
   teams_chat_id?: string | null;
   is_teams_synced?: boolean;
+  is_pinned?: boolean;
+  is_favorite?: boolean;
   participants?: ConversationParticipant[];
   last_message?: ChatMessageData;
   unread_count?: number;
@@ -22,6 +24,8 @@ export interface ConversationParticipant {
   joined_at: string;
   last_read_at: string | null;
   is_admin: boolean;
+  is_pinned?: boolean;
+  is_favorite?: boolean;
   profile?: {
     full_name: string;
     email: string;
@@ -39,6 +43,15 @@ export interface ChatMessageData {
   is_deleted: boolean;
   created_at: string;
   updated_at: string;
+  reply_to_id?: string | null;
+  edited_at?: string | null;
+  reply_to?: {
+    id: string;
+    content: string;
+    sender_id: string;
+    is_deleted: boolean;
+    sender_name?: string;
+  } | null;
   sender?: {
     full_name: string;
     email: string;
@@ -57,4 +70,5 @@ export interface SendMessageData {
   content: string;
   message_type?: 'text' | 'image' | 'file';
   metadata?: Record<string, unknown>;
+  reply_to_id?: string | null;
 }
