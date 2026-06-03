@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MessageSquare, Sparkles } from 'lucide-react';
+import { MessageSquare, Sparkles, Users, AtSign } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import ChatSidebar from './ChatSidebar';
 import ChatHeader from './ChatHeader';
 import ChatMessageArea from './ChatMessageArea';
@@ -12,14 +13,13 @@ import TypingIndicatorBar from './TypingIndicatorBar';
 import TeamsSettingsDialog from '@/components/teams/TeamsSettingsDialog';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useChat } from '@/hooks/useChat';
-import { useTestChats } from '@/hooks/useTestChats';
 import { usePresence } from '@/hooks/usePresence';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import { useReactions } from '@/hooks/useReactions';
 import { useProfileId } from '@/hooks/useProfileId';
 import { useHiveMindChat } from '@/hooks/useHiveMindChat';
 import { useAuth } from '@/contexts/AuthContext';
-import { CreateConversationData } from '@/types/chat';
+import { ChatMessageData, CreateConversationData } from '@/types/chat';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,48 +36,36 @@ const CurrentChatModule: React.FC = () => {
   const {
     conversations, selectedConversation, messages, participants,
     isLoading, isLoadingMessages, selectConversation, createConversation,
-    sendMessage, deleteMessage, addParticipant, removeParticipant,
-    deleteConversation, leaveConversation, setSelectedConversation
+    sendMessage, deleteMessage, editMessage, togglePinConversation, toggleFavoriteConversation,
+    addParticipant, removeParticipant,
+    deleteConversation, leaveConversation, setSelectedConversation,
   } = useChat();
 
-  const { testConversations, deleteTestConversation, deleteTestMessage, getTestMessages, isTestConversation } = useTestChats();
   const { getStatus, fetchPresence } = usePresence();
   const { profileId } = useProfileId();
   const { isHiveMindMention, extractHiveMindQuery, sendToHiveMind } = useHiveMindChat();
 
-  const [testSelectedConv, setTestSelectedConv] = useState<string | null>(null);
+  const activeConversation = selectedConversation;
 
-  const activeConversation = testSelectedConv
-    ? testConversations.find(c => c.id === testSelectedConv) || null
-    : selectedConversation;
-
-  const activeMessages = useMemo(
-    () => (testSelectedConv ? getTestMessages(testSelectedConv) : messages),
-    [getTestMessages, messages, testSelectedConv]
-  );
-  const allConversations = useMemo(
-    () => [...testConversations, ...conversations],
-    [testConversations, conversations]
-  );
-
-  // Typing indicator
   const { typingText, handleTyping } = useTypingIndicator(activeConversation?.id || null);
-
-  // Reactions
   const { fetchReactions, toggleReaction, getReactionGroups } = useReactions(activeConversation?.id || null);
 
-  // Fetch reactions when messages change
-  useEffect(() => {
-    if (activeMessages.length > 0 && !testSelectedConv) {
-      fetchReactions(activeMessages.map(m => m.id));
-    }
-  }, [activeMessages, fetchReactions, testSelectedConv]);
+  // Reply / edit state
+  const [replyTo, setReplyTo] = useState<ChatMessageData | null>(null);
+  const [editing, setEditing] = useState<ChatMessageData | null>(null);
 
-  // Fetch presence for participants
+  // Clear reply/edit state when switching conversation
   useEffect(() => {
-    if (participants.length > 0) {
-      fetchPresence(participants.map(p => p.user_id));
-    }
+    setReplyTo(null);
+    setEditing(null);
+  }, [activeConversation?.id]);
+
+  useEffect(() => {
+    if (messages.length > 0) fetchReactions(messages.map(m => m.id));
+  }, [messages, fetchReactions]);
+
+  useEffect(() => {
+    if (participants.length > 0) fetchPresence(participants.map(p => p.user_id));
   }, [participants, fetchPresence]);
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -91,11 +79,10 @@ const CurrentChatModule: React.FC = () => {
   const [profileSetupOpen, setProfileSetupOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
 
-  // Prompt for profile ID creation if not set
   useEffect(() => {
     if (user && profileId === null && !profileSetupOpen) {
-      const timer = setTimeout(() => setProfileSetupOpen(true), 2000);
-      return () => clearTimeout(timer);
+      const t = setTimeout(() => setProfileSetupOpen(true), 2000);
+      return () => clearTimeout(t);
     }
   }, [user, profileId, profileSetupOpen]);
 
@@ -103,43 +90,47 @@ const CurrentChatModule: React.FC = () => {
   const handleNewGroup = () => { setCreateDialogType('group'); setCreateDialogOpen(true); };
 
   const handleCreateConversation = async (data: CreateConversationData) => {
-    const conversation = await createConversation(data);
-    if (conversation) selectConversation(conversation);
+    const conv = await createConversation(data);
+    if (conv) selectConversation(conv);
   };
 
   const handleSendMessage = async (content: string) => {
     if (!activeConversation) return;
-    if (isTestConversation(activeConversation.id)) return;
-    await sendMessage({ conversation_id: activeConversation.id, content });
+
+    if (editing) {
+      await editMessage(editing.id, content);
+      setEditing(null);
+      return;
+    }
+
+    await sendMessage({
+      conversation_id: activeConversation.id,
+      content,
+      reply_to_id: replyTo?.id || null,
+    });
+    setReplyTo(null);
 
     if (isHiveMindMention(content)) {
       const query = extractHiveMindQuery(content);
-      if (query) {
-        sendToHiveMind(query, activeConversation.id);
-      }
+      if (query) sendToHiveMind(query, activeConversation.id);
     }
   };
 
   const handleStartChatFromSearch = async (userId: string, userName: string) => {
-    const existing = conversations.find(c => 
-      c.type === 'direct' && 
-      c.participants?.some(p => p.user_id === userId)
+    const existing = conversations.find(c =>
+      c.type === 'direct' && c.participants?.some(p => p.user_id === userId)
     );
-
     if (existing) {
       selectConversation(existing);
       setUserSearchOpen(false);
       return;
     }
-
-    const conversation = await createConversation({
+    const conv = await createConversation({
       type: 'direct',
       participant_ids: [userId],
       name: userName,
     });
-    if (conversation) {
-      selectConversation(conversation);
-    }
+    if (conv) selectConversation(conv);
     setUserSearchOpen(false);
   };
 
@@ -150,12 +141,7 @@ const CurrentChatModule: React.FC = () => {
 
   const handleConfirmDelete = async () => {
     if (conversationToDelete) {
-      if (isTestConversation(conversationToDelete)) {
-        deleteTestConversation(conversationToDelete);
-        if (testSelectedConv === conversationToDelete) setTestSelectedConv(null);
-      } else {
-        await deleteConversation(conversationToDelete);
-      }
+      await deleteConversation(conversationToDelete);
       setConversationToDelete(null);
     }
     setDeleteDialogOpen(false);
@@ -176,29 +162,15 @@ const CurrentChatModule: React.FC = () => {
 
   const isAdmin = participants.find(p => p.user_id === user?.id)?.is_admin || false;
 
-  const handleSelectConversation = (conversation: typeof allConversations[0]) => {
-    if (isTestConversation(conversation.id)) {
-      setTestSelectedConv(conversation.id);
-      setSelectedConversation(null);
-    } else {
-      setTestSelectedConv(null);
-      selectConversation(conversation);
-    }
-  };
-
-  const handleDeleteActiveMessage = (messageId: string) => {
-    if (testSelectedConv) deleteTestMessage(messageId);
-    else deleteMessage(messageId);
-  };
-
+  // Resizable panel persistence
   const STORAGE_KEY = 'tz_chat_sidebar_size';
-  const initialSidebarSize = (() => {
+  const initialSidebarSize = useMemo(() => {
     try {
       const v = parseFloat(localStorage.getItem(STORAGE_KEY) || '');
-      if (!isNaN(v) && v >= 18 && v <= 42) return v;
+      if (!isNaN(v) && v >= 18 && v <= 50) return v;
     } catch {}
-    return 26;
-  })();
+    return 28;
+  }, []);
 
   const resizeSaveRef = useRef<number | null>(null);
   const handlePanelResize = useCallback((sizes: number[]) => {
@@ -226,20 +198,21 @@ const CurrentChatModule: React.FC = () => {
         onLayout={handlePanelResize}
         className="relative h-full w-full"
       >
-        {/* Sidebar */}
         <ResizablePanel
           defaultSize={initialSidebarSize}
           minSize={20}
-          maxSize={42}
+          maxSize={50}
           className="relative h-full min-w-0"
         >
           <ChatSidebar
-            conversations={allConversations}
+            conversations={conversations}
             selectedConversation={activeConversation}
-            onSelectConversation={handleSelectConversation}
+            onSelectConversation={selectConversation}
             onNewChat={handleNewChat}
             onNewGroup={handleNewGroup}
             onDeleteConversation={handleDeleteConversationClick}
+            onTogglePin={togglePinConversation}
+            onToggleFavorite={toggleFavoriteConversation}
             onOpenTeamsSettings={() => setTeamsSettingsOpen(true)}
             onOpenUserSearch={() => setUserSearchOpen(true)}
             isLoading={isLoading}
@@ -257,33 +230,38 @@ const CurrentChatModule: React.FC = () => {
           className="w-px bg-white/10 hover:bg-primary/40 transition-colors data-[resize-handle-state=drag]:bg-primary/60"
         />
 
-        {/* Main Chat Area */}
-        <ResizablePanel defaultSize={100 - initialSidebarSize} minSize={45}>
+        <ResizablePanel defaultSize={100 - initialSidebarSize} minSize={40}>
           <div className="flex flex-col h-full min-w-0 bg-transparent">
             {activeConversation ? (
               <>
                 <ChatHeader
                   conversation={activeConversation}
-                  participants={testSelectedConv ? [] : participants}
+                  participants={participants}
                   onAddParticipant={() => setAddMemberDialogOpen(true)}
                   onViewParticipants={() => setParticipantsDialogOpen(true)}
                   onLeaveGroup={() => setLeaveDialogOpen(true)}
                   onDeleteConversation={() => handleDeleteConversationClick(activeConversation.id)}
-                  isTestChat={!!testSelectedConv}
                   getPresenceStatus={getStatus}
                 />
                 <ChatMessageArea
-                  messages={activeMessages}
-                  isLoading={testSelectedConv ? false : isLoadingMessages}
-                  onDeleteMessage={handleDeleteActiveMessage}
-                  reactionGroups={testSelectedConv ? undefined : getReactionGroups}
-                  onToggleReaction={testSelectedConv ? undefined : toggleReaction}
+                  messages={messages}
+                  isLoading={isLoadingMessages}
+                  participants={participants}
+                  onDeleteMessage={deleteMessage}
+                  onReplyToMessage={setReplyTo}
+                  onEditMessage={setEditing}
+                  reactionGroups={getReactionGroups}
+                  onToggleReaction={toggleReaction}
                 />
                 <TypingIndicatorBar typingText={typingText} />
                 <ChatInputArea
                   onSend={handleSendMessage}
                   onTyping={handleTyping}
-                  disabled={testSelectedConv ? false : isLoadingMessages}
+                  disabled={isLoadingMessages}
+                  replyTo={replyTo}
+                  onCancelReply={() => setReplyTo(null)}
+                  editing={editing}
+                  onCancelEdit={() => setEditing(null)}
                 />
               </>
             ) : (
@@ -296,8 +274,22 @@ const CurrentChatModule: React.FC = () => {
                       <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-cyan-400 animate-pulse" />
                     </div>
                   </div>
-                  <h3 className="text-xl font-semibold text-foreground">Welcome to Current Chat</h3>
-                  <p className="text-sm mt-2 text-muted-foreground">Select a conversation or search users with @ to start messaging.</p>
+                  <h3 className="text-xl font-semibold text-foreground">
+                    {conversations.length === 0 ? 'Start a new conversation' : 'Select a conversation'}
+                  </h3>
+                  <p className="text-sm mt-2 text-muted-foreground">
+                    {conversations.length === 0
+                      ? 'Find a teammate or create a group to begin messaging.'
+                      : 'Pick a chat from the list to view messages.'}
+                  </p>
+                  <div className="mt-6 flex items-center justify-center gap-2">
+                    <Button onClick={() => setUserSearchOpen(true)} className="gap-2">
+                      <AtSign className="h-4 w-4" /> Search Users
+                    </Button>
+                    <Button variant="outline" onClick={handleNewGroup} className="gap-2">
+                      <Users className="h-4 w-4" /> Create Group
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -305,8 +297,6 @@ const CurrentChatModule: React.FC = () => {
         </ResizablePanel>
       </ResizablePanelGroup>
 
-
-      {/* Dialogs */}
       <CreateChatDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} type={createDialogType} onCreateConversation={handleCreateConversation} />
       <CreateChatDialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen} type="group" onCreateConversation={handleAddMember} />
       <ParticipantsDialog
@@ -322,7 +312,6 @@ const CurrentChatModule: React.FC = () => {
         onComplete={() => setProfileSetupOpen(false)}
       />
 
-      {/* Delete Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -336,7 +325,6 @@ const CurrentChatModule: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Leave Dialog */}
       <AlertDialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
