@@ -11,9 +11,10 @@ import {
 import { notifyChatMessage, notifyMention } from '@/lib/notificationService';
 import { toast } from 'sonner';
 
-// Helper: sort conversations by last message time DESC
+// Helper: sort conversations — pinned first, then by last activity DESC
 function sortConversations(convs: Conversation[]): Conversation[] {
   return [...convs].sort((a, b) => {
+    if (!!a.is_pinned !== !!b.is_pinned) return a.is_pinned ? -1 : 1;
     const timeA = a.last_message?.created_at || a.updated_at;
     const timeB = b.last_message?.created_at || b.updated_at;
     return new Date(timeB).getTime() - new Date(timeA).getTime();
@@ -48,7 +49,9 @@ export function useChat() {
             id,
             user_id,
             is_admin,
-            last_read_at
+            last_read_at,
+            is_pinned,
+            is_favorite
           )
         `)
         .order('updated_at', { ascending: false });
@@ -130,7 +133,9 @@ export function useChat() {
             name: displayName,
             avatar_url: displayAvatar,
             last_message: lastMessageData || undefined,
-            unread_count: unreadCount
+            unread_count: unreadCount,
+            is_pinned: !!myParticipation?.is_pinned,
+            is_favorite: !!myParticipation?.is_favorite,
           } as Conversation;
         })
       );
