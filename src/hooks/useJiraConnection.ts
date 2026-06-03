@@ -34,7 +34,7 @@ export function useJiraConnection() {
     try {
       const { data, error } = await supabase
         .from('jira_connections')
-        .select('*')
+        .select('jira_domain, jira_email, jira_project_key, is_connected, connection_status, last_validated_at')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -49,7 +49,7 @@ export function useJiraConnection() {
           data: {
             jiraDomain: data.jira_domain,
             jiraEmail: data.jira_email,
-            jiraApiToken: data.jira_api_token,
+            jiraApiToken: '',
             jiraProjectKey: data.jira_project_key,
           },
           lastValidatedAt: data.last_validated_at || undefined,
