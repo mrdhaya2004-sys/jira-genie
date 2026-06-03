@@ -11,9 +11,10 @@ import {
 import { notifyChatMessage, notifyMention } from '@/lib/notificationService';
 import { toast } from 'sonner';
 
-// Helper: sort conversations by last message time DESC
+// Helper: sort conversations — pinned first, then by last activity DESC
 function sortConversations(convs: Conversation[]): Conversation[] {
   return [...convs].sort((a, b) => {
+    if (!!a.is_pinned !== !!b.is_pinned) return a.is_pinned ? -1 : 1;
     const timeA = a.last_message?.created_at || a.updated_at;
     const timeB = b.last_message?.created_at || b.updated_at;
     return new Date(timeB).getTime() - new Date(timeA).getTime();
@@ -48,7 +49,9 @@ export function useChat() {
             id,
             user_id,
             is_admin,
-            last_read_at
+            last_read_at,
+            is_pinned,
+            is_favorite
           )
         `)
         .order('updated_at', { ascending: false });
@@ -130,7 +133,9 @@ export function useChat() {
             name: displayName,
             avatar_url: displayAvatar,
             last_message: lastMessageData || undefined,
-            unread_count: unreadCount
+            unread_count: unreadCount,
+            is_pinned: !!myParticipation?.is_pinned,
+            is_favorite: !!myParticipation?.is_favorite,
           } as Conversation;
         })
       );
@@ -188,10 +193,29 @@ export function useChat() {
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
 
-      const messagesWithSenders = (data || []).map(msg => ({
-        ...msg,
-        sender: profileMap.get(msg.sender_id)
-      })) as ChatMessageData[];
+      // Fetch reply-to message previews
+      const replyIds = [...new Set((data || [])
+        .map(m => (m as any).reply_to_id)
+        .filter(Boolean))] as string[];
+      const replyMap = new Map<string, { id: string; content: string; sender_id: string; is_deleted: boolean }>();
+      if (replyIds.length > 0) {
+        const { data: replies } = await supabase
+          .from('chat_messages')
+          .select('id, content, sender_id, is_deleted')
+          .in('id', replyIds);
+        (replies || []).forEach(r => replyMap.set(r.id, r));
+      }
+
+      const messagesWithSenders = (data || []).map(msg => {
+        const r = (msg as any).reply_to_id ? replyMap.get((msg as any).reply_to_id) : null;
+        return {
+          ...msg,
+          sender: profileMap.get(msg.sender_id),
+          reply_to: r
+            ? { ...r, sender_name: profileMap.get(r.sender_id)?.full_name }
+            : null,
+        };
+      }) as ChatMessageData[];
 
       setMessages(messagesWithSenders);
 
@@ -335,7 +359,8 @@ export function useChat() {
           sender_id: user.id,
           content: data.content,
           message_type: data.message_type || 'text',
-          metadata: (data.metadata || {}) as Record<string, string | number | boolean | null>
+          metadata: (data.metadata || {}) as Record<string, string | number | boolean | null>,
+          reply_to_id: data.reply_to_id || null,
         }]);
 
       if (error) throw error;
@@ -418,9 +443,9 @@ export function useChat() {
 
       if (error) throw error;
 
-      setMessages(prev => 
-        prev.map(m => m.id === messageId 
-          ? { ...m, is_deleted: true, content: 'This message was deleted' } 
+      setMessages(prev =>
+        prev.map(m => m.id === messageId
+          ? { ...m, is_deleted: true, content: 'This message was deleted' }
           : m
         )
       );
@@ -433,6 +458,70 @@ export function useChat() {
       return false;
     }
   }, []);
+
+  // Edit a message
+  const editMessage = useCallback(async (messageId: string, newContent: string): Promise<boolean> => {
+    if (!newContent.trim()) return false;
+    try {
+      const editedAt = new Date().toISOString();
+      const { error } = await supabase
+        .from('chat_messages')
+        .update({ content: newContent, edited_at: editedAt })
+        .eq('id', messageId);
+
+      if (error) throw error;
+
+      setMessages(prev =>
+        prev.map(m => m.id === messageId ? { ...m, content: newContent, edited_at: editedAt } : m)
+      );
+      return true;
+    } catch (error) {
+      console.error('Error editing message:', error);
+      toast.error('Failed to edit message');
+      return false;
+    }
+  }, []);
+
+  // Toggle pin / favorite for current user on a conversation
+  const togglePinConversation = useCallback(async (conversationId: string): Promise<void> => {
+    if (!user) return;
+    const target = !conversations.find(c => c.id === conversationId)?.is_pinned;
+    setConversations(prev =>
+      sortConversations(prev.map(c => c.id === conversationId ? { ...c, is_pinned: target } : c))
+    );
+    const { error } = await supabase
+      .from('conversation_participants')
+      .update({ is_pinned: target })
+      .eq('conversation_id', conversationId)
+      .eq('user_id', user.id);
+    if (error) {
+      toast.error('Failed to update pin');
+      setConversations(prev =>
+        sortConversations(prev.map(c => c.id === conversationId ? { ...c, is_pinned: !target } : c))
+      );
+    } else {
+      toast.success(target ? 'Pinned' : 'Unpinned');
+    }
+  }, [user, conversations]);
+
+  const toggleFavoriteConversation = useCallback(async (conversationId: string): Promise<void> => {
+    if (!user) return;
+    const target = !conversations.find(c => c.id === conversationId)?.is_favorite;
+    setConversations(prev =>
+      prev.map(c => c.id === conversationId ? { ...c, is_favorite: target } : c)
+    );
+    const { error } = await supabase
+      .from('conversation_participants')
+      .update({ is_favorite: target })
+      .eq('conversation_id', conversationId)
+      .eq('user_id', user.id);
+    if (error) {
+      toast.error('Failed to update favorite');
+      setConversations(prev =>
+        prev.map(c => c.id === conversationId ? { ...c, is_favorite: !target } : c)
+      );
+    }
+  }, [user, conversations]);
 
   // Add participant to group
   const addParticipant = useCallback(async (conversationId: string, userId: string): Promise<boolean> => {
@@ -683,6 +772,9 @@ export function useChat() {
     createConversation,
     sendMessage,
     deleteMessage,
+    editMessage,
+    togglePinConversation,
+    toggleFavoriteConversation,
     addParticipant,
     removeParticipant,
     deleteConversation,

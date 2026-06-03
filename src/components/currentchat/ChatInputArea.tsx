@@ -1,9 +1,10 @@
-import React, { useState, KeyboardEvent, useRef } from 'react';
+import React, { useState, useEffect, KeyboardEvent, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Paperclip, Smile, Code, X, FileIcon } from 'lucide-react';
+import { Send, Paperclip, Smile, Code, X, FileIcon, Reply, Pencil } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { ChatMessageData } from '@/types/chat';
 
 const QUICK_EMOJIS = ['😀', '😂', '❤️', '👍', '👎', '🎉', '🔥', '✅', '❌', '🤔', '👀', '🚀', '💯', '🙏', '😍', '🥳'];
 
@@ -13,6 +14,10 @@ interface ChatInputAreaProps {
   onTyping?: () => void;
   disabled?: boolean;
   placeholder?: string;
+  replyTo?: ChatMessageData | null;
+  onCancelReply?: () => void;
+  editing?: ChatMessageData | null;
+  onCancelEdit?: () => void;
 }
 
 const ChatInputArea: React.FC<ChatInputAreaProps> = ({
@@ -20,16 +25,33 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
   onFileUpload,
   onTyping,
   disabled = false,
-  placeholder = "Type a message..."
+  placeholder = 'Type a message...',
+  replyTo = null,
+  onCancelReply,
+  editing = null,
+  onCancelEdit,
 }) => {
   const [message, setMessage] = useState('');
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
-  const [showCodeWrap, setShowCodeWrap] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Sync editing content into the input
+  useEffect(() => {
+    if (editing) {
+      setMessage(editing.content);
+      textareaRef.current?.focus();
+    }
+  }, [editing?.id]);
+
+  // Focus when starting a reply
+  useEffect(() => {
+    if (replyTo) textareaRef.current?.focus();
+  }, [replyTo?.id]);
 
   const handleSend = () => {
-    let content = message.trim();
+    const content = message.trim();
     if (!content && !attachedFile) return;
 
     if (attachedFile && onFileUpload) {
@@ -47,6 +69,9 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    } else if (e.key === 'Escape') {
+      if (editing && onCancelEdit) { onCancelEdit(); setMessage(''); }
+      else if (replyTo && onCancelReply) { onCancelReply(); }
     }
   };
 
@@ -57,9 +82,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setAttachedFile(file);
-    }
+    if (file) setAttachedFile(file);
   };
 
   const insertEmoji = (emoji: string) => {
@@ -68,29 +91,55 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
   };
 
   const wrapInCodeBlock = () => {
-    if (message.trim()) {
-      setMessage(prev => `\`\`\`\n${prev}\n\`\`\``);
-    } else {
-      setMessage('```\n\n```');
-    }
-    setShowCodeWrap(false);
+    if (message.trim()) setMessage(prev => `\`\`\`\n${prev}\n\`\`\``);
+    else setMessage('```\n\n```');
   };
 
   return (
     <div className="relative border-t border-white/10 bg-card/40 backdrop-blur-2xl">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+
+      {/* Editing banner */}
+      {editing && (
+        <div className="px-4 pt-3 pb-0 animate-fade-in">
+          <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-2 text-sm">
+            <Pencil className="h-4 w-4 text-amber-500 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-semibold text-amber-500">Editing message</div>
+              <div className="truncate text-xs text-muted-foreground">{editing.content}</div>
+            </div>
+            <Button variant="ghost" size="icon-sm" className="h-6 w-6" onClick={() => { onCancelEdit?.(); setMessage(''); }}>
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Reply banner */}
+      {!editing && replyTo && (
+        <div className="px-4 pt-3 pb-0 animate-fade-in">
+          <div className="flex items-center gap-2 bg-primary/10 border border-primary/30 rounded-xl px-3 py-2 text-sm">
+            <Reply className="h-4 w-4 text-primary flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-semibold text-primary">
+                Replying to {replyTo.sender?.full_name || 'message'}
+              </div>
+              <div className="truncate text-xs text-muted-foreground">{replyTo.content}</div>
+            </div>
+            <Button variant="ghost" size="icon-sm" className="h-6 w-6" onClick={onCancelReply}>
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Attached file preview */}
       {attachedFile && (
         <div className="px-4 pt-3 pb-0">
           <div className="inline-flex items-center gap-2 bg-white/[0.06] border border-white/10 backdrop-blur-xl rounded-xl px-3 py-2 text-sm">
             <FileIcon className="h-4 w-4 text-muted-foreground" />
             <span className="truncate max-w-[200px]">{attachedFile.name}</span>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="h-5 w-5"
-              onClick={() => setAttachedFile(null)}
-            >
+            <Button variant="ghost" size="icon-sm" className="h-5 w-5" onClick={() => setAttachedFile(null)}>
               <X className="h-3 w-3" />
             </Button>
           </div>
@@ -103,17 +152,12 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             variant="ghost"
             size="icon-sm"
             className="flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-white/10 rounded-lg h-9 w-9"
-            disabled={disabled}
+            disabled={disabled || !!editing}
             onClick={() => fileInputRef.current?.click()}
           >
             <Paperclip className="h-4 w-4" />
           </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            onChange={handleFileSelect}
-          />
+          <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelect} />
 
           <Button
             variant="ghost"
@@ -127,15 +171,16 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
           </Button>
 
           <Textarea
+            ref={textareaRef}
             value={message}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            placeholder={placeholder}
+            placeholder={editing ? 'Edit your message...' : placeholder}
             disabled={disabled}
             rows={1}
             className={cn(
-              "flex-1 min-h-[36px] max-h-32 resize-none py-2 px-2 bg-transparent border-0 shadow-none",
-              "focus-visible:ring-0 focus-visible:ring-offset-0"
+              'flex-1 min-h-[36px] max-h-32 resize-none py-2 px-2 bg-transparent border-0 shadow-none',
+              'focus-visible:ring-0 focus-visible:ring-offset-0'
             )}
           />
 
@@ -180,4 +225,3 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 };
 
 export default ChatInputArea;
-
