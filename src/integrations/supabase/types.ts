@@ -97,10 +97,12 @@ export type Database = {
           content: string
           conversation_id: string
           created_at: string
+          edited_at: string | null
           id: string
           is_deleted: boolean
           message_type: string
           metadata: Json | null
+          reply_to_id: string | null
           sender_id: string
           updated_at: string
         }
@@ -108,10 +110,12 @@ export type Database = {
           content: string
           conversation_id: string
           created_at?: string
+          edited_at?: string | null
           id?: string
           is_deleted?: boolean
           message_type?: string
           metadata?: Json | null
+          reply_to_id?: string | null
           sender_id: string
           updated_at?: string
         }
@@ -119,10 +123,12 @@ export type Database = {
           content?: string
           conversation_id?: string
           created_at?: string
+          edited_at?: string | null
           id?: string
           is_deleted?: boolean
           message_type?: string
           metadata?: Json | null
+          reply_to_id?: string | null
           sender_id?: string
           updated_at?: string
         }
@@ -134,6 +140,13 @@ export type Database = {
             referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "chat_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
         ]
       }
       conversation_participants: {
@@ -141,6 +154,8 @@ export type Database = {
           conversation_id: string
           id: string
           is_admin: boolean
+          is_favorite: boolean
+          is_pinned: boolean
           joined_at: string
           last_read_at: string | null
           user_id: string
@@ -149,6 +164,8 @@ export type Database = {
           conversation_id: string
           id?: string
           is_admin?: boolean
+          is_favorite?: boolean
+          is_pinned?: boolean
           joined_at?: string
           last_read_at?: string | null
           user_id: string
@@ -157,6 +174,8 @@ export type Database = {
           conversation_id?: string
           id?: string
           is_admin?: boolean
+          is_favorite?: boolean
+          is_pinned?: boolean
           joined_at?: string
           last_read_at?: string | null
           user_id?: string
