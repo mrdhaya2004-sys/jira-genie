@@ -359,7 +359,8 @@ export function useChat() {
           sender_id: user.id,
           content: data.content,
           message_type: data.message_type || 'text',
-          metadata: (data.metadata || {}) as Record<string, string | number | boolean | null>
+          metadata: (data.metadata || {}) as Record<string, string | number | boolean | null>,
+          reply_to_id: data.reply_to_id || null,
         }]);
 
       if (error) throw error;
@@ -442,9 +443,9 @@ export function useChat() {
 
       if (error) throw error;
 
-      setMessages(prev => 
-        prev.map(m => m.id === messageId 
-          ? { ...m, is_deleted: true, content: 'This message was deleted' } 
+      setMessages(prev =>
+        prev.map(m => m.id === messageId
+          ? { ...m, is_deleted: true, content: 'This message was deleted' }
           : m
         )
       );
@@ -457,6 +458,70 @@ export function useChat() {
       return false;
     }
   }, []);
+
+  // Edit a message
+  const editMessage = useCallback(async (messageId: string, newContent: string): Promise<boolean> => {
+    if (!newContent.trim()) return false;
+    try {
+      const editedAt = new Date().toISOString();
+      const { error } = await supabase
+        .from('chat_messages')
+        .update({ content: newContent, edited_at: editedAt })
+        .eq('id', messageId);
+
+      if (error) throw error;
+
+      setMessages(prev =>
+        prev.map(m => m.id === messageId ? { ...m, content: newContent, edited_at: editedAt } : m)
+      );
+      return true;
+    } catch (error) {
+      console.error('Error editing message:', error);
+      toast.error('Failed to edit message');
+      return false;
+    }
+  }, []);
+
+  // Toggle pin / favorite for current user on a conversation
+  const togglePinConversation = useCallback(async (conversationId: string): Promise<void> => {
+    if (!user) return;
+    const target = !conversations.find(c => c.id === conversationId)?.is_pinned;
+    setConversations(prev =>
+      sortConversations(prev.map(c => c.id === conversationId ? { ...c, is_pinned: target } : c))
+    );
+    const { error } = await supabase
+      .from('conversation_participants')
+      .update({ is_pinned: target })
+      .eq('conversation_id', conversationId)
+      .eq('user_id', user.id);
+    if (error) {
+      toast.error('Failed to update pin');
+      setConversations(prev =>
+        sortConversations(prev.map(c => c.id === conversationId ? { ...c, is_pinned: !target } : c))
+      );
+    } else {
+      toast.success(target ? 'Pinned' : 'Unpinned');
+    }
+  }, [user, conversations]);
+
+  const toggleFavoriteConversation = useCallback(async (conversationId: string): Promise<void> => {
+    if (!user) return;
+    const target = !conversations.find(c => c.id === conversationId)?.is_favorite;
+    setConversations(prev =>
+      prev.map(c => c.id === conversationId ? { ...c, is_favorite: target } : c)
+    );
+    const { error } = await supabase
+      .from('conversation_participants')
+      .update({ is_favorite: target })
+      .eq('conversation_id', conversationId)
+      .eq('user_id', user.id);
+    if (error) {
+      toast.error('Failed to update favorite');
+      setConversations(prev =>
+        prev.map(c => c.id === conversationId ? { ...c, is_favorite: !target } : c)
+      );
+    }
+  }, [user, conversations]);
 
   // Add participant to group
   const addParticipant = useCallback(async (conversationId: string, userId: string): Promise<boolean> => {
@@ -707,6 +772,9 @@ export function useChat() {
     createConversation,
     sendMessage,
     deleteMessage,
+    editMessage,
+    togglePinConversation,
+    toggleFavoriteConversation,
     addParticipant,
     removeParticipant,
     deleteConversation,
