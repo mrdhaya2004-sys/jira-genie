@@ -84,6 +84,11 @@ const DashboardPage: React.FC = () => {
     }
   }, []);
 
+  // Idle-preload the most frequently used modules so first click feels instant.
+  useEffect(() => {
+    preloadFrequentModules();
+  }, []);
+
   return (
     <div className="flex h-screen bg-background">
       <Helmet>
