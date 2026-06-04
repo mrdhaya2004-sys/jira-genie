@@ -148,6 +148,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       <div className="px-3 py-2 space-y-0.5 relative z-10">
         <button
           onClick={() => navigate("ai-settings")}
+          onMouseEnter={() => preloadModule('ai-settings')}
+          onFocus={() => preloadModule('ai-settings')}
           className={cn("menu-item", activeModule === 'ai-settings' && "is-active")}>
           <Brain className="h-4 w-4" />
           AI Configuration
@@ -161,12 +163,16 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         </button>
         <button
           onClick={() => navigate("about")}
+          onMouseEnter={() => preloadModule('about')}
+          onFocus={() => preloadModule('about')}
           className={cn("menu-item", activeModule === 'about' && "is-active")}>
           <Info className="h-4 w-4" />
           About Us
         </button>
         <button
           onClick={() => navigate("account-settings")}
+          onMouseEnter={() => preloadModule('account-settings')}
+          onFocus={() => preloadModule('account-settings')}
           className={cn("menu-item", activeModule === 'account-settings' && "is-active")}>
           <Settings className="h-4 w-4" />
           Settings
