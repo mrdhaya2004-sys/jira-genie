@@ -100,7 +100,26 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
   };
 
   return (
-    <header className="h-12 border-b border-border/60 bg-gradient-to-r from-primary/5 via-card/90 to-primary/5 dark:from-primary/10 dark:via-card/80 dark:to-primary/10 backdrop-blur-md flex items-center justify-between px-4 lg:px-6 relative">
+    <header className="h-12 border-b border-border/60 bg-white dark:bg-card backdrop-blur-md flex items-center justify-between px-4 lg:px-6 relative overflow-hidden">
+      {/* Celebration decorations — header only, edges only */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        {/* Left cluster */}
+        <span className="absolute -top-1 left-2 h-1.5 w-1.5 rounded-full bg-[#3b82f6] opacity-[0.12] dark:opacity-40 dark:shadow-[0_0_8px_#3b82f6] animate-[float_6s_ease-in-out_infinite]" />
+        <span className="absolute top-3 left-8 h-1 w-3 rounded-full bg-[#06b6d4] opacity-[0.10] dark:opacity-40 dark:shadow-[0_0_8px_#06b6d4] rotate-[25deg] animate-[float_7s_ease-in-out_infinite]" />
+        <span className="absolute bottom-1 left-16 h-1.5 w-1.5 rotate-45 bg-[#22c55e] opacity-[0.10] dark:opacity-40 dark:shadow-[0_0_8px_#22c55e] animate-[float_8s_ease-in-out_infinite_0.5s]" />
+        <span className="absolute top-1 left-24 h-1 w-1 rounded-full bg-[#a855f7] opacity-[0.10] dark:opacity-40 dark:shadow-[0_0_8px_#a855f7] animate-[float_9s_ease-in-out_infinite_1s]" />
+        <span className="absolute bottom-2 left-32 h-1 w-2 rounded-full bg-[#f97316] opacity-[0.10] dark:opacity-40 dark:shadow-[0_0_8px_#f97316] -rotate-12 animate-[float_7.5s_ease-in-out_infinite_0.3s]" />
+        <div className="absolute -top-6 -left-6 h-16 w-16 rounded-full bg-gradient-to-br from-[#3b82f6] to-[#a855f7] opacity-[0.06] dark:opacity-20 blur-2xl" />
+
+        {/* Right cluster */}
+        <span className="absolute top-2 right-4 h-1.5 w-1.5 rounded-full bg-[#a855f7] opacity-[0.12] dark:opacity-40 dark:shadow-[0_0_8px_#a855f7] animate-[float_6.5s_ease-in-out_infinite]" />
+        <span className="absolute bottom-1 right-10 h-1 w-3 rounded-full bg-[#f97316] opacity-[0.10] dark:opacity-40 dark:shadow-[0_0_8px_#f97316] -rotate-[20deg] animate-[float_8s_ease-in-out_infinite_0.4s]" />
+        <span className="absolute top-3 right-20 h-1.5 w-1.5 rotate-45 bg-[#22c55e] opacity-[0.10] dark:opacity-40 dark:shadow-[0_0_8px_#22c55e] animate-[float_7s_ease-in-out_infinite_1.2s]" />
+        <span className="absolute -top-1 right-28 h-1 w-1 rounded-full bg-[#06b6d4] opacity-[0.10] dark:opacity-40 dark:shadow-[0_0_8px_#06b6d4] animate-[float_9s_ease-in-out_infinite_0.8s]" />
+        <span className="absolute bottom-2 right-36 h-1 w-2 rounded-full bg-[#3b82f6] opacity-[0.10] dark:opacity-40 dark:shadow-[0_0_8px_#3b82f6] rotate-12 animate-[float_7.5s_ease-in-out_infinite_0.6s]" />
+        <div className="absolute -top-6 -right-6 h-16 w-16 rounded-full bg-gradient-to-br from-[#06b6d4] via-[#22c55e] to-[#f97316] opacity-[0.06] dark:opacity-20 blur-2xl" />
+      </div>
+
       {/* Subtle bottom gradient accent */}
       <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       

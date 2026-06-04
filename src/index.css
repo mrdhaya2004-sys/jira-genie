@@ -1011,3 +1011,11 @@
   .press:active, .lift:hover { transform: none !important; }
   html { scroll-behavior: auto; }
 }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
+  50% { transform: translateY(-3px) translateX(2px) rotate(8deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-[float"] { animation: none !important; }
+}
