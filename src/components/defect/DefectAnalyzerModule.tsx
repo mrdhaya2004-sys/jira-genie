@@ -50,8 +50,8 @@ const DefectAnalyzerModule: React.FC = () => {
         <div className="relative flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           <div className="relative shrink-0">
             <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary/40 to-primary/10 blur-md animate-glow-pulse" />
-            <div className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-lg glass-effect flex items-center justify-center">
-              <ShieldAlert className="h-5 w-5 text-primary" />
+            <div className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-lg glass-effect flex items-center justify-center overflow-hidden">
+              <img src={defectAnalyzerLogo.url} alt="AI Defect Analyzer" className="h-full w-full object-contain" />
             </div>
           </div>
           <div className="min-w-0 flex-1">
