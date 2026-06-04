@@ -104,6 +104,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         <button
           key={item.label}
           onClick={() => navigate(item.module)}
+          onMouseEnter={() => preloadModule(item.module)}
+          onFocus={() => preloadModule(item.module)}
+          onTouchStart={() => preloadModule(item.module)}
           className={cn("menu-item", activeModule === item.module && "is-active")}>
 
             <item.icon className="h-4 w-4 flex-shrink-0" />
