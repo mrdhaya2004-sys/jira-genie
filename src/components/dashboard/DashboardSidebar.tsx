@@ -20,6 +20,7 @@ import {
 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
+import { preloadModule } from '@/lib/modulePreloader';
 import testzoneLogo from '@/assets/testzone-logo.png';
 import { useMentions } from '@/hooks/useMentions';
 import HelpChatDialog from '@/components/help/HelpChatDialog';
