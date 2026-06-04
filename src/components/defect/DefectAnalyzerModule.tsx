@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, RotateCcw, Sparkles, ShieldAlert, Play } from 'lucide-react';
+import { Loader2, RotateCcw, Sparkles, Play } from 'lucide-react';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useDefectAnalyzer } from '@/hooks/useDefectAnalyzer';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
@@ -10,6 +10,7 @@ import ScrollToBottomButton from '@/components/common/ScrollToBottomButton';
 import DefectChatMessage from './DefectChatMessage';
 import DefectReportUploader from './DefectReportUploader';
 import { useToast } from '@/hooks/use-toast';
+import defectAnalyzerLogo from '@/assets/defect-analyzer-logo.png.asset.json';
 
 const DefectAnalyzerModule: React.FC = () => {
   const { workspaces, isLoading: workspacesLoading } = useWorkspaces();
