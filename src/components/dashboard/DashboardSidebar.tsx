@@ -20,6 +20,7 @@ import {
 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
+import { preloadModule } from '@/lib/modulePreloader';
 import testzoneLogo from '@/assets/testzone-logo.png';
 import { useMentions } from '@/hooks/useMentions';
 import HelpChatDialog from '@/components/help/HelpChatDialog';
@@ -103,6 +104,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         <button
           key={item.label}
           onClick={() => navigate(item.module)}
+          onMouseEnter={() => preloadModule(item.module)}
+          onFocus={() => preloadModule(item.module)}
+          onTouchStart={() => preloadModule(item.module)}
           className={cn("menu-item", activeModule === item.module && "is-active")}>
 
             <item.icon className="h-4 w-4 flex-shrink-0" />
@@ -126,6 +130,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           <button
             key={item.label}
             onClick={() => navigate(item.module)}
+            onMouseEnter={() => preloadModule(item.module)}
+            onFocus={() => preloadModule(item.module)}
+            onTouchStart={() => preloadModule(item.module)}
             className={cn("menu-item", activeModule === item.module && "is-active")}>
 
               <item.icon className="h-4 w-4 flex-shrink-0" />
@@ -141,6 +148,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       <div className="px-3 py-2 space-y-0.5 relative z-10">
         <button
           onClick={() => navigate("ai-settings")}
+          onMouseEnter={() => preloadModule('ai-settings')}
+          onFocus={() => preloadModule('ai-settings')}
           className={cn("menu-item", activeModule === 'ai-settings' && "is-active")}>
           <Brain className="h-4 w-4" />
           AI Configuration
@@ -154,12 +163,16 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         </button>
         <button
           onClick={() => navigate("about")}
+          onMouseEnter={() => preloadModule('about')}
+          onFocus={() => preloadModule('about')}
           className={cn("menu-item", activeModule === 'about' && "is-active")}>
           <Info className="h-4 w-4" />
           About Us
         </button>
         <button
           onClick={() => navigate("account-settings")}
+          onMouseEnter={() => preloadModule('account-settings')}
+          onFocus={() => preloadModule('account-settings')}
           className={cn("menu-item", activeModule === 'account-settings' && "is-active")}>
           <Settings className="h-4 w-4" />
           Settings
