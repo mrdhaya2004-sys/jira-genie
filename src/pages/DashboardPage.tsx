@@ -1,4 +1,4 @@
-import React, { useState, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useCallback, useEffect, lazy, Suspense } from 'react';
 import { Helmet } from 'react-helmet-async';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
@@ -7,22 +7,25 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import AIActivationBanner from '@/components/ai/AIActivationBanner';
+import { moduleLoaders, preloadFrequentModules } from '@/lib/modulePreloader';
 
 // Lazy-load every module — only the active one is fetched/parsed.
-const AgenticAIModule = lazy(() => import('@/components/workspace/AgenticAIModule'));
-const JiraTicketRaiserModule = lazy(() => import('@/components/jira/JiraTicketRaiserModule'));
-const LogicScenarioCreatorModule = lazy(() => import('@/components/scenario/LogicScenarioCreatorModule'));
-const TestCaseGeneratorModule = lazy(() => import('@/components/testcase/TestCaseGeneratorModule'));
-const XPathGeneratorModule = lazy(() => import('@/components/xpath/XPathGeneratorModule'));
-const DefectAnalyzerModule = lazy(() => import('@/components/defect/DefectAnalyzerModule'));
-const MyTicketsModule = lazy(() => import('@/components/tickets/MyTicketsModule'));
-const HistoryModule = lazy(() => import('@/components/automation/HistoryModule'));
-const CurrentChatModule = lazy(() => import('@/components/currentchat/CurrentChatModule'));
-const AIConfigurationModule = lazy(() => import('@/components/settings/AIConfigurationModule'));
-const ProfileModule = lazy(() => import('@/components/profile/ProfileModule'));
-const AccountSettingsModule = lazy(() => import('@/components/settings/AccountSettingsModule'));
-const AboutUsModule = lazy(() => import('@/components/about/AboutUsModule'));
-const FounderPage = lazy(() => import('@/components/about/FounderPage'));
+// Loader factories are shared with the preloader so hover/focus preloads dedupe.
+type AnyComp = { default: React.ComponentType<any> };
+const AgenticAIModule = lazy(moduleLoaders['agentic-ai'] as () => Promise<AnyComp>);
+const JiraTicketRaiserModule = lazy(moduleLoaders['jira-ticket-raiser'] as () => Promise<AnyComp>);
+const LogicScenarioCreatorModule = lazy(moduleLoaders['logic-scenario-creator'] as () => Promise<AnyComp>);
+const TestCaseGeneratorModule = lazy(moduleLoaders['test-case-generator'] as () => Promise<AnyComp>);
+const XPathGeneratorModule = lazy(moduleLoaders['xpath-generator'] as () => Promise<AnyComp>);
+const DefectAnalyzerModule = lazy(moduleLoaders['defect-analyzer'] as () => Promise<AnyComp>);
+const MyTicketsModule = lazy(moduleLoaders['tickets'] as () => Promise<AnyComp>);
+const HistoryModule = lazy(moduleLoaders['history'] as () => Promise<AnyComp>);
+const CurrentChatModule = lazy(moduleLoaders['chat'] as () => Promise<AnyComp>);
+const AIConfigurationModule = lazy(moduleLoaders['ai-settings'] as () => Promise<AnyComp>);
+const ProfileModule = lazy(moduleLoaders['profile'] as () => Promise<AnyComp>);
+const AccountSettingsModule = lazy(moduleLoaders['account-settings'] as () => Promise<AnyComp>);
+const AboutUsModule = lazy(moduleLoaders['about'] as () => Promise<AnyComp>);
+const FounderPage = lazy(moduleLoaders['founder'] as () => Promise<AnyComp>);
 
 export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'defect-analyzer' | 'ai-settings' | 'profile' | 'account-settings' | 'about' | 'founder';
 
