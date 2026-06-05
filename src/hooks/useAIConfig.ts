@@ -8,6 +8,9 @@ export const useAIConfig = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isTesting, setIsTesting] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
+  const [lastResponseMs, setLastResponseMs] = useState<number | null>(null);
+  const [isTesting, setIsTesting] = useState(false);
+  const [isDetecting, setIsDetecting] = useState(false);
   const { toast } = useToast();
 
   const fetchConfig = useCallback(async () => {
