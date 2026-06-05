@@ -28,7 +28,7 @@ import {
 'lucide-react';
 
 const AIConfigurationModule: React.FC = () => {
-  const { config, isLoading, isTesting, isDetecting, saveConfig, testConnection, detectModels, removeConfig } = useAIConfig();
+  const { config, isLoading, isTesting, isDetecting, lastResponseMs, saveConfig, testConnection, detectModels, removeConfig } = useAIConfig();
   const { hiveEnabled, setHiveEnabled } = useHiveAISettings();
   const [showDisableDialog, setShowDisableDialog] = useState(false);
 
