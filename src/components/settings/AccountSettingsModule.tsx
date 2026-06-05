@@ -530,47 +530,54 @@ const AccountSettingsModule: React.FC = () => {
           <div className="mx-4 h-px bg-gradient-to-r from-transparent via-border/60 to-transparent" />
 
           {/* Nav */}
-          <nav className="relative flex-1 px-2.5 py-3 space-y-1 overflow-y-auto scrollbar-thin">
+          <nav className="relative flex-1 px-2.5 py-3 overflow-y-auto scrollbar-thin">
             {SECTIONS.map((section, idx) => {
               const isActive = activeSection === section.id;
               const isHive = section.id === 'hive-ai';
               return (
-                <button
-                  key={section.id}
-                  onClick={() => setActiveSection(section.id)}
-                  style={{ animationDelay: `${idx * 30}ms` }}
-                  className={cn(
-                    "group relative w-full flex items-center gap-3 pl-3.5 pr-3 py-2.5 rounded-xl text-[13px] font-medium",
-                    "transition-all duration-300 ease-out animate-fade-in",
-                    isActive
-                      ? "text-foreground bg-gradient-to-r from-primary/15 via-primary/10 to-cyan-400/5 border border-primary/25 shadow-[0_4px_16px_-6px_hsl(var(--primary)/0.4),inset_0_1px_0_0_hsl(0_0%_100%/0.08)] -translate-y-px"
-                      : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-white/[0.04] hover:border-white/10 hover:translate-x-0.5"
-                  )}
-                >
-                  <span
+                <React.Fragment key={section.id}>
+                  <button
+                    onClick={() => setActiveSection(section.id)}
+                    style={{ animationDelay: `${idx * 30}ms` }}
                     className={cn(
-                      "absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-gradient-to-b from-primary to-cyan-400 transition-all duration-300",
-                      isActive ? "h-6 opacity-100 shadow-[0_0_8px_hsl(var(--primary)/0.8)]" : "h-0 opacity-0"
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      "relative flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-300",
+                      "group relative w-full flex items-center gap-3 pl-3.5 pr-3 py-2.5 rounded-xl text-[13px] font-medium",
+                      "transition-all duration-300 ease-out animate-fade-in",
                       isActive
-                        ? "bg-primary/15 text-primary shadow-[0_0_12px_-2px_hsl(var(--primary)/0.6)]"
-                        : "text-muted-foreground/80 group-hover:text-foreground group-hover:bg-white/[0.04]"
+                        ? "text-foreground bg-gradient-to-r from-primary/15 via-primary/10 to-cyan-400/5 border border-primary/25 shadow-[0_4px_16px_-6px_hsl(var(--primary)/0.4),inset_0_1px_0_0_hsl(0_0%_100%/0.08)] -translate-y-px"
+                        : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-white/[0.04] hover:border-white/10 hover:translate-x-0.5"
                     )}
                   >
-                    <section.icon className="h-4 w-4" />
-                    {isHive && (
-                      <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                        <span className="absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75 animate-ping" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_6px_hsl(190_100%_60%)]" />
-                      </span>
-                    )}
-                  </span>
-                  <span className="flex-1 text-left tracking-tight">{section.label}</span>
-                </button>
+                    <span
+                      className={cn(
+                        "absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-gradient-to-b from-primary to-cyan-400 transition-all duration-300",
+                        isActive ? "h-6 opacity-100 shadow-[0_0_8px_hsl(var(--primary)/0.8)]" : "h-0 opacity-0"
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        "relative flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-300",
+                        isActive
+                          ? "bg-primary/15 text-primary shadow-[0_0_12px_-2px_hsl(var(--primary)/0.6)]"
+                          : "text-muted-foreground/80 group-hover:text-foreground group-hover:bg-white/[0.04]"
+                      )}
+                    >
+                      <section.icon className="h-4 w-4" />
+                      {isHive && (
+                        <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                          <span className="absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75 animate-ping" />
+                          <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_6px_hsl(190_100%_60%)]" />
+                        </span>
+                      )}
+                    </span>
+                    <span className="flex-1 text-left tracking-tight">{section.label}</span>
+                  </button>
+                  {idx < SECTIONS.length - 1 && (
+                    <div
+                      className="h-px mx-3 my-2.5 bg-gradient-to-r from-transparent via-black/[0.06] to-transparent dark:via-white/[0.08]"
+                      aria-hidden="true"
+                    />
+                  )}
+                </React.Fragment>
               );
             })}
           </nav>
