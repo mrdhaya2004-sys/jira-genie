@@ -6,6 +6,7 @@ import { AI_PROVIDERS } from '@/types/aiConfig';
 
 interface Props {
   onRetry?: () => void;
+  responseMs?: number | null;
   className?: string;
 }
 
