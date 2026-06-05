@@ -27,7 +27,7 @@ const formatRelative = (iso: string | null): string => {
  * Shows connected / not activated / error / verifying / quota states with
  * animated pulse dot.
  */
-const AIStatusCard: React.FC<Props> = ({ onRetry, className = '' }) => {
+const AIStatusCard: React.FC<Props> = ({ onRetry, responseMs, className = '' }) => {
   const { status, config, lastVerifiedAt, lastError, isLoading } = useAIStatus();
 
   const providerLabel = config ? (AI_PROVIDERS.find(p => p.value === config.provider)?.label ?? config.provider) : null;
