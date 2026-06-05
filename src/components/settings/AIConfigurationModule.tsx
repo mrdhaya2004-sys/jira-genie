@@ -114,7 +114,7 @@ const AIConfigurationModule: React.FC = () => {
         </div>
       </div>
       {/* Live per-user AI status */}
-      <AIStatusCard onRetry={handleTest} />
+      <AIStatusCard onRetry={handleTest} responseMs={lastResponseMs} />
 
 
       {/* Hive Mind Architecture Info */}
