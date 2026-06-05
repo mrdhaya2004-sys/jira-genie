@@ -66,13 +66,22 @@ const AIConfigurationModule: React.FC = () => {
       return;
     }
     setIsSaving(true);
-    await saveConfig({
+    const ok = await saveConfig({
       provider,
       apiKey: apiKey || config?.api_key_encrypted || '',
       model,
       endpointUrl: endpointUrl || undefined,
       displayName: displayName || undefined
     });
+    if (ok) {
+      // Auto-validate after save so users immediately see Connected / Not Connected
+      await testConnection({
+        provider,
+        apiKey: apiKey || config?.api_key_encrypted || '',
+        model,
+        endpointUrl: endpointUrl || undefined,
+      });
+    }
     setIsSaving(false);
     setApiKey('');
   };
