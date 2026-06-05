@@ -65,27 +65,45 @@ const AIStatusCard: React.FC<Props> = ({ onRetry, responseMs, className = '' }) 
   }
 
   return (
-    <div className={`glass-shine relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl ${className}`}>
+    <div className={`glass-shine relative overflow-hidden rounded-2xl border p-5 backdrop-blur-xl transition-shadow ${
+      status === 'connected' ? 'border-green-500/30 bg-green-500/5 shadow-[0_0_30px_-10px_hsl(142_71%_45%/0.5)]' :
+      status === 'error' ? 'border-red-500/30 bg-red-500/5 shadow-[0_0_30px_-10px_hsl(0_84%_60%/0.5)]' :
+      status === 'verifying' || isLoading ? 'border-blue-500/30 bg-blue-500/5 shadow-[0_0_30px_-10px_hsl(217_91%_60%/0.5)]' :
+      'border-yellow-500/30 bg-yellow-500/5'
+    } ${className}`}>
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-[hsl(var(--chart-2))] to-success rounded-none" />
       <div className="flex items-center gap-4">
         <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background/50">
           <Icon className={`h-6 w-6 ${iconClass}`} />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${dotColor} ring-2 ${ring} animate-pulse`} />
             <h3 className="text-base font-semibold leading-none text-foreground">{title}</h3>
+            {status === 'connected' && (
+              <span className="ml-1 inline-flex items-center rounded-full border border-green-500/40 bg-green-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-green-700 dark:text-green-400">
+                Connected
+              </span>
+            )}
+            {status === 'error' && (
+              <span className="ml-1 inline-flex items-center rounded-full border border-red-500/40 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-700 dark:text-red-400">
+                Not Connected
+              </span>
+            )}
           </div>
-          <p className="mt-1.5 text-sm text-muted-foreground">{detail}</p>
+          <p className="mt-1.5 text-sm text-muted-foreground break-words">{detail}</p>
           {(status === 'connected' || status === 'error') && (
             <p className="mt-2 text-xs text-muted-foreground/80">
               Last verified: <span className="font-medium text-foreground/80">{formatRelative(lastVerifiedAt)}</span>
+              {typeof responseMs === 'number' && (
+                <> · Response: <span className="font-medium text-foreground/80">{responseMs} ms</span></>
+              )}
             </p>
           )}
         </div>
-        {status === 'error' && onRetry && (
+        {(status === 'error' || status === 'connected') && onRetry && (
           <Button size="sm" variant="outline" onClick={onRetry} className="shrink-0">
-            Retry Connection
+            {status === 'error' ? 'Retry Connection' : 'Test Connection'}
           </Button>
         )}
       </div>
