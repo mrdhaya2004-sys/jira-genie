@@ -257,6 +257,7 @@ export const useAIConfig = () => {
     isLoading,
     isTesting,
     isDetecting,
+    lastResponseMs,
     saveConfig,
     testConnection,
     detectModels,
