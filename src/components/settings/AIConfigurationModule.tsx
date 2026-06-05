@@ -28,7 +28,7 @@ import {
 'lucide-react';
 
 const AIConfigurationModule: React.FC = () => {
-  const { config, isLoading, isTesting, isDetecting, saveConfig, testConnection, detectModels, removeConfig } = useAIConfig();
+  const { config, isLoading, isTesting, isDetecting, lastResponseMs, saveConfig, testConnection, detectModels, removeConfig } = useAIConfig();
   const { hiveEnabled, setHiveEnabled } = useHiveAISettings();
   const [showDisableDialog, setShowDisableDialog] = useState(false);
 
@@ -66,13 +66,22 @@ const AIConfigurationModule: React.FC = () => {
       return;
     }
     setIsSaving(true);
-    await saveConfig({
+    const ok = await saveConfig({
       provider,
       apiKey: apiKey || config?.api_key_encrypted || '',
       model,
       endpointUrl: endpointUrl || undefined,
       displayName: displayName || undefined
     });
+    if (ok) {
+      // Auto-validate after save so users immediately see Connected / Not Connected
+      await testConnection({
+        provider,
+        apiKey: apiKey || config?.api_key_encrypted || '',
+        model,
+        endpointUrl: endpointUrl || undefined,
+      });
+    }
     setIsSaving(false);
     setApiKey('');
   };
@@ -114,7 +123,7 @@ const AIConfigurationModule: React.FC = () => {
         </div>
       </div>
       {/* Live per-user AI status */}
-      <AIStatusCard onRetry={handleTest} />
+      <AIStatusCard onRetry={handleTest} responseMs={lastResponseMs} />
 
 
       {/* Hive Mind Architecture Info */}
@@ -176,42 +185,66 @@ const AIConfigurationModule: React.FC = () => {
 
       {/* Current Status */}
       {config &&
-      <Card className="glass-shine">
+      <Card className={`glass-shine ${
+        config.status === 'connected' ? 'border-green-500/30' :
+        config.status === 'error' ? 'border-red-500/30' : 'border-yellow-500/30'
+      }`}>
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <CardTitle className="text-base flex items-center gap-2">
                 <div className="glass-shine flex items-center justify-center h-8 w-8 rounded-lg">
-                  <CheckCircle2 className="h-4 w-4 text-success" />
+                  {config.status === 'connected'
+                    ? <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    : <XCircle className="h-4 w-4 text-red-500" />}
                 </div>
-                Active Configuration
+                Connection Details
+                <span className={`ml-1 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                  config.status === 'connected'
+                    ? 'border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-400'
+                    : config.status === 'error'
+                    ? 'border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-400'
+                    : 'border-yellow-500/40 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400'
+                }`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${
+                    config.status === 'connected' ? 'bg-green-500' :
+                    config.status === 'error' ? 'bg-red-500' : 'bg-yellow-500'
+                  } animate-pulse`} />
+                  {config.status === 'connected' ? 'Connected' : config.status === 'error' ? 'Not Connected' : 'Not Verified'}
+                </span>
               </CardTitle>
-              <Button variant="ghost" size="sm" className="menu-item-shine text-destructive hover:text-destructive" onClick={removeConfig}>
-                <Trash2 className="h-4 w-4 mr-1" />
-                Remove
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button variant="outline" size="sm" className="menu-item-shine" onClick={handleTest} disabled={isTesting}>
+                  {isTesting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Plug className="h-4 w-4 mr-1" />}
+                  Test Connection
+                </Button>
+                <Button variant="ghost" size="sm" className="menu-item-shine text-destructive hover:text-destructive" onClick={removeConfig}>
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Remove
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <div><span className="text-muted-foreground">Provider:</span><span className="ml-2 font-medium">{AI_PROVIDERS.find((p) => p.value === config.provider)?.label}</span></div>
+              <div><span className="text-muted-foreground">Model:</span><span className="ml-2 font-medium">{config.model_name}</span></div>
+              {config.display_name && <div><span className="text-muted-foreground">Name:</span><span className="ml-2 font-medium">{config.display_name}</span></div>}
+              <div><span className="text-muted-foreground">API Key:</span><span className="ml-2 font-medium">••••••••</span></div>
+              {config.endpoint_url && <div className="sm:col-span-2 truncate"><span className="text-muted-foreground">Endpoint:</span><span className="ml-2 font-mono text-xs">{config.endpoint_url}</span></div>}
               <div>
-                <span className="text-muted-foreground">Provider:</span>
-                <span className="ml-2 font-medium">{AI_PROVIDERS.find((p) => p.value === config.provider)?.label}</span>
+                <span className="text-muted-foreground">Last Verified:</span>
+                <span className="ml-2 font-medium">{config.last_verified_at ? new Date(config.last_verified_at).toLocaleString() : 'Never'}</span>
               </div>
-              <div>
-                <span className="text-muted-foreground">Model:</span>
-                <span className="ml-2 font-medium">{config.model_name}</span>
-              </div>
-              {config.display_name &&
-            <div>
-                  <span className="text-muted-foreground">Name:</span>
-                  <span className="ml-2 font-medium">{config.display_name}</span>
-                </div>
-            }
-              <div>
-                <span className="text-muted-foreground">API Key:</span>
-                <span className="ml-2 font-medium">••••••••</span>
-              </div>
+              {typeof lastResponseMs === 'number' && (
+                <div><span className="text-muted-foreground">Response Time:</span><span className="ml-2 font-medium">{lastResponseMs} ms</span></div>
+              )}
             </div>
+            {config.status === 'error' && config.last_error && (
+              <div className="mt-4 rounded-lg border border-red-500/30 bg-red-500/5 p-3 text-sm text-red-700 dark:text-red-400 flex items-start gap-2">
+                <XCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span className="break-words">{config.last_error}</span>
+              </div>
+            )}
           </CardContent>
         </Card>
       }

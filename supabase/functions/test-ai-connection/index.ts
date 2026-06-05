@@ -117,17 +117,35 @@ serve(async (req) => {
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const response = await fetch(url, { method: 'POST', headers, body });
+    const startedAt = Date.now();
+    let response: Response;
+    try {
+      response = await fetch(url, { method: 'POST', headers, body });
+    } catch (e) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Endpoint Unreachable — could not reach ${(() => { try { return new URL(url).host; } catch { return url; } })()}. Check the endpoint URL and your network.`,
+        responseMs: Date.now() - startedAt,
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const responseMs = Date.now() - startedAt;
     const responseText = await response.text();
 
     if (!response.ok) {
+      const snippet = responseText.slice(0, 200);
+      let friendly: string;
+      switch (response.status) {
+        case 401: friendly = 'Invalid API Key — provider rejected the credentials (401 Unauthorized).'; break;
+        case 403: friendly = 'Missing Permissions — API key cannot access this model or endpoint (403 Forbidden).'; break;
+        case 404: friendly = 'Model or Endpoint Not Found — verify the model name and endpoint URL (404).'; break;
+        case 429: friendly = 'Rate Limit Exceeded — too many requests or quota exhausted (429).'; break;
+        case 500: case 502: case 503: case 504:
+          friendly = `Provider Service Error — upstream returned ${response.status}. Try again shortly.`; break;
+        default: friendly = `Authentication Failed — provider returned ${response.status}: ${snippet}`;
+      }
       return new Response(JSON.stringify({
-        success: false,
-        error: `Provider returned ${response.status}: ${responseText.slice(0, 200)}`,
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+        success: false, error: friendly, status: response.status, responseMs,
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const responseCT = (response.headers.get('content-type') || '').toLowerCase();
@@ -135,14 +153,16 @@ serve(async (req) => {
       return new Response(JSON.stringify({
         success: false,
         error:
-          `Provider returned ${responseCT || 'non-JSON content'} instead of a chat-completions response. ` +
+          `Endpoint returned ${responseCT || 'non-JSON content'} instead of a chat-completions response. ` +
           `The endpoint URL is likely wrong — it must point to "/v1/chat/completions" or equivalent.`,
+        responseMs,
       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     return new Response(JSON.stringify({
       success: true,
       message: 'Connection verified successfully',
+      responseMs,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

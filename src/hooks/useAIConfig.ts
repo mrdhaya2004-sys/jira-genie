@@ -8,6 +8,7 @@ export const useAIConfig = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isTesting, setIsTesting] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
+  const [lastResponseMs, setLastResponseMs] = useState<number | null>(null);
   const { toast } = useToast();
 
   const fetchConfig = useCallback(async () => {
@@ -121,6 +122,7 @@ export const useAIConfig = () => {
       );
 
       const result = await response.json();
+      if (typeof result.responseMs === 'number') setLastResponseMs(result.responseMs);
 
       // Persist verification outcome on the active config for this user
       const { data: { user } } = await supabase.auth.getUser();
@@ -255,6 +257,7 @@ export const useAIConfig = () => {
     isLoading,
     isTesting,
     isDetecting,
+    lastResponseMs,
     saveConfig,
     testConnection,
     detectModels,
