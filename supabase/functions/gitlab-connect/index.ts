@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { corsHeaders, validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
-import { sanitizeBaseUrl, gitlabFetch } from "../_shared/gitlab.ts";
+import { GitLabConnectionError, sanitizeBaseUrl, gitlabFetch, gitlabApiUrl } from "../_shared/gitlab.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -17,18 +17,19 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    try { base_url = sanitizeBaseUrl(base_url); } catch (e) {
-      return new Response(JSON.stringify({ error: (e as Error).message }), {
+    try { base_url = sanitizeBaseUrl(base_url); } catch {
+      return new Response(JSON.stringify({ error: "Enter a valid HTTPS GitLab URL. You may paste a dashboard, project, or group page; TestZone will save only the root host." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Validate token by calling /user
+    // Validate the normalized GitLab root URL + token by calling <origin>/api/v4/user.
     const userRes = await gitlabFetch({ base_url, encrypted_token: token }, "/user");
     if (!userRes.ok) {
       const text = await userRes.text();
       return new Response(JSON.stringify({
         error: userRes.status === 401 ? "Invalid GitLab token. Please check your PAT (api scope required)."
+          : userRes.status === 404 ? `We reached ${base_url}, but GitLab API was not found at ${gitlabApiUrl(base_url, "/user")}. Please enter the GitLab root URL.`
           : `GitLab rejected the connection (${userRes.status}). ${text.slice(0, 200)}`,
       }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -67,7 +68,7 @@ Deno.serve(async (req) => {
   } catch (e) {
     console.error("gitlab-connect error", e);
     return new Response(JSON.stringify({ error: (e as Error).message }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: e instanceof GitLabConnectionError ? 400 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
