@@ -8,8 +8,10 @@ export interface GitLabConn {
 export function sanitizeBaseUrl(raw: string): string {
   const cleaned = (raw || "https://gitlab.com").trim().replace(/\/+$/, "");
   const withScheme = /^https?:\/\//i.test(cleaned) ? cleaned : `https://${cleaned}`;
-  assertSafeExternalUrl(withScheme);
-  return withScheme;
+  const u = assertSafeExternalUrl(withScheme);
+  // Reduce to origin — users often paste a full dashboard URL (e.g. /dashboard/projects).
+  // The GitLab API lives at <origin>/api/v4, so strip any path/query/hash.
+  return `${u.protocol}//${u.host}`;
 }
 
 export async function gitlabFetch(
