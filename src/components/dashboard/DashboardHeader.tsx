@@ -49,6 +49,7 @@ const MODULE_LABELS: Record<ActiveModule, string> = {
   'test-case-generator': 'Test Case Generator',
   'xpath-generator': 'XPath Generator',
   'defect-analyzer': 'AI Defect Analyzer',
+  'gitlab-execution': 'GitLab AI',
   'ai-settings': 'AI Configuration',
   'profile': 'Profile',
   'account-settings': 'Account Settings',

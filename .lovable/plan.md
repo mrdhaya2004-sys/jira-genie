@@ -1,121 +1,98 @@
 
-# Enterprise XPath Generator – Hive Mind Workspace Integration
+## GitLab AI Execution Assistant
 
-This upgrades the existing XPath Generator into an enterprise-grade analyzer that handles huge DOM/app-source snapshots, auto-classifies elements, and emits multi-platform locators with confidence scoring — all driven from the selected Hive Mind Workspace + Environment.
+Build a chat-driven GitLab integration where users connect GitLab (PAT, gitlab.com or self-hosted), discover projects/branches automatically, and trigger / schedule / monitor pipelines from a TestZone chat module. Real-time status via 15s polling, scheduling via pg_cron, all updates surfaced in chat + Notification Center.
 
-## Scope
+### 1. Database (new tables)
 
-Reuse existing pieces:
-- `useEnvironmentContext` already loads env-scoped DOM + build files (no re-upload required).
-- `XPathGeneratorModule` + `useXPathGenerator` already drive workspace/module/platform/env selection and history/episodic memory.
-- `routeAIRequest` (custom NVIDIA provider) handles all AI traffic.
+- `gitlab_connections` — per-user: `base_url`, `encrypted_token`, `username`, `is_active`, `last_sync_at`
+- `gitlab_projects` — `connection_id`, `project_id` (GitLab numeric id), `name`, `path_with_namespace`, `default_branch`, `web_url`
+- `gitlab_branches` — `project_id`, `name`, `is_default`, `last_commit_sha`, `synced_at`
+- `gitlab_pipeline_runs` — `user_id`, `project_id`, `pipeline_id`, `branch`, `status`, `web_url`, `started_at`, `finished_at`, `duration_seconds`, `stats` jsonb (passed/failed/total), `triggered_via` (`chat` / `schedule`), `last_polled_at`, `conversation_id`, `chat_message_id`
+- `gitlab_schedules` — `user_id`, `project_id`, `branch`, `run_at` timestamptz, `status` (`pending`/`triggered`/`cancelled`/`failed`), `pipeline_run_id`, `conversation_id`
 
-What changes is **how DOM is processed** before the AI sees it, and **what output the AI must return**.
+RLS: owner-only on every table (`auth.uid() = user_id`). Token encrypted with `pgsodium` or stored via a server-only column accessed only by edge functions (service role).
 
-## Flow
+### 2. Edge functions (`verify_jwt = false`, manual auth)
 
+- `gitlab-connect` — validates PAT against `GET /user`, stores connection, kicks off initial sync.
+- `gitlab-sync` — fetches projects (`/projects?membership=true`), branches per project, default branch; upserts.
+- `gitlab-list-branches` — fast read from DB for a project.
+- `gitlab-trigger-pipeline` — `POST /projects/:id/pipeline` with `ref=branch`; stores run row; returns pipeline id + url.
+- `gitlab-poll-status` — invoked by cron every minute: finds runs in `pending`/`running`, calls `GET /projects/:id/pipelines/:pipeline_id`, updates status + jobs stats, on terminal status posts a chat message + notification.
+- `gitlab-run-schedules` — cron every minute: finds due `gitlab_schedules`, calls trigger logic, marks `triggered`.
+- `gitlab-disconnect`
+
+All call GitLab via user-supplied `base_url` (default `https://gitlab.com`) using `PRIVATE-TOKEN` header.
+
+### 3. Cron (pg_cron + pg_net)
+
+Two minute-level jobs hitting `gitlab-poll-status` and `gitlab-run-schedules`. Inserted via the insert tool (not migration) since they embed the project URL and anon key.
+
+### 4. Frontend — new module `GitLabExecutionModule`
+
+Route + sidebar entry "GitLab AI". Components:
+
+- `GitLabConnectionGate` — shows PAT + base URL form when not connected; matches Jira Connection Gate styling.
+- `GitLabChatPanel` — chat interface (reuses `ChatMessageArea` patterns) with:
+  - Project selector (dropdown, persisted in localStorage).
+  - Suggested branch chips rendered from synced branches.
+  - Natural-language input ("Start Homepage", "Run Regression"). Local parser: strip verbs (`start|run|execute|trigger`) + optional `pipeline|branch`, fuzzy match remaining token to branch list (case-insensitive, includes/startsWith). No AI call needed — keeps it instant and reliable.
+  - On match: assistant message with two action buttons **▶ Start Now** and **📅 Schedule Execution**.
+  - On miss: assistant lists closest 5 branches as clickable chips.
+- `ScheduleExecutionDialog` — shadcn DatePicker + time input → writes `gitlab_schedules` row.
+- `PipelineStatusCard` — rich chat card showing pipeline id, status badge (🟡/✅/❌), branch, duration, passed/failed, "View in GitLab" link.
+- `ExecutionHistoryPanel` — sortable/filterable list of `gitlab_pipeline_runs` with re-run button.
+- Suggested actions row after completion (View Report → web_url, Re-run, Run Regression, Run Smoke).
+
+### 5. Realtime + notifications
+
+- Enable Realtime on `gitlab_pipeline_runs` and `gitlab_schedules`.
+- Frontend subscribes; on status change pushes a new assistant chat message into the panel.
+- `gitlab-poll-status` also inserts into existing `notifications` table via `create_notification` RPC (`type='system'`) so the bell badge + Hive AI floating button reflect updates.
+
+### 6. Settings
+
+Add **GitLab** tab in Account Settings → Integrations: shows connection status (🟢 / 🔴 with response time, matching the AI status pattern), last sync, project count, disconnect button, "Re-sync now".
+
+### 7. Out of scope (deferrable)
+
+- OAuth flow (PAT only for v1; OAuth noted as follow-up).
+- GitLab webhooks (polling only for v1).
+- Cross-user pipeline visibility / team-level history.
+
+### Files to add / change (high level)
+
+```text
+supabase/migrations/<ts>_gitlab_integration.sql
+supabase/functions/gitlab-connect/index.ts
+supabase/functions/gitlab-sync/index.ts
+supabase/functions/gitlab-list-branches/index.ts
+supabase/functions/gitlab-trigger-pipeline/index.ts
+supabase/functions/gitlab-poll-status/index.ts
+supabase/functions/gitlab-run-schedules/index.ts
+supabase/functions/gitlab-disconnect/index.ts
+supabase/config.toml                              (verify_jwt = false entries)
+src/types/gitlab.ts
+src/hooks/useGitLabConnection.ts
+src/hooks/useGitLabProjects.ts
+src/hooks/useGitLabPipelines.ts
+src/components/gitlab/GitLabConnectionGate.tsx
+src/components/gitlab/GitLabExecutionModule.tsx
+src/components/gitlab/GitLabChatPanel.tsx
+src/components/gitlab/PipelineStatusCard.tsx
+src/components/gitlab/ScheduleExecutionDialog.tsx
+src/components/gitlab/ExecutionHistoryPanel.tsx
+src/components/gitlab/GitLabSettingsDialog.tsx
+src/components/dashboard/DashboardSidebar.tsx    (add nav entry)
+src/pages/DashboardPage.tsx                       (register module)
 ```
-Workspace → Environment → Auto-load DOM + Build
-        │
-        ▼
-[Chunk + Index + Classify DOM]  ← deterministic, in edge function
-        │
-        ▼
-[Build compact element catalog]  ← screens/forms/buttons/inputs/…
-        │
-        ▼
-User query ("Login button", "all elements on Dashboard", …)
-        │
-        ▼
-[Locator Generation per element]  ← XPath/CSS/UIAutomator/Predicate/Class Chain
-        │
-        ▼
-[Confidence + Stability + Risk scoring]
-        │
-        ▼
-Streamed structured response to UI
-```
 
-## Files to change/create
+### Delivery order
 
-**Edge functions**
-- `supabase/functions/_shared/domAnalyzer.ts` (new) — DOM parser/chunker/classifier; locator generators per platform; scoring engine.
-- `supabase/functions/xpath-generator/index.ts` (rewrite request handling) — load env DOM, run analyzer, build compact prompt, call `routeAIRequest`, stream back.
-
-**Frontend**
-- `src/types/xpath.ts` — extend `GeneratedXPath` with platform variants (css, uiautomator, resource_id, content_desc, predicate, class_chain, accessibility_id), `confidence`, `stability`, `reasoning`, plus `ElementAnalysis` and `DomRisk` types.
-- `src/components/xpath/XPathChatMessage.tsx` — render new structured cards (Screen → Element → locator tabs + scores + risks).
-- `src/components/xpath/XPathResultCard.tsx` (new) — per-element card with tabbed locators, copy buttons, confidence badge, risk chips.
-- `src/components/xpath/DomIntelligencePanel.tsx` (new) — surfaces duplicate IDs, dynamic elements, missing a11y labels, weak selectors.
-- `src/hooks/useXPathGenerator.ts` — parse new structured streaming payload (JSON lines or fenced JSON), map to typed `elements[]`, route specific error codes to friendly messages.
-- `src/lib/xpathErrors.ts` (new) — error code → user-facing message map (DOM_NOT_LOADED, ELEMENT_NOT_FOUND, AI_TIMEOUT, INVALID_APP_SOURCE, UNSUPPORTED_FORMAT, WORKSPACE_DATA_MISSING).
-
-## DOM processing strategy (50k+ lines)
-
-In `domAnalyzer.ts` we never send the raw DOM to the AI. Instead:
-
-1. **Parse** — tolerant line/tag walker that supports Appium-style XML (Android `hierarchy`/`android.widget.*`, iOS `XCUIElementType*`) and web HTML.
-2. **Index** — assign each node a stable internal id, capture: tag, attributes, text, parent id, sibling index, depth, screen container (nearest screen/activity/view-controller ancestor).
-3. **Classify** — rule-based: button / input / dropdown / checkbox / radio / link / table / list / nav / dialog / tab / card / a11y based on tag + attribute heuristics per platform.
-4. **Chunk** — group nodes by screen container; each chunk capped (e.g. 150 elements / ~6k chars). Catalog is what we send to the AI, not raw XML.
-5. **Score (deterministic, pre-AI)** — for each candidate locator we compute stability: unique `resource-id`/`name`/`data-testid` = high; text-only = medium; index-based or absolute = low. AI uses these scores; doesn't invent them.
-6. **Risk pass** — detect duplicate ids, missing `content-desc`/`accessibility-id`, dynamic-looking values (UUID/hash/numeric suffix), index-only addressable nodes.
-
-For queries like "Login button", we filter the catalog to the matching screen + classified type + fuzzy text match, then ask the AI only to (a) pick best matches, (b) explain reasoning, (c) format output. Locator strings themselves are generated deterministically in code so they're always valid.
-
-For "all elements on Dashboard" we stream chunk-by-chunk (progressive analysis), emitting one element card per AI turn so the UI updates in real time.
-
-## Locator generation (deterministic, per platform)
-
-Per element we always produce:
-- **Universal:** primary XPath (relative, attribute-based), alternative XPath, dynamic XPath (contains/starts-with for partial matches), CSS selector (web only).
-- **Android:** UIAutomator (`new UiSelector().resourceId(...)`), resource-id, content-desc, accessibility id.
-- **iOS:** predicate string (`name == 'Login'`), class chain (`**/XCUIElementTypeButton[\`name == "Login"\`]`), accessibility identifier.
-
-Rules: never emit absolute XPath as primary; avoid `[n]` indices when a unique attribute exists; flag dynamic ids; prefer `resource-id` → `content-desc` → `text` → structural.
-
-## AI output contract
-
-Edge function streams **JSON lines**, each line = one element result:
-
-```json
-{"screen":"Login","element_name":"Login Button","element_type":"button",
- "locators":{"primary_xpath":"//*[@resource-id='com.app:id/login_btn']",
-   "alternative_xpath":"//android.widget.Button[@text='Login']",
-   "css":null,"android":{"uiautomator":"new UiSelector().resourceId(\"com.app:id/login_btn\")",
-     "resource_id":"com.app:id/login_btn","content_desc":"Login"},
-   "ios":null,"accessibility_id":"login_btn"},
- "confidence":94,"stability":"high","reasoning":"Stable resource-id, unique on screen, no dynamic suffix."}
-```
-
-Plus a trailing `{"type":"dom_intelligence", "risks":[...]}` summary line.
-
-Frontend parses each line as it streams and renders one `XPathResultCard` per element.
-
-## Error handling
-
-Edge function returns typed errors (HTTP 200 with `{error_code, message}` payload or specific status):
-- `DOM_NOT_LOADED` — no dom snapshot for env+platform.
-- `WORKSPACE_DATA_MISSING` — workspace has no files.
-- `INVALID_APP_SOURCE` / `UNSUPPORTED_FORMAT` — parser rejection.
-- `ELEMENT_NOT_FOUND` — query had no matching candidates after classification.
-- `AI_TIMEOUT` — upstream timeout/abort.
-
-Frontend maps each to the friendly message specified by the user (never the generic "Sorry, I encountered an error").
-
-## Performance
-
-- Parsing/classification done in edge worker, O(n) over nodes, streamed.
-- Catalog cached in memory per request; large DOMs processed in chunks streamed to AI.
-- Frontend renders cards as they arrive (no waiting for full response).
-- Realtime status messages ("Indexing DOM…", "Classifying 8 screens…", "Generating locators for Login…") sent as `{type:"status"}` lines before element data.
-
-## Out of scope (this pass)
-
-- Visual screen previews (would need rendered screenshots).
-- Persisted element catalog across sessions (re-parsed per query for now).
-- Web-platform DOM parsing beyond standard HTML (no shadow DOM traversal yet).
-
-## Confirmation
-
-This is a large change touching one edge function + analyzer + 4–5 frontend files. Confirm and I'll implement straight through.
+1. Migration + cron jobs.
+2. Edge functions (connect → sync → trigger → poll → schedules → disconnect).
+3. Connection gate + settings.
+4. Chat panel with branch parsing, trigger, schedule dialog.
+5. Realtime status cards + notifications.
+6. Execution history + suggested actions.
