@@ -12,6 +12,7 @@ export const moduleLoaders = {
   'test-case-generator': () => import('@/components/testcase/TestCaseGeneratorModule'),
   'xpath-generator': () => import('@/components/xpath/XPathGeneratorModule'),
   'defect-analyzer': () => import('@/components/defect/DefectAnalyzerModule'),
+  'gitlab-execution': () => import('@/components/gitlab/GitLabExecutionModule'),
   'tickets': () => import('@/components/tickets/MyTicketsModule'),
   'history': () => import('@/components/automation/HistoryModule'),
   'chat': () => import('@/components/currentchat/CurrentChatModule'),
