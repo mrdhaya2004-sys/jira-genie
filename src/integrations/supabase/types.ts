@@ -341,6 +341,267 @@ export type Database = {
           },
         ]
       }
+      gitlab_branches: {
+        Row: {
+          id: string
+          is_default: boolean
+          last_commit_sha: string | null
+          name: string
+          project_row_id: string
+          synced_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_default?: boolean
+          last_commit_sha?: string | null
+          name: string
+          project_row_id: string
+          synced_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_default?: boolean
+          last_commit_sha?: string | null
+          name?: string
+          project_row_id?: string
+          synced_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gitlab_branches_project_row_id_fkey"
+            columns: ["project_row_id"]
+            isOneToOne: false
+            referencedRelation: "gitlab_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gitlab_connections: {
+        Row: {
+          base_url: string
+          created_at: string
+          encrypted_token: string
+          gitlab_user_id: number | null
+          gitlab_username: string | null
+          id: string
+          is_active: boolean
+          last_sync_at: string | null
+          last_sync_error: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_url?: string
+          created_at?: string
+          encrypted_token: string
+          gitlab_user_id?: number | null
+          gitlab_username?: string | null
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_url?: string
+          created_at?: string
+          encrypted_token?: string
+          gitlab_user_id?: number | null
+          gitlab_username?: string | null
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      gitlab_pipeline_runs: {
+        Row: {
+          branch: string
+          conversation_id: string | null
+          created_at: string
+          duration_seconds: number | null
+          error_message: string | null
+          finished_at: string | null
+          gitlab_project_id: number
+          id: string
+          last_polled_at: string | null
+          pipeline_id: number | null
+          project_row_id: string
+          started_at: string | null
+          stats: Json
+          status: string
+          triggered_via: string
+          updated_at: string
+          user_id: string
+          web_url: string | null
+        }
+        Insert: {
+          branch: string
+          conversation_id?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          gitlab_project_id: number
+          id?: string
+          last_polled_at?: string | null
+          pipeline_id?: number | null
+          project_row_id: string
+          started_at?: string | null
+          stats?: Json
+          status?: string
+          triggered_via?: string
+          updated_at?: string
+          user_id: string
+          web_url?: string | null
+        }
+        Update: {
+          branch?: string
+          conversation_id?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          gitlab_project_id?: number
+          id?: string
+          last_polled_at?: string | null
+          pipeline_id?: number | null
+          project_row_id?: string
+          started_at?: string | null
+          stats?: Json
+          status?: string
+          triggered_via?: string
+          updated_at?: string
+          user_id?: string
+          web_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gitlab_pipeline_runs_project_row_id_fkey"
+            columns: ["project_row_id"]
+            isOneToOne: false
+            referencedRelation: "gitlab_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gitlab_projects: {
+        Row: {
+          avatar_url: string | null
+          connection_id: string
+          created_at: string
+          default_branch: string | null
+          id: string
+          last_activity_at: string | null
+          name: string
+          path_with_namespace: string
+          project_id: number
+          updated_at: string
+          user_id: string
+          web_url: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          connection_id: string
+          created_at?: string
+          default_branch?: string | null
+          id?: string
+          last_activity_at?: string | null
+          name: string
+          path_with_namespace: string
+          project_id: number
+          updated_at?: string
+          user_id: string
+          web_url?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          connection_id?: string
+          created_at?: string
+          default_branch?: string | null
+          id?: string
+          last_activity_at?: string | null
+          name?: string
+          path_with_namespace?: string
+          project_id?: number
+          updated_at?: string
+          user_id?: string
+          web_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gitlab_projects_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "gitlab_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gitlab_schedules: {
+        Row: {
+          branch: string
+          conversation_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          pipeline_run_id: string | null
+          project_row_id: string
+          run_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          branch: string
+          conversation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          pipeline_run_id?: string | null
+          project_row_id: string
+          run_at: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          branch?: string
+          conversation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          pipeline_run_id?: string | null
+          project_row_id?: string
+          run_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gitlab_schedules_pipeline_run_id_fkey"
+            columns: ["pipeline_run_id"]
+            isOneToOne: false
+            referencedRelation: "gitlab_pipeline_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gitlab_schedules_project_row_id_fkey"
+            columns: ["project_row_id"]
+            isOneToOne: false
+            referencedRelation: "gitlab_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       history_logs: {
         Row: {
           action_type: string
