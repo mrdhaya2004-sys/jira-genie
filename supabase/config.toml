@@ -66,3 +66,23 @@ verify_jwt = false
 [functions.defect-analyzer]
 verify_jwt = false
 
+[functions.gitlab-connect]
+verify_jwt = false
+
+[functions.gitlab-sync]
+verify_jwt = false
+
+[functions.gitlab-trigger-pipeline]
+verify_jwt = false
+
+[functions.gitlab-poll-status]
+verify_jwt = false
+
+[functions.gitlab-run-schedules]
+verify_jwt = false
+
+[functions.gitlab-disconnect]
+verify_jwt = false
+
+
+
