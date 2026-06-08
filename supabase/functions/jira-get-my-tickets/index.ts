@@ -54,6 +54,45 @@ interface TicketFilters {
   startAt?: number;
 }
 
+function jsonResponse(payload: Record<string, unknown>, status = 200): Response {
+  return new Response(
+    JSON.stringify(payload),
+    { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
+
+function emptyTicketsResponse(error: string, projectKey?: string): Response {
+  return jsonResponse({
+    tickets: [],
+    total: 0,
+    maxResults: 0,
+    startAt: 0,
+    statuses: [],
+    projectKey: projectKey || '',
+    error,
+  });
+}
+
+function friendlyJiraError(status: number, errorText: string, projectKey: string): string {
+  if (/SUSPENDED_INACTIVITY/i.test(errorText) || /deactivated due to inactivity/i.test(errorText)) {
+    return 'Your Jira Cloud subscription has been deactivated due to inactivity. Please sign in to your Jira site to reactivate it, then retry.';
+  }
+  if (status === 401) return 'Jira authentication failed. Please reconnect Jira in Settings.';
+  if (status === 403) return 'Access denied by Jira. Check your permissions for this project.';
+  if (status === 404) return `Jira project "${projectKey}" was not found.`;
+  if (status >= 500) return 'Jira is temporarily unavailable. Please retry in a moment.';
+  return `Jira returned ${status}. Please try again.`;
+}
+
+function friendlyUnexpectedError(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error || 'Unknown error');
+  if (/dns|failed to lookup|name or service not known|network|fetch/i.test(message)) {
+    return 'Jira could not be reached from the backend. Check the Jira domain and try again.';
+  }
+  if (/Invalid Jira domain/i.test(message)) return message;
+  return 'Unable to load Jira tickets right now. Please retry in a moment.';
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -64,10 +103,7 @@ serve(async (req) => {
     // Validate authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ error: 'Unauthorized' }, 401);
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -83,10 +119,7 @@ serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ error: 'Unauthorized' }, 401);
     }
 
     // Get filters from request body
@@ -107,10 +140,7 @@ serve(async (req) => {
 
     if (!jiraDomain || !jiraEmail || !jiraApiToken || !jiraProjectKey) {
       console.error('Missing Jira configuration');
-      return new Response(
-        JSON.stringify({ error: 'Jira configuration is incomplete' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return emptyTicketsResponse('Jira configuration is incomplete. Please check your Jira connection settings.');
     }
 
     const auth = btoa(`${jiraEmail}:${jiraApiToken}`);
@@ -171,31 +201,7 @@ serve(async (req) => {
       const errorText = await response.text();
       console.error('Jira API error:', response.status, errorText);
 
-      let friendly = `Jira returned ${response.status}. Please try again.`;
-      if (/SUSPENDED_INACTIVITY/i.test(errorText) || /deactivated due to inactivity/i.test(errorText)) {
-        friendly = 'Your Jira Cloud subscription has been deactivated due to inactivity. Please sign in to your Jira site to reactivate it, then retry.';
-      } else if (response.status === 401) {
-        friendly = 'Jira authentication failed. Please reconnect Jira in Settings.';
-      } else if (response.status === 403) {
-        friendly = 'Access denied by Jira. Check your permissions for this project.';
-      } else if (response.status === 404) {
-        friendly = `Jira project "${jiraProjectKey}" was not found.`;
-      } else if (response.status >= 500) {
-        friendly = 'Jira is temporarily unavailable. Please retry in a moment.';
-      }
-
-      return new Response(
-        JSON.stringify({
-          tickets: [],
-          total: 0,
-          maxResults: 0,
-          startAt: 0,
-          statuses: [],
-          projectKey: jiraProjectKey,
-          error: friendly,
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return emptyTicketsResponse(friendlyJiraError(response.status, errorText, jiraProjectKey), jiraProjectKey);
     }
 
     const data = await response.json();
@@ -279,24 +285,17 @@ serve(async (req) => {
 
     console.log(`Fetched ${tickets.length} tickets for user:`, user.id);
 
-    return new Response(
-      JSON.stringify({
-        tickets,
-        total: totalCount,
-        maxResults: maxResults,
-        startAt: 0,
-        statuses,
-        projectKey: jiraProjectKey,
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({
+      tickets,
+      total: totalCount,
+      maxResults,
+      startAt: 0,
+      statuses,
+      projectKey: jiraProjectKey,
+    });
 
   } catch (error) {
     console.error('Error fetching tickets:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return emptyTicketsResponse(friendlyUnexpectedError(error));
   }
 });
