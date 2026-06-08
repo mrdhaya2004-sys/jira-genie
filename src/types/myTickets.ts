@@ -42,4 +42,5 @@ export interface MyTicketsResponse {
   startAt: number;
   statuses: string[];
   projectKey: string;
+  error?: string;
 }
