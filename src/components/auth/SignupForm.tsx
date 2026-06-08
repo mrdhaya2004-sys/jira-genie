@@ -115,15 +115,15 @@ const SignupForm: React.FC = () => {
       title="Test Zone" 
       subtitle="Join us and streamline your workflow today."
     >
-      <Card className="shadow-soft-lg border-border/50">
-        <CardHeader className="space-y-1 text-center pb-4">
-          <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-          <CardDescription>
+      <Card className="border-0 shadow-none sm:border sm:border-border/50 sm:shadow-soft-lg">
+        <CardHeader className="space-y-1 text-center px-0 sm:px-6 pb-4">
+          <CardTitle className="text-xl sm:text-2xl font-bold">Create Account</CardTitle>
+          <CardDescription className="text-sm">
             Fill in your details to get started
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-0 sm:px-6">
           {/* Social Signup */}
           <SocialLoginButtons
             onGoogleClick={handleGoogleSignup}
@@ -173,7 +173,7 @@ const SignupForm: React.FC = () => {
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Date of Birth */}
                 <FormField
                   control={form.control}
@@ -323,7 +323,7 @@ const SignupForm: React.FC = () => {
           </p>
         </CardContent>
 
-        <CardFooter className="flex justify-center border-t pt-6">
+        <CardFooter className="flex justify-center border-t pt-6 px-0 sm:px-6">
           <p className="text-sm text-muted-foreground">
             Already have an account?{' '}
             <Link
