@@ -100,29 +100,20 @@ serve(async (req) => {
   }
 
   try {
-    // Validate authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return jsonResponse({ error: 'Unauthorized' }, 401);
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-    
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Server configuration error');
+    // Load per-user Jira connection (same source as Jira Ticket Raiser)
+    const { user, jiraConnection, error: connError } = await getAuthenticatedUserAndJiraConnection(authHeader);
+    if (!user) {
+      return jsonResponse({ error: connError || 'Unauthorized' }, 401);
+    }
+    if (!jiraConnection) {
+      return emptyTicketsResponse(connError || 'Jira is not connected. Please connect Jira in Settings.');
     }
 
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      return jsonResponse({ error: 'Unauthorized' }, 401);
-    }
-
-    // Get filters from request body
     let filters: TicketFilters = {};
     if (req.method === 'POST') {
       try {
@@ -132,17 +123,7 @@ serve(async (req) => {
       }
     }
 
-    const jiraDomainRaw = Deno.env.get('JIRA_DOMAIN');
-    const jiraDomain = jiraDomainRaw ? sanitizeDomain(jiraDomainRaw) : null;
-    const jiraEmail = Deno.env.get('JIRA_USER_EMAIL');
-    const jiraApiToken = Deno.env.get('JIRA_API_TOKEN');
-    const jiraProjectKey = Deno.env.get('JIRA_PROJECT_KEY');
-
-    if (!jiraDomain || !jiraEmail || !jiraApiToken || !jiraProjectKey) {
-      console.error('Missing Jira configuration');
-      return emptyTicketsResponse('Jira configuration is incomplete. Please check your Jira connection settings.');
-    }
-
+    const { jiraDomain, jiraEmail, jiraApiToken, jiraProjectKey } = jiraConnection;
     const auth = btoa(`${jiraEmail}:${jiraApiToken}`);
 
     // Build JQL query to fetch user-related tickets
