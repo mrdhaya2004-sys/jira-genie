@@ -169,10 +169,32 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Jira API error:', errorText);
+      console.error('Jira API error:', response.status, errorText);
+
+      let friendly = `Jira returned ${response.status}. Please try again.`;
+      if (/SUSPENDED_INACTIVITY/i.test(errorText) || /deactivated due to inactivity/i.test(errorText)) {
+        friendly = 'Your Jira Cloud subscription has been deactivated due to inactivity. Please sign in to your Jira site to reactivate it, then retry.';
+      } else if (response.status === 401) {
+        friendly = 'Jira authentication failed. Please reconnect Jira in Settings.';
+      } else if (response.status === 403) {
+        friendly = 'Access denied by Jira. Check your permissions for this project.';
+      } else if (response.status === 404) {
+        friendly = `Jira project "${jiraProjectKey}" was not found.`;
+      } else if (response.status >= 500) {
+        friendly = 'Jira is temporarily unavailable. Please retry in a moment.';
+      }
+
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch tickets from Jira' }),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({
+          tickets: [],
+          total: 0,
+          maxResults: 0,
+          startAt: 0,
+          statuses: [],
+          projectKey: jiraProjectKey,
+          error: friendly,
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
