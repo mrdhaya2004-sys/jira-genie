@@ -41,6 +41,10 @@ export const useMyTickets = () => {
         throw new Error(fnError.message);
       }
 
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
       // Get AI-created tickets and mark them
       const aiTickets = getAICreatedTickets();
       const aiTicketKeys = new Set(aiTickets.map(t => t.key));
