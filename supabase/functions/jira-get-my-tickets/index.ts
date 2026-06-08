@@ -285,24 +285,17 @@ serve(async (req) => {
 
     console.log(`Fetched ${tickets.length} tickets for user:`, user.id);
 
-    return new Response(
-      JSON.stringify({
-        tickets,
-        total: totalCount,
-        maxResults: maxResults,
-        startAt: 0,
-        statuses,
-        projectKey: jiraProjectKey,
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({
+      tickets,
+      total: totalCount,
+      maxResults,
+      startAt: 0,
+      statuses,
+      projectKey: jiraProjectKey,
+    });
 
   } catch (error) {
     console.error('Error fetching tickets:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return emptyTicketsResponse(friendlyUnexpectedError(error));
   }
 });
