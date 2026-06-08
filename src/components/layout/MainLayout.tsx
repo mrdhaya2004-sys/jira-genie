@@ -8,7 +8,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-[100dvh] bg-background overflow-hidden">
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex w-64 flex-shrink-0 border-r border-sidebar-border">
         <Sidebar className="w-full" />
@@ -17,7 +17,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         <Header />
-        <main className="flex-1 overflow-hidden">
+        <main
+          className="flex-1 overflow-hidden"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
           {children}
         </main>
       </div>

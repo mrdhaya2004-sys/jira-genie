@@ -78,19 +78,19 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-1">
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {menuItems.map((item) => (
           <button
             key={item.label}
             className={cn(
-              "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-              item.active 
-                ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+              "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm transition-colors min-h-[44px]",
+              item.active
+                ? "bg-sidebar-accent text-sidebar-accent-foreground"
                 : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
             )}
           >
-            <item.icon className="h-4 w-4" />
-            {item.label}
+            <item.icon className="h-4 w-4 shrink-0" />
+            <span className="truncate">{item.label}</span>
           </button>
         ))}
       </nav>
@@ -99,11 +99,11 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
 
       {/* Bottom Section */}
       <div className="p-3 space-y-1">
-        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors">
-          <img src={helpSupportLogo} alt="Help" className="h-4 w-4 object-contain" />
+        <button className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors min-h-[44px]">
+          <img src={helpSupportLogo} alt="" className="h-4 w-4 object-contain" />
           Help & Support
         </button>
-        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors">
+        <button className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors min-h-[44px]">
           <Settings className="h-4 w-4" />
           Settings
         </button>

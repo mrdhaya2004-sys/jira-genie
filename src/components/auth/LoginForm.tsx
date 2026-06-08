@@ -188,15 +188,15 @@ const LoginForm: React.FC = () => {
       title="Test Zone" 
       subtitle="Welcome back! Let's build great things together."
     >
-      <Card className="shadow-soft-lg border-border/50">
-        <CardHeader className="space-y-1 text-center pb-4">
-          <CardTitle className="text-2xl font-bold">Sign in</CardTitle>
-          <CardDescription>
+      <Card className="border-0 shadow-none sm:border sm:border-border/50 sm:shadow-soft-lg">
+        <CardHeader className="space-y-1 text-center px-0 sm:px-6 pb-4">
+          <CardTitle className="text-xl sm:text-2xl font-bold">Sign in</CardTitle>
+          <CardDescription className="text-sm">
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-0 sm:px-6">
           {/* Social Login */}
           <SocialLoginButtons
             onGoogleClick={handleGoogleLogin}
@@ -284,7 +284,7 @@ const LoginForm: React.FC = () => {
           </Form>
         </CardContent>
 
-        <CardFooter className="flex justify-center border-t pt-6">
+        <CardFooter className="flex justify-center border-t pt-6 px-0 sm:px-6">
           <p className="text-sm text-muted-foreground">
             Don't have an account?{' '}
             <Link
