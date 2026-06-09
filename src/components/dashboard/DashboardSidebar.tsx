@@ -17,7 +17,8 @@ import {
   Brain,
   Info,
   ShieldAlert,
-  GitBranch } from
+  GitBranch,
+  ScanLine } from
 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
@@ -77,7 +78,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   { icon: FileCode2, label: 'XPath Generator', module: 'xpath-generator' as ActiveModule },
   { icon: ShieldAlert, label: 'AI Defect Analyzer', module: 'defect-analyzer' as ActiveModule },
   { icon: Ticket, label: 'Jira Ticket Raiser', module: 'jira-ticket-raiser' as ActiveModule },
-  { icon: GitBranch, label: 'GitLab AI', module: 'gitlab-execution' as ActiveModule }];
+  { icon: GitBranch, label: 'GitLab AI', module: 'gitlab-execution' as ActiveModule },
+  { icon: ScanLine, label: 'Hive Code Analyzer', module: 'code-analyzer' as ActiveModule }];
 
 
   return (

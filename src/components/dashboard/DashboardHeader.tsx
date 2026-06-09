@@ -50,6 +50,7 @@ const MODULE_LABELS: Record<ActiveModule, string> = {
   'xpath-generator': 'XPath Generator',
   'defect-analyzer': 'AI Defect Analyzer',
   'gitlab-execution': 'GitLab AI',
+  'code-analyzer': 'Hive Code Analyzer',
   'ai-settings': 'AI Configuration',
   'profile': 'Profile',
   'account-settings': 'Account Settings',

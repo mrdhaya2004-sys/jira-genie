@@ -149,6 +149,181 @@ export type Database = {
           },
         ]
       }
+      code_analyses: {
+        Row: {
+          automation_stability: Json
+          created_at: string
+          critical_count: number
+          framework: string | null
+          high_count: number
+          id: string
+          language: string | null
+          low_count: number
+          medium_count: number
+          overall_score: number
+          performance_findings: Json
+          raw_code: string | null
+          security_findings: Json
+          source_label: string | null
+          source_type: string
+          sub_scores: Json
+          summary: string | null
+          test_automation_findings: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          automation_stability?: Json
+          created_at?: string
+          critical_count?: number
+          framework?: string | null
+          high_count?: number
+          id?: string
+          language?: string | null
+          low_count?: number
+          medium_count?: number
+          overall_score?: number
+          performance_findings?: Json
+          raw_code?: string | null
+          security_findings?: Json
+          source_label?: string | null
+          source_type: string
+          sub_scores?: Json
+          summary?: string | null
+          test_automation_findings?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          automation_stability?: Json
+          created_at?: string
+          critical_count?: number
+          framework?: string | null
+          high_count?: number
+          id?: string
+          language?: string | null
+          low_count?: number
+          medium_count?: number
+          overall_score?: number
+          performance_findings?: Json
+          raw_code?: string | null
+          security_findings?: Json
+          source_label?: string | null
+          source_type?: string
+          sub_scores?: Json
+          summary?: string | null
+          test_automation_findings?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      code_analysis_issues: {
+        Row: {
+          analysis_id: string
+          best_practice: string | null
+          code_after: string | null
+          code_before: string | null
+          created_at: string
+          end_line: number | null
+          explanation: string | null
+          id: string
+          issue_type: string | null
+          line_number: number | null
+          problem: string | null
+          severity: string
+          suggestion: string | null
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          analysis_id: string
+          best_practice?: string | null
+          code_after?: string | null
+          code_before?: string | null
+          created_at?: string
+          end_line?: number | null
+          explanation?: string | null
+          id?: string
+          issue_type?: string | null
+          line_number?: number | null
+          problem?: string | null
+          severity: string
+          suggestion?: string | null
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string
+          best_practice?: string | null
+          code_after?: string | null
+          code_before?: string | null
+          created_at?: string
+          end_line?: number | null
+          explanation?: string | null
+          id?: string
+          issue_type?: string | null
+          line_number?: number | null
+          problem?: string | null
+          severity?: string
+          suggestion?: string | null
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_analysis_issues_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "code_analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      code_analysis_refactors: {
+        Row: {
+          analysis_id: string
+          benefits: Json
+          changes: Json
+          code: string
+          created_at: string
+          expected_improvements: Json
+          id: string
+          user_id: string
+          variant: string
+        }
+        Insert: {
+          analysis_id: string
+          benefits?: Json
+          changes?: Json
+          code: string
+          created_at?: string
+          expected_improvements?: Json
+          id?: string
+          user_id: string
+          variant: string
+        }
+        Update: {
+          analysis_id?: string
+          benefits?: Json
+          changes?: Json
+          code?: string
+          created_at?: string
+          expected_improvements?: Json
+          id?: string
+          user_id?: string
+          variant?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_analysis_refactors_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "code_analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_participants: {
         Row: {
           conversation_id: string

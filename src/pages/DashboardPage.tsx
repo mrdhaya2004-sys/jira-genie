@@ -19,6 +19,7 @@ const TestCaseGeneratorModule = lazy(moduleLoaders['test-case-generator'] as () 
 const XPathGeneratorModule = lazy(moduleLoaders['xpath-generator'] as () => Promise<AnyComp>);
 const DefectAnalyzerModule = lazy(moduleLoaders['defect-analyzer'] as () => Promise<AnyComp>);
 const GitLabExecutionModule = lazy(moduleLoaders['gitlab-execution'] as () => Promise<AnyComp>);
+const CodeAnalyzerModule = lazy(moduleLoaders['code-analyzer'] as () => Promise<AnyComp>);
 const MyTicketsModule = lazy(moduleLoaders['tickets'] as () => Promise<AnyComp>);
 const HistoryModule = lazy(moduleLoaders['history'] as () => Promise<AnyComp>);
 const CurrentChatModule = lazy(moduleLoaders['chat'] as () => Promise<AnyComp>);
@@ -28,7 +29,7 @@ const AccountSettingsModule = lazy(moduleLoaders['account-settings'] as () => Pr
 const AboutUsModule = lazy(moduleLoaders['about'] as () => Promise<AnyComp>);
 const FounderPage = lazy(moduleLoaders['founder'] as () => Promise<AnyComp>);
 
-export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'defect-analyzer' | 'gitlab-execution' | 'ai-settings' | 'profile' | 'account-settings' | 'about' | 'founder';
+export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'defect-analyzer' | 'gitlab-execution' | 'code-analyzer' | 'ai-settings' | 'profile' | 'account-settings' | 'about' | 'founder';
 
 const MODULE_MAP: Record<string, ActiveModule> = {
   'test-case-generator': 'test-case-generator',
@@ -133,6 +134,7 @@ const DashboardPage: React.FC = () => {
                   {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
                   {activeModule === 'defect-analyzer' && <DefectAnalyzerModule />}
                   {activeModule === 'gitlab-execution' && <GitLabExecutionModule />}
+                  {activeModule === 'code-analyzer' && <CodeAnalyzerModule />}
                   {activeModule === 'ai-settings' && <AIConfigurationModule />}
                   {activeModule === 'profile' && <ProfileModule />}
                   {activeModule === 'account-settings' && <AccountSettingsModule />}
