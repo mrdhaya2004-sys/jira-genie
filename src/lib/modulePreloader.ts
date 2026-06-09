@@ -13,6 +13,7 @@ export const moduleLoaders = {
   'xpath-generator': () => import('@/components/xpath/XPathGeneratorModule'),
   'defect-analyzer': () => import('@/components/defect/DefectAnalyzerModule'),
   'gitlab-execution': () => import('@/components/gitlab/GitLabExecutionModule'),
+  'code-analyzer': () => import('@/components/codeanalyzer/HiveCodeAnalyzerModule'),
   'tickets': () => import('@/components/tickets/MyTicketsModule'),
   'history': () => import('@/components/automation/HistoryModule'),
   'chat': () => import('@/components/currentchat/CurrentChatModule'),
