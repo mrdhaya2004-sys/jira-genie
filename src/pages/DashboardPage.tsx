@@ -134,6 +134,7 @@ const DashboardPage: React.FC = () => {
                   {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
                   {activeModule === 'defect-analyzer' && <DefectAnalyzerModule />}
                   {activeModule === 'gitlab-execution' && <GitLabExecutionModule />}
+                  {activeModule === 'code-analyzer' && <CodeAnalyzerModule />}
                   {activeModule === 'ai-settings' && <AIConfigurationModule />}
                   {activeModule === 'profile' && <ProfileModule />}
                   {activeModule === 'account-settings' && <AccountSettingsModule />}
