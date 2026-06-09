@@ -17,7 +17,8 @@ import {
   Brain,
   Info,
   ShieldAlert,
-  GitBranch } from
+  GitBranch,
+  ScanLine } from
 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
