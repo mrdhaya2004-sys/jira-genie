@@ -419,8 +419,26 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
         : 'Analysis completed, but structured report generation was limited by the selected AI model. For full structured reports, switch to Gemini 2.5 Pro, GPT-5, or Claude Sonnet in AI Configuration.';
     }
 
-    // Recompute severity counts
-    const issues = Array.isArray(parsed.issues) ? parsed.issues : [];
+    // Recompute severity counts + sanitize duplicate before/after & problem/suggestion
+    const norm = (v: any) => String(v ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const rawIssues = Array.isArray(parsed.issues) ? parsed.issues : [];
+    const issues = rawIssues.map((i: any) => {
+      const before = String(i.codeBefore ?? '');
+      const after = String(i.codeAfter ?? '');
+      const problem = String(i.problem ?? '');
+      const suggestion = String(i.suggestion ?? '');
+      const dupCode = before && norm(before) === norm(after);
+      const dupText = problem && norm(problem) === norm(suggestion);
+      return {
+        ...i,
+        codeBefore: before,
+        codeAfter: dupCode ? '' : after,
+        problem,
+        suggestion: dupText ? '' : suggestion,
+        suggestionMissing: dupText || !suggestion.trim(),
+        codeAfterMissing: dupCode || !after.trim(),
+      };
+    });
     const sevCounts = { critical: 0, high: 0, medium: 0, low: 0 };
     for (const i of issues) {
       const s = String(i.severity || 'low').toLowerCase();
