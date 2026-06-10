@@ -72,13 +72,13 @@ const HiveCodeAnalyzerModule: React.FC = () => {
                     : result.issues.map((issue, i) => <IssueCard key={i} issue={issue} />)}
                 </TabsContent>
                 <TabsContent value="security" className="mt-4">
-                  <FindingsPanel title="Security Findings" emptyText="No security issues detected." findings={result.securityFindings} icon={<Shield className="h-4 w-4 text-primary inline" />} />
+                  <FindingsPanel title="Security Findings" emptyText="No significant Security Issues Found" findings={result.securityFindings} icon={<Shield className="h-4 w-4 text-primary inline" />} />
                 </TabsContent>
                 <TabsContent value="performance" className="mt-4">
-                  <FindingsPanel title="Performance Findings" emptyText="No performance issues detected." findings={result.performanceFindings} icon={<Zap className="h-4 w-4 text-primary inline" />} />
+                  <FindingsPanel title="Performance Findings" emptyText="No significant Performance Issues Found" findings={result.performanceFindings} icon={<Zap className="h-4 w-4 text-primary inline" />} />
                 </TabsContent>
                 <TabsContent value="automation" className="mt-4">
-                  <FindingsPanel title="Test Automation Review" emptyText="No automation issues detected." findings={result.testAutomationFindings} icon={<ScanLine className="h-4 w-4 text-primary inline" />} />
+                  <FindingsPanel title="Test Automation Review" emptyText="No significant Automation Risks Found" findings={result.testAutomationFindings} icon={<ScanLine className="h-4 w-4 text-primary inline" />} />
                 </TabsContent>
                 <TabsContent value="refactor" className="mt-4">
                   <RefactorPanel result={result} />
