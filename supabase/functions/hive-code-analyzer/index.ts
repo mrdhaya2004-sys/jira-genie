@@ -253,12 +253,11 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
       authHeader,
       [
         { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userPrompt },
+        { role: 'user', content: 'Respond with ONLY a single JSON object, no markdown fences, no commentary.\n\n' + userPrompt },
       ],
       false,
       {
         defaultModel: bundle.length > 40_000 ? 'google/gemini-2.5-pro' : 'google/gemini-3-flash-preview',
-        extraBody: { response_format: { type: 'json_object' } },
       },
     );
 
