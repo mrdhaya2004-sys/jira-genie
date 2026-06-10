@@ -240,8 +240,16 @@ function extractJSON(raw: string): any {
   // Otherwise close open string + remove trailing partial token + close braces.
   let repaired = s;
   if (inStr) repaired += '"';
-  // Drop dangling comma or partial key/value at the tail.
-  repaired = repaired.replace(/,\s*$/, '').replace(/:\s*$/, ': null').replace(/"[^"]*$/, '');
+  // Iteratively strip dangling partial key/value/comma at the tail until stable.
+  for (let n = 0; n < 6; n++) {
+    const before = repaired;
+    repaired = repaired
+      .replace(/"[^"]*$/, '')          // partial unterminated key/value (after close)
+      .replace(/:\s*$/, ': null')      // key with no value
+      .replace(/,\s*$/, '')            // trailing comma
+      .replace(/\s+$/, '');            // trailing whitespace
+    if (repaired === before) break;
+  }
   for (let i = stack.length - 1; i >= 0; i--) {
     repaired += stack[i] === '{' ? '}' : ']';
   }
