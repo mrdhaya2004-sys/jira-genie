@@ -277,13 +277,17 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
 
     const aiJson = await aiResponse.json();
     const content: string = aiJson.choices?.[0]?.message?.content ?? '';
+    const finishReason = aiJson.choices?.[0]?.finish_reason || aiJson.choices?.[0]?.stop_reason;
     let parsed: any;
     try {
-      const cleaned = content.trim().replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
-      parsed = JSON.parse(cleaned);
+      parsed = extractJSON(content);
     } catch (e) {
-      console.error('Failed to parse AI JSON', e, content.slice(0, 500));
-      return new Response(JSON.stringify({ error: 'AI returned malformed JSON' }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      console.error('Failed to parse AI JSON', e, 'finish_reason=', finishReason, content.slice(0, 500));
+      const truncated = finishReason === 'length' || finishReason === 'max_tokens';
+      const msg = truncated
+        ? 'AI response was truncated (output token limit reached). Switch to a larger model (e.g. Gemini 2.5 Pro or GPT-5) in AI Configuration, or analyze a smaller code snippet.'
+        : 'AI returned malformed JSON. Your configured model may be too small for structured reports — try a stronger model (Gemini 2.5 Pro, GPT-5, Claude Sonnet).';
+      return new Response(JSON.stringify({ error: msg }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Recompute severity counts
