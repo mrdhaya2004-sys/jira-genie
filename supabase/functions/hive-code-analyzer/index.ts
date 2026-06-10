@@ -198,6 +198,56 @@ function bundleFiles(files: FileEntry[]): string {
   return files.map(f => `\n===== FILE: ${f.path} =====\n${f.content}`).join('\n');
 }
 
+/**
+ * Robustly extract a JSON object from an AI response. Strips markdown fences,
+ * trims surrounding prose, and — if the JSON is truncated mid-stream — closes
+ * any open strings/arrays/objects so we still get a usable (partial) report.
+ */
+function extractJSON(raw: string): any {
+  let s = (raw || '').trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim();
+  const start = s.indexOf('{');
+  if (start === -1) throw new Error('No JSON object found');
+  s = s.slice(start);
+
+  // First attempt: parse as-is.
+  try { return JSON.parse(s); } catch { /* fallthrough to repair */ }
+
+  // Repair: walk the string, track brace/bracket/string state, then close opens.
+  let inStr = false, esc = false;
+  const stack: string[] = [];
+  let lastValidEnd = -1;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (inStr) {
+      if (esc) { esc = false; continue; }
+      if (c === '\\') { esc = true; continue; }
+      if (c === '"') inStr = false;
+      continue;
+    }
+    if (c === '"') { inStr = true; continue; }
+    if (c === '{' || c === '[') stack.push(c);
+    else if (c === '}' || c === ']') { stack.pop(); if (stack.length === 0) lastValidEnd = i; }
+  }
+
+  // If the stream ended cleanly at some top-level close, use that.
+  if (lastValidEnd > 0 && !inStr && stack.length === 0) {
+    try { return JSON.parse(s.slice(0, lastValidEnd + 1)); } catch { /* keep going */ }
+  }
+
+  // Otherwise close open string + remove trailing partial token + close braces.
+  let repaired = s;
+  if (inStr) repaired += '"';
+  // Drop dangling comma or partial key/value at the tail.
+  repaired = repaired.replace(/,\s*$/, '').replace(/:\s*$/, ': null').replace(/"[^"]*$/, '');
+  for (let i = stack.length - 1; i >= 0; i--) {
+    repaired += stack[i] === '{' ? '}' : ']';
+  }
+  return JSON.parse(repaired);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -277,13 +327,17 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
 
     const aiJson = await aiResponse.json();
     const content: string = aiJson.choices?.[0]?.message?.content ?? '';
+    const finishReason = aiJson.choices?.[0]?.finish_reason || aiJson.choices?.[0]?.stop_reason;
     let parsed: any;
     try {
-      const cleaned = content.trim().replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
-      parsed = JSON.parse(cleaned);
+      parsed = extractJSON(content);
     } catch (e) {
-      console.error('Failed to parse AI JSON', e, content.slice(0, 500));
-      return new Response(JSON.stringify({ error: 'AI returned malformed JSON' }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      console.error('Failed to parse AI JSON', e, 'finish_reason=', finishReason, content.slice(0, 500));
+      const truncated = finishReason === 'length' || finishReason === 'max_tokens';
+      const msg = truncated
+        ? 'AI response was truncated (output token limit reached). Switch to a larger model (e.g. Gemini 2.5 Pro or GPT-5) in AI Configuration, or analyze a smaller code snippet.'
+        : 'AI returned malformed JSON. Your configured model may be too small for structured reports — try a stronger model (Gemini 2.5 Pro, GPT-5, Claude Sonnet).';
+      return new Response(JSON.stringify({ error: msg }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Recompute severity counts
