@@ -255,6 +255,76 @@ function extractJSON(raw: string): any {
   }
   return JSON.parse(repaired);
 }
+/**
+ * Fallback section extractor for AI responses that aren't valid JSON
+ * (plain text, markdown, mixed output from smaller/custom models).
+ * Splits content by category headings and turns each section into findings
+ * so the UI always renders meaningful tabs instead of a blank screen.
+ */
+function buildFallbackReport(raw: string, language: string, framework?: string): any {
+  const text = (raw || '').replace(/```[\s\S]*?```/g, (m) => m).trim();
+
+  // Section detection: match headings like "Security:", "## Security", "**Security**"
+  const sectionNames = ['issues', 'security', 'performance', 'automation', 'refactor'];
+  const sectionMap: Record<string, string> = {};
+  const re = new RegExp(
+    `(?:^|\\n)\\s*(?:#{1,6}\\s*|\\*\\*\\s*)?(${sectionNames.join('|')})(?:\\s*\\*\\*)?\\s*[:\\-]?\\s*\\n`,
+    'gi',
+  );
+  const matches: { name: string; start: number; end: number }[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    matches.push({ name: m[1].toLowerCase(), start: m.index + m[0].length, end: text.length });
+  }
+  for (let i = 0; i < matches.length; i++) {
+    if (i + 1 < matches.length) matches[i].end = matches[i + 1].start - 1;
+    sectionMap[matches[i].name] = (sectionMap[matches[i].name] || '') + '\n' + text.slice(matches[i].start, matches[i].end);
+  }
+
+  const toFindings = (block?: string) => {
+    if (!block) return [];
+    const lines = block.split(/\n+/).map(l => l.replace(/^[\s\-\*\d\.\)]+/, '').trim()).filter(l => l.length > 8);
+    return lines.slice(0, 15).map((line) => {
+      const lower = line.toLowerCase();
+      const severity = /critical|severe|fatal|injection|hardcoded|secret|password|api[ _-]?key/.test(lower)
+        ? 'critical' : /high|risk|vulnerab/.test(lower) ? 'high'
+        : /medium|moderate/.test(lower) ? 'medium' : 'low';
+      const colonIdx = line.indexOf(':');
+      const title = colonIdx > 0 && colonIdx < 80 ? line.slice(0, colonIdx).trim() : line.slice(0, 80).trim();
+      const description = colonIdx > 0 ? line.slice(colonIdx + 1).trim() : line;
+      return { title, severity, line: null, description, fix: '' };
+    });
+  };
+
+  const issuesBlock = sectionMap['issues'];
+  const issues = toFindings(issuesBlock).map((f) => ({
+    line: null, endLine: null, severity: f.severity, type: 'Finding',
+    title: f.title, problem: f.description, suggestion: '',
+    codeBefore: '', codeAfter: '', explanation: f.description, bestPractice: '',
+  }));
+
+  const refactorBlock = sectionMap['refactor'] || '';
+  const codeMatch = refactorBlock.match(/```[a-z]*\n([\s\S]*?)```/i);
+  const refactored = codeMatch ? { code: codeMatch[1].trim(), changes: ['See AI response'], benefits: ['Improved readability'] } : undefined;
+
+  const summary = text.slice(0, 600).replace(/\s+/g, ' ').trim();
+
+  return {
+    language,
+    framework: framework || null,
+    summary: summary || 'AI returned an unstructured response. Showing best-effort sections.',
+    overallScore: 50,
+    subScores: { readability: 50, maintainability: 50, stability: 50, performance: 50, security: 50, automationBestPractice: 50, scalability: 50 },
+    automationStability: { score: 50, risk: 'medium', reasons: [] },
+    issues,
+    securityFindings: toFindings(sectionMap['security']),
+    performanceFindings: toFindings(sectionMap['performance']),
+    testAutomationFindings: toFindings(sectionMap['automation']),
+    refactors: refactored ? { refactored } : {},
+    expectedImprovements: [],
+  };
+}
+
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
