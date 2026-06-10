@@ -52,10 +52,10 @@ You MUST respond with ONLY a single JSON object (no markdown fences, no commenta
       "severity": "critical" | "high" | "medium" | "low",
       "type": string,                        // e.g. "Hardcoded Wait", "Flaky Locator", "Null Pointer Risk"
       "title": string,                       // 3-8 words
-      "problem": string,                     // 1-2 sentences explaining what is wrong
-      "suggestion": string,                  // actionable fix
-      "codeBefore": string,                  // the offending snippet (1-6 lines)
-      "codeAfter": string,                   // improved replacement
+      "problem": string,                     // 1-2 sentences explaining WHAT is wrong with this exact snippet (no fix here)
+      "suggestion": string,                  // 1-2 sentences describing the ACTION the developer should take (different wording from problem)
+      "codeBefore": string,                  // the EXACT offending snippet copied verbatim from the source (1-6 lines)
+      "codeAfter": string,                   // the IMPROVED replacement — MUST be syntactically different from codeBefore and actually implement the fix
       "explanation": string,                 // WHY it is wrong, risk, impact
       "bestPractice": string                 // industry best practice in 1 sentence
     }
@@ -86,6 +86,7 @@ RULES:
 - REFACTORS: ALWAYS produce all THREE variants ("refactored"=clean & readable, "optimized"=best performance, "enterprise"=production-grade with logging, error handling, POM, retries, config-driven). All three MUST compile/run in the detected language and MUST be different from each other and meaningfully improved over the original. Each variant MUST list specific changes[] and benefits[].
 - If a category genuinely has nothing to flag, return an EMPTY array (the UI will display "No significant X Issues Found"). Never invent issues that aren't in the code.
 - Limit issues[] to the 25 most impactful. severityCount fields will be recomputed; you do not need to count them.
+- For EVERY issue, codeAfter MUST differ from codeBefore (it must actually fix the bug). problem and suggestion MUST be written as distinct sentences (problem = what's wrong, suggestion = the concrete action). Never copy the same string into both, and never repeat codeBefore as codeAfter.
 - Be concrete, never write "investigate further" or "check this".`;
 
 const EXT_LANG: Record<string, string> = {
@@ -418,8 +419,26 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
         : 'Analysis completed, but structured report generation was limited by the selected AI model. For full structured reports, switch to Gemini 2.5 Pro, GPT-5, or Claude Sonnet in AI Configuration.';
     }
 
-    // Recompute severity counts
-    const issues = Array.isArray(parsed.issues) ? parsed.issues : [];
+    // Recompute severity counts + sanitize duplicate before/after & problem/suggestion
+    const norm = (v: any) => String(v ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const rawIssues = Array.isArray(parsed.issues) ? parsed.issues : [];
+    const issues = rawIssues.map((i: any) => {
+      const before = String(i.codeBefore ?? '');
+      const after = String(i.codeAfter ?? '');
+      const problem = String(i.problem ?? '');
+      const suggestion = String(i.suggestion ?? '');
+      const dupCode = before && norm(before) === norm(after);
+      const dupText = problem && norm(problem) === norm(suggestion);
+      return {
+        ...i,
+        codeBefore: before,
+        codeAfter: dupCode ? '' : after,
+        problem,
+        suggestion: dupText ? '' : suggestion,
+        suggestionMissing: dupText || !suggestion.trim(),
+        codeAfterMissing: dupCode || !after.trim(),
+      };
+    });
     const sevCounts = { critical: 0, high: 0, medium: 0, low: 0 };
     for (const i of issues) {
       const s = String(i.severity || 'low').toLowerCase();

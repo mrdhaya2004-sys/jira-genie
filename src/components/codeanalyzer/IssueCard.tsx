@@ -48,14 +48,16 @@ const IssueCard: React.FC<Props> = ({ issue }) => (
       </div>
       <h4 className="font-semibold text-sm">{issue.title}</h4>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-        <div className="flex gap-2"><AlertTriangle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" /><div><div className="text-xs font-medium text-muted-foreground mb-0.5">Problem</div><p>{issue.problem}</p></div></div>
-        <div className="flex gap-2"><Lightbulb className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" /><div><div className="text-xs font-medium text-muted-foreground mb-0.5">Suggested Fix</div><p>{issue.suggestion}</p></div></div>
+        <div className="flex gap-2"><AlertTriangle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" /><div><div className="text-xs font-medium text-muted-foreground mb-0.5">Problem</div><p>{issue.problem || '—'}</p></div></div>
+        <div className="flex gap-2"><Lightbulb className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" /><div><div className="text-xs font-medium text-muted-foreground mb-0.5">Suggested Fix</div><p className={cn(!issue.suggestion && 'italic text-muted-foreground')}>{issue.suggestion || 'AI did not provide a distinct fix description — see codeAfter for the actual change.'}</p></div></div>
       </div>
       {(issue.codeBefore || issue.codeAfter) && (
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-2 items-center">
           <CodeBlock code={issue.codeBefore} label="Before" tone="before" />
           <ArrowRight className="h-4 w-4 text-muted-foreground hidden md:block mx-auto" />
-          <CodeBlock code={issue.codeAfter} label="After" tone="after" />
+          {issue.codeAfter
+            ? <CodeBlock code={issue.codeAfter} label="After" tone="after" />
+            : <div className="rounded-lg border border-dashed border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-300">AI did not produce a distinct fixed snippet. Switch to a stronger model (Gemini 2.5 Pro, GPT-5, Claude Sonnet) for an improved version.</div>}
         </div>
       )}
       {issue.explanation && (
