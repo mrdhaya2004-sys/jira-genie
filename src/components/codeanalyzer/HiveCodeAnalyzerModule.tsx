@@ -55,7 +55,14 @@ const HiveCodeAnalyzerModule: React.FC = () => {
 
           {result && (
             <>
+              {result.degradedNotice && (
+                <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 px-4 py-3 text-sm flex gap-2 items-start">
+                  <Sparkles className="h-4 w-4 mt-0.5 shrink-0" />
+                  <span>{result.degradedNotice}</span>
+                </div>
+              )}
               <AnalysisDashboard result={result} />
+
 
               <Tabs defaultValue="issues" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">

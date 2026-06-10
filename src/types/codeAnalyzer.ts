@@ -46,6 +46,7 @@ export interface RefactorVariant {
 
 export interface AnalysisResult {
   analysisId: string;
+  degradedNotice?: string;
   language: string;
   framework: string | null;
   summary: string;
