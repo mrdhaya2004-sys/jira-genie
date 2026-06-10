@@ -428,6 +428,7 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
         ...parsed,
         sevCounts,
         issues,
+        degradedNotice,
       },
     }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (error) {
