@@ -86,6 +86,7 @@ RULES:
 - REFACTORS: ALWAYS produce all THREE variants ("refactored"=clean & readable, "optimized"=best performance, "enterprise"=production-grade with logging, error handling, POM, retries, config-driven). All three MUST compile/run in the detected language and MUST be different from each other and meaningfully improved over the original. Each variant MUST list specific changes[] and benefits[].
 - If a category genuinely has nothing to flag, return an EMPTY array (the UI will display "No significant X Issues Found"). Never invent issues that aren't in the code.
 - Limit issues[] to the 25 most impactful. severityCount fields will be recomputed; you do not need to count them.
+- For EVERY issue, codeAfter MUST differ from codeBefore (it must actually fix the bug). problem and suggestion MUST be written as distinct sentences (problem = what's wrong, suggestion = the concrete action). Never copy the same string into both, and never repeat codeBefore as codeAfter.
 - Be concrete, never write "investigate further" or "check this".`;
 
 const EXT_LANG: Record<string, string> = {
