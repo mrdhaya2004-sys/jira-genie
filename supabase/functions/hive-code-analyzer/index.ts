@@ -79,11 +79,13 @@ You MUST respond with ONLY a single JSON object (no markdown fences, no commenta
 
 RULES:
 - Every issue MUST tie to a real line and a real snippet from the supplied code. Never invent code.
-- For automation code, aggressively flag: Thread.sleep / time.sleep / page.waitForTimeout, dynamic XPath (e.g. //*[contains(...)] without anchor), hardcoded waits, missing explicit waits, no Page Object Model, weak assertions, hardcoded URLs/credentials, magic numbers.
-- For security: flag hardcoded passwords/API keys, secrets, unsafe API calls, SQL injection vectors, sensitive data exposure.
-- "refactored" = clean & readable rewrite, "optimized" = best performance, "enterprise" = production-grade with logging, error handling, POM, retries, config-driven.
-- All three refactor code variants MUST compile/run in the detected language.
-- Limit issues to the 25 most impactful. severityCount fields will be recomputed; you do not need to count them.
+- You MUST independently analyze and produce dedicated findings for FOUR categories: securityFindings, performanceFindings, testAutomationFindings, AND refactors. Do NOT leave any of these empty unless the code is genuinely clean for that category.
+- SECURITY (securityFindings): scan for hardcoded passwords, API keys, tokens, secrets, auth/authorization issues, sensitive data exposure, SQL injection, unsafe file handling, logging confidential info, insecure HTTP, weak crypto. Provide score-driving findings with risk explanation + concrete fix.
+- PERFORMANCE (performanceFindings): scan for Thread.sleep/time.sleep/waitForTimeout, redundant loops, repeated API/DB calls, inefficient collections, excessive DOM lookups, memory leaks, duplicate processing, blocking I/O. Each finding must name the bottleneck and the optimization.
+- AUTOMATION (testAutomationFindings): scan locator quality, XPath stability (flag //*[contains], absolute XPaths, index-based locators), explicit wait usage, Page Object Model compliance, reusability, maintainability, framework structure, assertion quality, flaky-test risks.
+- REFACTORS: ALWAYS produce all THREE variants ("refactored"=clean & readable, "optimized"=best performance, "enterprise"=production-grade with logging, error handling, POM, retries, config-driven). All three MUST compile/run in the detected language and MUST be different from each other and meaningfully improved over the original. Each variant MUST list specific changes[] and benefits[].
+- If a category genuinely has nothing to flag, return an EMPTY array (the UI will display "No significant X Issues Found"). Never invent issues that aren't in the code.
+- Limit issues[] to the 25 most impactful. severityCount fields will be recomputed; you do not need to count them.
 - Be concrete, never write "investigate further" or "check this".`;
 
 const EXT_LANG: Record<string, string> = {

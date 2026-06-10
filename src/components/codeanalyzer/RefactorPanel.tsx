@@ -9,7 +9,7 @@ interface Props { result: AnalysisResult }
 
 const VariantView: React.FC<{ variant?: { code: string; changes: string[]; benefits: string[] }; language: string }> = ({ variant, language }) => {
   const [copied, setCopied] = useState(false);
-  if (!variant) return <div className="text-sm text-muted-foreground p-4">Not generated.</div>;
+  if (!variant || !variant.code) return <div className="text-sm text-muted-foreground p-6 text-center border border-dashed rounded-lg">No Refactoring Opportunities Detected</div>;
   const copy = async () => { await navigator.clipboard.writeText(variant.code); setCopied(true); setTimeout(() => setCopied(false), 1500); };
   const download = () => {
     const ext = ({ Java: 'java', Python: 'py', JavaScript: 'js', TypeScript: 'ts', 'C#': 'cs', Kotlin: 'kt', Swift: 'swift', SQL: 'sql', Shell: 'sh' } as Record<string, string>)[language] || 'txt';
