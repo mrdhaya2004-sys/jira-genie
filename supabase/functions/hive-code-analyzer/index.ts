@@ -52,10 +52,10 @@ You MUST respond with ONLY a single JSON object (no markdown fences, no commenta
       "severity": "critical" | "high" | "medium" | "low",
       "type": string,                        // e.g. "Hardcoded Wait", "Flaky Locator", "Null Pointer Risk"
       "title": string,                       // 3-8 words
-      "problem": string,                     // 1-2 sentences explaining what is wrong
-      "suggestion": string,                  // actionable fix
-      "codeBefore": string,                  // the offending snippet (1-6 lines)
-      "codeAfter": string,                   // improved replacement
+      "problem": string,                     // 1-2 sentences explaining WHAT is wrong with this exact snippet (no fix here)
+      "suggestion": string,                  // 1-2 sentences describing the ACTION the developer should take (different wording from problem)
+      "codeBefore": string,                  // the EXACT offending snippet copied verbatim from the source (1-6 lines)
+      "codeAfter": string,                   // the IMPROVED replacement — MUST be syntactically different from codeBefore and actually implement the fix
       "explanation": string,                 // WHY it is wrong, risk, impact
       "bestPractice": string                 // industry best practice in 1 sentence
     }
