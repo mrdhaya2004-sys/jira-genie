@@ -198,6 +198,56 @@ function bundleFiles(files: FileEntry[]): string {
   return files.map(f => `\n===== FILE: ${f.path} =====\n${f.content}`).join('\n');
 }
 
+/**
+ * Robustly extract a JSON object from an AI response. Strips markdown fences,
+ * trims surrounding prose, and — if the JSON is truncated mid-stream — closes
+ * any open strings/arrays/objects so we still get a usable (partial) report.
+ */
+function extractJSON(raw: string): any {
+  let s = (raw || '').trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim();
+  const start = s.indexOf('{');
+  if (start === -1) throw new Error('No JSON object found');
+  s = s.slice(start);
+
+  // First attempt: parse as-is.
+  try { return JSON.parse(s); } catch { /* fallthrough to repair */ }
+
+  // Repair: walk the string, track brace/bracket/string state, then close opens.
+  let inStr = false, esc = false;
+  const stack: string[] = [];
+  let lastValidEnd = -1;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (inStr) {
+      if (esc) { esc = false; continue; }
+      if (c === '\\') { esc = true; continue; }
+      if (c === '"') inStr = false;
+      continue;
+    }
+    if (c === '"') { inStr = true; continue; }
+    if (c === '{' || c === '[') stack.push(c);
+    else if (c === '}' || c === ']') { stack.pop(); if (stack.length === 0) lastValidEnd = i; }
+  }
+
+  // If the stream ended cleanly at some top-level close, use that.
+  if (lastValidEnd > 0 && !inStr && stack.length === 0) {
+    try { return JSON.parse(s.slice(0, lastValidEnd + 1)); } catch { /* keep going */ }
+  }
+
+  // Otherwise close open string + remove trailing partial token + close braces.
+  let repaired = s;
+  if (inStr) repaired += '"';
+  // Drop dangling comma or partial key/value at the tail.
+  repaired = repaired.replace(/,\s*$/, '').replace(/:\s*$/, ': null').replace(/"[^"]*$/, '');
+  for (let i = stack.length - 1; i >= 0; i--) {
+    repaired += stack[i] === '{' ? '}' : ']';
+  }
+  return JSON.parse(repaired);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
