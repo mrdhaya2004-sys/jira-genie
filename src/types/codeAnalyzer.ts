@@ -28,6 +28,8 @@ export interface CodeIssue {
   codeAfter: string;
   explanation: string;
   bestPractice: string;
+  evidence?: string;
+  confidence?: number;
 }
 
 export interface CategoryFinding {
@@ -36,7 +38,10 @@ export interface CategoryFinding {
   line: number | null;
   description: string;
   fix: string;
+  evidence?: string;
+  confidence?: number;
 }
+
 
 export interface RefactorVariant {
   code: string;
@@ -47,6 +52,9 @@ export interface RefactorVariant {
 export interface AnalysisResult {
   analysisId: string;
   degradedNotice?: string;
+  verificationNotice?: string;
+  confidenceThreshold?: number;
+
   language: string;
   framework: string | null;
   summary: string;

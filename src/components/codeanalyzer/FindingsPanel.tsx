@@ -29,12 +29,22 @@ const FindingsPanel: React.FC<Props> = ({ title, emptyText, findings, icon }) =>
           <div className="flex flex-wrap items-center gap-2">
             <Badge className={cn('border', sevStyle[f.severity] || sevStyle.low)}>{(f.severity || 'low').toUpperCase()}</Badge>
             {f.line != null && <Badge variant="outline">Line {f.line}</Badge>}
+            {typeof f.confidence === 'number' && (
+              <Badge variant="outline" className="border-primary/40 text-primary">Confidence {Math.round(f.confidence)}%</Badge>
+            )}
           </div>
           <h4 className="font-medium text-sm">{f.title}</h4>
+          {f.evidence && f.evidence.trim() && (
+            <div className="rounded-md border border-border/60 bg-muted/40 px-3 py-2 text-xs font-mono overflow-x-auto">
+              <span className="text-[10px] font-sans uppercase tracking-wide text-muted-foreground mr-2">Evidence</span>
+              <code>{f.evidence}</code>
+            </div>
+          )}
           <p className="text-sm text-muted-foreground">{f.description}</p>
           {f.fix && <div className="text-sm bg-emerald-500/5 border border-emerald-500/20 rounded-md p-2 text-emerald-700 dark:text-emerald-400"><span className="font-medium">Fix: </span>{f.fix}</div>}
         </CardContent></Card>
       ))}
+
     </div>
   );
 };

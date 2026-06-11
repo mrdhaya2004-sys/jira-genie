@@ -18,7 +18,9 @@ interface AnalyzeRequest {
   branch?: string;
   githubToken?: string;
   gitlabToken?: string;
+  confidenceThreshold?: number; // 0-100, default 80 — findings below this confidence are dropped
 }
+
 
 const SYSTEM_PROMPT = `You are Hive Code Analyzer — an elite AI code reviewer for QA automation, SDET, API testing, mobile automation, web automation, and software engineering.
 
@@ -50,24 +52,26 @@ You MUST respond with ONLY a single JSON object (no markdown fences, no commenta
       "line": number,                        // 1-indexed line number, best effort
       "endLine": number | null,
       "severity": "critical" | "high" | "medium" | "low",
-      "type": string,                        // e.g. "Hardcoded Wait", "Flaky Locator", "Null Pointer Risk"
+      "type": string,                        // e.g. "Broad Exception Handling", "Weak Assertion"
       "title": string,                       // 3-8 words
       "problem": string,                     // 1-2 sentences explaining WHAT is wrong with this exact snippet (no fix here)
       "suggestion": string,                  // 1-2 sentences describing the ACTION the developer should take (different wording from problem)
       "codeBefore": string,                  // the EXACT offending snippet copied verbatim from the source (1-6 lines)
       "codeAfter": string,                   // the IMPROVED replacement — MUST be syntactically different from codeBefore and actually implement the fix
+      "evidence": string,                    // ONE line copied CHARACTER-FOR-CHARACTER from the source that proves this issue exists
+      "confidence": number,                  // 0-100 — how certain you are this issue truly exists in THIS exact code
       "explanation": string,                 // WHY it is wrong, risk, impact
       "bestPractice": string                 // industry best practice in 1 sentence
     }
   ],
   "securityFindings": [
-    { "title": string, "severity": "critical"|"high"|"medium"|"low", "line": number|null, "description": string, "fix": string }
+    { "title": string, "severity": "critical"|"high"|"medium"|"low", "line": number|null, "description": string, "fix": string, "evidence": string, "confidence": number }
   ],
   "performanceFindings": [
-    { "title": string, "severity": "critical"|"high"|"medium"|"low", "line": number|null, "description": string, "fix": string }
+    { "title": string, "severity": "critical"|"high"|"medium"|"low", "line": number|null, "description": string, "fix": string, "evidence": string, "confidence": number }
   ],
   "testAutomationFindings": [
-    { "title": string, "severity": "critical"|"high"|"medium"|"low", "line": number|null, "description": string, "fix": string }
+    { "title": string, "severity": "critical"|"high"|"medium"|"low", "line": number|null, "description": string, "fix": string, "evidence": string, "confidence": number }
   ],
   "refactors": {
     "refactored": { "code": string, "changes": string[], "benefits": string[] },
@@ -77,16 +81,32 @@ You MUST respond with ONLY a single JSON object (no markdown fences, no commenta
   "expectedImprovements": string[]           // bullet list of overall expected gains
 }
 
-RULES:
-- Every issue MUST tie to a real line and a real snippet from the supplied code. Never invent code.
-- You MUST independently analyze and produce dedicated findings for FOUR categories: securityFindings, performanceFindings, testAutomationFindings, AND refactors. Do NOT leave any of these empty unless the code is genuinely clean for that category.
-- SECURITY (securityFindings): scan for hardcoded passwords, API keys, tokens, secrets, auth/authorization issues, sensitive data exposure, SQL injection, unsafe file handling, logging confidential info, insecure HTTP, weak crypto. Provide score-driving findings with risk explanation + concrete fix.
-- PERFORMANCE (performanceFindings): scan for Thread.sleep/time.sleep/waitForTimeout, redundant loops, repeated API/DB calls, inefficient collections, excessive DOM lookups, memory leaks, duplicate processing, blocking I/O. Each finding must name the bottleneck and the optimization.
-- AUTOMATION (testAutomationFindings): scan locator quality, XPath stability (flag //*[contains], absolute XPaths, index-based locators), explicit wait usage, Page Object Model compliance, reusability, maintainability, framework structure, assertion quality, flaky-test risks.
-- REFACTORS: ALWAYS produce all THREE variants ("refactored"=clean & readable, "optimized"=best performance, "enterprise"=production-grade with logging, error handling, POM, retries, config-driven). All three MUST compile/run in the detected language and MUST be different from each other and meaningfully improved over the original. Each variant MUST list specific changes[] and benefits[].
-- If a category genuinely has nothing to flag, return an EMPTY array (the UI will display "No significant X Issues Found"). Never invent issues that aren't in the code.
-- Limit issues[] to the 25 most impactful. severityCount fields will be recomputed; you do not need to count them.
-- For EVERY issue, codeAfter MUST differ from codeBefore (it must actually fix the bug). problem and suggestion MUST be written as distinct sentences (problem = what's wrong, suggestion = the concrete action). Never copy the same string into both, and never repeat codeBefore as codeAfter.
+ZERO-HALLUCINATION VERIFICATION ENGINE (most important rules):
+- You are a STATIC ANALYSIS ENGINE, not a creative writer. Report ONLY what is literally present in the supplied source code.
+- Before emitting ANY issue or finding, locate the exact offending code in the source. Copy one real source line verbatim into "evidence" and the snippet into "codeBefore". If you cannot quote the exact source line, DO NOT emit the finding.
+- NEVER report "Hardcoded Wait" / sleep issues unless the source literally contains Thread.sleep, time.sleep, sleep(, waitForTimeout, setTimeout or another fixed delay.
+- NEVER report XPath issues unless the source actually contains an XPath (By.xpath, "//...").
+- NEVER report CSS selector issues unless the source actually contains CSS selectors (By.cssSelector, querySelector, $("...")).
+- NEVER invent SQL queries, API calls, HTTP requests, crypto usage, or secrets that are not literally in the code.
+- ZERO findings for a category is a valid, correct result. ACCURACY IS MORE IMPORTANT THAN THE NUMBER OF FINDINGS.
+- A server-side verifier discards any finding whose evidence does not appear in the source — fabricated findings are wasted output.
+- Every issue and finding MUST include "confidence" (0-100). Only emit findings you are at least 80% confident genuinely exist in this exact code.
+
+CATEGORY ANALYSIS (only for code that is actually present):
+- SECURITY (securityFindings): hardcoded passwords/API keys/tokens, sensitive-data logging, SQL injection, insecure HTTP, weak crypto, unsafe file handling — ONLY when literally present.
+- PERFORMANCE (performanceFindings): real fixed delays, redundant loops, repeated API/DB calls, inefficient collections, excessive DOM lookups, blocking I/O — ONLY when literally present.
+- AUTOMATION (testAutomationFindings) — Selenium/Appium/Playwright/Cypress intelligence. Analyze ONLY aspects visible in the code: assertion quality (wrong assert direction, misleading assertion messages, missing assertions), locator stability, exception-handling breadth (e.g. catch (Throwable e) → catch (NoSuchElementException e) — improves debugging and avoids masking unrelated failures), explicit wait usage, Page Object Model compliance, logging, error recovery, maintainability.
+- If a category genuinely has nothing to flag, return an EMPTY array. Never pad categories.
+
+REFACTORS:
+- Produce up to THREE variants ("refactored"=clean & readable, "optimized"=best performance, "enterprise"=production-grade with logging, error handling, POM, retries, config-driven). Each must compile/run in the detected language.
+- Each variant MUST be a GENUINE improvement that differs from the ORIGINAL code AND from the other variants.
+- If you cannot meaningfully improve the code for a variant, set that variant's "code" to "" (empty string) with empty changes/benefits. NEVER return code identical to the original or to another variant — duplicates are automatically discarded server-side.
+- Each non-empty variant MUST list specific changes[] and benefits[].
+
+OUTPUT QUALITY:
+- Limit issues[] to the 25 most impactful. severityCount fields are recomputed server-side.
+- For EVERY issue, codeAfter MUST differ from codeBefore (it must actually fix the bug). problem and suggestion MUST be written as distinct sentences. Never copy the same string into both.
 - Be concrete, never write "investigate further" or "check this".`;
 
 const EXT_LANG: Record<string, string> = {
@@ -326,6 +346,60 @@ function buildFallbackReport(raw: string, language: string, framework?: string):
   };
 }
 
+// ===================== Code Verification Engine =====================
+// Every AI finding must be traceable to the actual uploaded source code.
+// Findings whose evidence/snippet does not exist in the source, whose claim
+// type has no matching code pattern, or whose confidence is below the
+// threshold are discarded server-side.
+
+const normCode = (s: unknown) => String(s ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
+
+/** True when the majority of non-trivial snippet lines literally exist in the source. */
+function snippetInSource(snippet: string, normSource: string): boolean {
+  const lines = String(snippet ?? '')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.replace(/[^a-zA-Z0-9]/g, '').length >= 4);
+  if (lines.length === 0) return false;
+  let hit = 0;
+  for (const l of lines) if (normSource.includes(normCode(l))) hit++;
+  return hit / lines.length >= 0.6;
+}
+
+/** Claim → required code pattern. If a finding makes the claim but the source
+ *  has no matching code, the finding is a hallucination and gets dropped. */
+const CLAIM_RULES: { claim: RegExp; evidence: RegExp }[] = [
+  {
+    claim: /hard.?coded\s+wait|thread\s*\.?\s*sleep|static\s+wait|fixed\s+(wait|delay)|implicit\s+sleep|sleep\s+statement/i,
+    evidence: /thread\s*\.\s*sleep|time\s*\.\s*sleep|\bsleep\s*\(|waitfortimeout|settimeout\s*\(|\bwait\s*\(\s*\d|\bpause\s*\(\s*\d|delay\s*\(\s*\d/i,
+  },
+  { claim: /xpath/i, evidence: /xpath|\/\/[a-zA-Z*@]/i },
+  { claim: /css\s*selector/i, evidence: /csss?elector|by\.css|queryselector|\$\(\s*['"`]/i },
+  {
+    claim: /sql\s*injection|\bsql\s*quer|raw\s+sql/i,
+    evidence: /\bselect\b|\binsert\s+into\b|\bupdate\s+\w+\s+set\b|\bdelete\s+from\b|preparedstatement|createstatement|executequery|executeupdate|\bsql\b/i,
+  },
+  {
+    claim: /\bapi\s*(call|request)|http\s*request|rest\s*(call|request)|network\s*call/i,
+    evidence: /\bhttps?:|fetch\s*\(|axios|restassured|httpclient|urlconnection|requests\.|okhttp|webclient|resttemplate/i,
+  },
+  {
+    claim: /hard.?coded\s+(password|secret|credential|key|token)|api\s*key|plaintext\s+password|exposed\s+(secret|credential)/i,
+    evidence: /password|passwd|\bpwd\b|secret|token|api.?key|credential|bearer/i,
+  },
+  { claim: /implicit\s*wait/i, evidence: /implicitlywait|implicit_wait|implicitly_wait/i },
+  { claim: /thread\s+safety|race\s+condition/i, evidence: /\bthread\b|runnable|executor|synchronized|async|await|promise|goroutine|mutex|lock/i },
+];
+
+function claimUnsupported(claimText: string, normSource: string): boolean {
+  for (const rule of CLAIM_RULES) {
+    if (rule.claim.test(claimText) && !rule.evidence.test(normSource)) return true;
+  }
+  return false;
+}
+
+
+
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
@@ -419,6 +493,64 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
         : 'Analysis completed, but structured report generation was limited by the selected AI model. For full structured reports, switch to Gemini 2.5 Pro, GPT-5, or Claude Sonnet in AI Configuration.';
     }
 
+    // ===== Code Verification Engine: drop hallucinated / unverified / low-confidence findings =====
+    const confidenceThreshold = Math.min(100, Math.max(0, Number(body.confidenceThreshold) || 80));
+    const sourceText = files.map(f => f.content).join('\n');
+    const normSource = normCode(sourceText);
+    let droppedCount = 0;
+
+    const passesConfidence = (v: any) => {
+      const conf = Number(v?.confidence);
+      return !Number.isFinite(conf) || conf >= confidenceThreshold;
+    };
+    const verifyIssue = (i: any): boolean => {
+      const claimText = `${i.type ?? ''} ${i.title ?? ''} ${i.problem ?? ''}`;
+      if (claimUnsupported(claimText, normSource)) return false;
+      const evidence = String(i.evidence || i.codeBefore || '');
+      if (evidence.trim() && !snippetInSource(evidence, normSource)) return false;
+      return passesConfidence(i);
+    };
+    const verifyFinding = (f: any): boolean => {
+      const claimText = `${f.title ?? ''} ${f.description ?? ''}`;
+      if (claimUnsupported(claimText, normSource)) return false;
+      const evidence = String(f.evidence || '');
+      if (evidence.trim() && !snippetInSource(evidence, normSource)) return false;
+      return passesConfidence(f);
+    };
+
+    // Skip verification in degraded (unstructured) mode — those findings carry no evidence fields.
+    if (!degradedNotice) {
+      const allIssues = Array.isArray(parsed.issues) ? parsed.issues : [];
+      parsed.issues = allIssues.filter(verifyIssue);
+      droppedCount += allIssues.length - parsed.issues.length;
+      for (const key of ['securityFindings', 'performanceFindings', 'testAutomationFindings'] as const) {
+        const all = Array.isArray(parsed[key]) ? parsed[key] : [];
+        parsed[key] = all.filter(verifyFinding);
+        droppedCount += all.length - parsed[key].length;
+      }
+      if (droppedCount > 0) console.log(`Verification engine dropped ${droppedCount} unverified/low-confidence findings`);
+    }
+
+    // ===== Refactor validation: discard variants identical to the original or to another variant =====
+    const refactorsObj = (parsed.refactors && typeof parsed.refactors === 'object') ? parsed.refactors : {};
+    const seenCodes = [normSource];
+    for (const v of ['refactored', 'optimized', 'enterprise']) {
+      const code = String(refactorsObj[v]?.code ?? '');
+      if (!code.trim()) { delete refactorsObj[v]; continue; }
+      const n = normCode(code);
+      if (seenCodes.includes(n)) {
+        console.log(`Refactor variant "${v}" discarded — identical to original or another variant`);
+        delete refactorsObj[v];
+      } else {
+        seenCodes.push(n);
+      }
+    }
+    parsed.refactors = refactorsObj;
+
+    const verificationNotice = droppedCount > 0
+      ? `${droppedCount} unverified or low-confidence finding${droppedCount === 1 ? ' was' : 's were'} filtered out by the code verification engine (threshold ${confidenceThreshold}%).`
+      : undefined;
+
     // Recompute severity counts + sanitize duplicate before/after & problem/suggestion
     const norm = (v: any) => String(v ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
     const rawIssues = Array.isArray(parsed.issues) ? parsed.issues : [];
@@ -439,6 +571,7 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
         codeAfterMissing: dupCode || !after.trim(),
       };
     });
+
     const sevCounts = { critical: 0, high: 0, medium: 0, low: 0 };
     for (const i of issues) {
       const s = String(i.severity || 'low').toLowerCase();
@@ -518,8 +651,11 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
         sevCounts,
         issues,
         degradedNotice,
+        verificationNotice,
+        confidenceThreshold,
       },
     }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
   } catch (error) {
     console.error('hive-code-analyzer error', error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
