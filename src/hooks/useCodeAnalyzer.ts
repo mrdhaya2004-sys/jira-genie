@@ -13,7 +13,7 @@ export interface AnalyzeInput {
   repoUrl?: string;
   branch?: string;
   githubToken?: string;
-  githubToken?: string;
+
   gitlabToken?: string;
   /** 0-100 — findings below this confidence are filtered server-side (default 80) */
   confidenceThreshold?: number;
