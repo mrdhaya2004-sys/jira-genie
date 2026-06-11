@@ -45,8 +45,18 @@ const IssueCard: React.FC<Props> = ({ issue }) => (
         <Badge className={cn('border', sevStyle[issue.severity])}>{issue.severity.toUpperCase()}</Badge>
         {issue.line ? <Badge variant="outline">Line {issue.line}{issue.endLine ? `-${issue.endLine}` : ''}</Badge> : null}
         {issue.type && <Badge variant="secondary">{issue.type}</Badge>}
+        {typeof issue.confidence === 'number' && (
+          <Badge variant="outline" className="border-primary/40 text-primary">Confidence {Math.round(issue.confidence)}%</Badge>
+        )}
       </div>
       <h4 className="font-semibold text-sm">{issue.title}</h4>
+      {issue.evidence && issue.evidence.trim() && issue.evidence.trim() !== (issue.codeBefore || '').trim() && (
+        <div className="rounded-md border border-border/60 bg-muted/40 px-3 py-2 text-xs font-mono overflow-x-auto">
+          <span className="text-[10px] font-sans uppercase tracking-wide text-muted-foreground mr-2">Evidence</span>
+          <code>{issue.evidence}</code>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
         <div className="flex gap-2"><AlertTriangle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" /><div><div className="text-xs font-medium text-muted-foreground mb-0.5">Problem</div><p>{issue.problem || '—'}</p></div></div>
         <div className="flex gap-2"><Lightbulb className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" /><div><div className="text-xs font-medium text-muted-foreground mb-0.5">Suggested Fix</div><p className={cn(!issue.suggestion && 'italic text-muted-foreground')}>{issue.suggestion || 'AI did not provide a distinct fix description — see codeAfter for the actual change.'}</p></div></div>

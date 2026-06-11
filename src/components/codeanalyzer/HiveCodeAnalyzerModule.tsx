@@ -61,7 +61,14 @@ const HiveCodeAnalyzerModule: React.FC = () => {
                   <span>{result.degradedNotice}</span>
                 </div>
               )}
+              {result.verificationNotice && (
+                <div className="rounded-lg border border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300 px-4 py-3 text-sm flex gap-2 items-start">
+                  <Shield className="h-4 w-4 mt-0.5 shrink-0" />
+                  <span>{result.verificationNotice}</span>
+                </div>
+              )}
               <AnalysisDashboard result={result} />
+
 
 
               <Tabs defaultValue="issues" className="w-full">
