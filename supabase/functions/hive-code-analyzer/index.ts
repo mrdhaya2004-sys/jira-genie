@@ -344,6 +344,60 @@ function buildFallbackReport(raw: string, language: string, framework?: string):
   };
 }
 
+// ===================== Code Verification Engine =====================
+// Every AI finding must be traceable to the actual uploaded source code.
+// Findings whose evidence/snippet does not exist in the source, whose claim
+// type has no matching code pattern, or whose confidence is below the
+// threshold are discarded server-side.
+
+const normCode = (s: unknown) => String(s ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
+
+/** True when the majority of non-trivial snippet lines literally exist in the source. */
+function snippetInSource(snippet: string, normSource: string): boolean {
+  const lines = String(snippet ?? '')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.replace(/[^a-zA-Z0-9]/g, '').length >= 4);
+  if (lines.length === 0) return false;
+  let hit = 0;
+  for (const l of lines) if (normSource.includes(normCode(l))) hit++;
+  return hit / lines.length >= 0.6;
+}
+
+/** Claim → required code pattern. If a finding makes the claim but the source
+ *  has no matching code, the finding is a hallucination and gets dropped. */
+const CLAIM_RULES: { claim: RegExp; evidence: RegExp }[] = [
+  {
+    claim: /hard.?coded\s+wait|thread\s*\.?\s*sleep|static\s+wait|fixed\s+(wait|delay)|implicit\s+sleep|sleep\s+statement/i,
+    evidence: /thread\s*\.\s*sleep|time\s*\.\s*sleep|\bsleep\s*\(|waitfortimeout|settimeout\s*\(|\bwait\s*\(\s*\d|\bpause\s*\(\s*\d|delay\s*\(\s*\d/i,
+  },
+  { claim: /xpath/i, evidence: /xpath|\/\/[a-zA-Z*@]/i },
+  { claim: /css\s*selector/i, evidence: /csss?elector|by\.css|queryselector|\$\(\s*['"`]/i },
+  {
+    claim: /sql\s*injection|\bsql\s*quer|raw\s+sql/i,
+    evidence: /\bselect\b|\binsert\s+into\b|\bupdate\s+\w+\s+set\b|\bdelete\s+from\b|preparedstatement|createstatement|executequery|executeupdate|\bsql\b/i,
+  },
+  {
+    claim: /\bapi\s*(call|request)|http\s*request|rest\s*(call|request)|network\s*call/i,
+    evidence: /\bhttps?:|fetch\s*\(|axios|restassured|httpclient|urlconnection|requests\.|okhttp|webclient|resttemplate/i,
+  },
+  {
+    claim: /hard.?coded\s+(password|secret|credential|key|token)|api\s*key|plaintext\s+password|exposed\s+(secret|credential)/i,
+    evidence: /password|passwd|\bpwd\b|secret|token|api.?key|credential|bearer/i,
+  },
+  { claim: /implicit\s*wait/i, evidence: /implicitlywait|implicit_wait|implicitly_wait/i },
+  { claim: /thread\s+safety|race\s+condition/i, evidence: /\bthread\b|runnable|executor|synchronized|async|await|promise|goroutine|mutex|lock/i },
+];
+
+function claimUnsupported(claimText: string, normSource: string): boolean {
+  for (const rule of CLAIM_RULES) {
+    if (rule.claim.test(claimText) && !rule.evidence.test(normSource)) return true;
+  }
+  return false;
+}
+
+
+
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
