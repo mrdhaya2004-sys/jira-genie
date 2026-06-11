@@ -18,7 +18,9 @@ interface AnalyzeRequest {
   branch?: string;
   githubToken?: string;
   gitlabToken?: string;
+  confidenceThreshold?: number; // 0-100, default 80 — findings below this confidence are dropped
 }
+
 
 const SYSTEM_PROMPT = `You are Hive Code Analyzer — an elite AI code reviewer for QA automation, SDET, API testing, mobile automation, web automation, and software engineering.
 
@@ -491,6 +493,64 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
         : 'Analysis completed, but structured report generation was limited by the selected AI model. For full structured reports, switch to Gemini 2.5 Pro, GPT-5, or Claude Sonnet in AI Configuration.';
     }
 
+    // ===== Code Verification Engine: drop hallucinated / unverified / low-confidence findings =====
+    const confidenceThreshold = Math.min(100, Math.max(0, Number(body.confidenceThreshold) || 80));
+    const sourceText = files.map(f => f.content).join('\n');
+    const normSource = normCode(sourceText);
+    let droppedCount = 0;
+
+    const passesConfidence = (v: any) => {
+      const conf = Number(v?.confidence);
+      return !Number.isFinite(conf) || conf >= confidenceThreshold;
+    };
+    const verifyIssue = (i: any): boolean => {
+      const claimText = `${i.type ?? ''} ${i.title ?? ''} ${i.problem ?? ''}`;
+      if (claimUnsupported(claimText, normSource)) return false;
+      const evidence = String(i.evidence || i.codeBefore || '');
+      if (evidence.trim() && !snippetInSource(evidence, normSource)) return false;
+      return passesConfidence(i);
+    };
+    const verifyFinding = (f: any): boolean => {
+      const claimText = `${f.title ?? ''} ${f.description ?? ''}`;
+      if (claimUnsupported(claimText, normSource)) return false;
+      const evidence = String(f.evidence || '');
+      if (evidence.trim() && !snippetInSource(evidence, normSource)) return false;
+      return passesConfidence(f);
+    };
+
+    // Skip verification in degraded (unstructured) mode — those findings carry no evidence fields.
+    if (!degradedNotice) {
+      const allIssues = Array.isArray(parsed.issues) ? parsed.issues : [];
+      parsed.issues = allIssues.filter(verifyIssue);
+      droppedCount += allIssues.length - parsed.issues.length;
+      for (const key of ['securityFindings', 'performanceFindings', 'testAutomationFindings'] as const) {
+        const all = Array.isArray(parsed[key]) ? parsed[key] : [];
+        parsed[key] = all.filter(verifyFinding);
+        droppedCount += all.length - parsed[key].length;
+      }
+      if (droppedCount > 0) console.log(`Verification engine dropped ${droppedCount} unverified/low-confidence findings`);
+    }
+
+    // ===== Refactor validation: discard variants identical to the original or to another variant =====
+    const refactorsObj = (parsed.refactors && typeof parsed.refactors === 'object') ? parsed.refactors : {};
+    const seenCodes = [normSource];
+    for (const v of ['refactored', 'optimized', 'enterprise']) {
+      const code = String(refactorsObj[v]?.code ?? '');
+      if (!code.trim()) { delete refactorsObj[v]; continue; }
+      const n = normCode(code);
+      if (seenCodes.includes(n)) {
+        console.log(`Refactor variant "${v}" discarded — identical to original or another variant`);
+        delete refactorsObj[v];
+      } else {
+        seenCodes.push(n);
+      }
+    }
+    parsed.refactors = refactorsObj;
+
+    const verificationNotice = droppedCount > 0
+      ? `${droppedCount} unverified or low-confidence finding${droppedCount === 1 ? ' was' : 's were'} filtered out by the code verification engine (threshold ${confidenceThreshold}%).`
+      : undefined;
+
     // Recompute severity counts + sanitize duplicate before/after & problem/suggestion
     const norm = (v: any) => String(v ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
     const rawIssues = Array.isArray(parsed.issues) ? parsed.issues : [];
@@ -511,6 +571,7 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
         codeAfterMissing: dupCode || !after.trim(),
       };
     });
+
     const sevCounts = { critical: 0, high: 0, medium: 0, low: 0 };
     for (const i of issues) {
       const s = String(i.severity || 'low').toLowerCase();
@@ -590,8 +651,11 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
         sevCounts,
         issues,
         degradedNotice,
+        verificationNotice,
+        confidenceThreshold,
       },
     }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
   } catch (error) {
     console.error('hive-code-analyzer error', error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
