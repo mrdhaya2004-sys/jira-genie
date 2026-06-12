@@ -100,8 +100,8 @@ CATEGORY ANALYSIS (only for code that is actually present):
 
 REFACTORS:
 - Produce up to THREE variants ("refactored"=clean & readable, "optimized"=best performance, "enterprise"=production-grade with logging, error handling, POM, retries, config-driven). Each must compile/run in the detected language.
-- Each variant MUST be a GENUINE improvement that differs from the ORIGINAL code AND from the other variants.
-- If you cannot meaningfully improve the code for a variant, set that variant's "code" to "" (empty string) with empty changes/benefits. NEVER return code identical to the original or to another variant — duplicates are automatically discarded server-side.
+- Even SMALL improvements count: better variable naming (e.g. Boolean news → boolean isNewsDisplayed), narrower exception types (catch (Throwable) → catch (NoSuchElementException)), proper logging (System.out.println → logger.error), clearer assertions, explicit waits, comments, formatting, and structure are all valid refactors. Do NOT skip a variant just because the change is small.
+- Each variant should differ from the ORIGINAL and ideally from other variants, but a minor naming/logging/exception improvement is acceptable. Only leave a variant's code as "" if the original truly already follows best practices for that level — and then list in changes[] why no improvement was needed.
 - Each non-empty variant MUST list specific changes[] and benefits[].
 
 OUTPUT QUALITY:
@@ -489,8 +489,8 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
       console.warn('Structured JSON parse failed, falling back to section extraction', e, 'finish_reason=', finishReason);
       parsed = buildFallbackReport(content, detectedLang, body.framework);
       degradedNotice = finishReason === 'length' || finishReason === 'max_tokens'
-        ? 'Analysis completed, but the response was truncated by the selected AI model. For full structured reports, switch to Gemini 2.5 Pro, GPT-5, or Claude Sonnet in AI Configuration.'
-        : 'Analysis completed, but structured report generation was limited by the selected AI model. For full structured reports, switch to Gemini 2.5 Pro, GPT-5, or Claude Sonnet in AI Configuration.';
+        ? 'Analysis completed with a condensed report — some sections were reconstructed from the raw response.'
+        : 'Analysis completed with a condensed report — sections were reconstructed from the raw response.';
     }
 
     // ===== Code Verification Engine: drop hallucinated / unverified / low-confidence findings =====
@@ -531,18 +531,15 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
       if (droppedCount > 0) console.log(`Verification engine dropped ${droppedCount} unverified/low-confidence findings`);
     }
 
-    // ===== Refactor validation: discard variants identical to the original or to another variant =====
+    // ===== Refactor validation: only discard variants that are byte-identical to the ORIGINAL.
+    // Variants similar to each other are kept — small improvements (renaming, logging, exception narrowing) are valid.
     const refactorsObj = (parsed.refactors && typeof parsed.refactors === 'object') ? parsed.refactors : {};
-    const seenCodes = [normSource];
     for (const v of ['refactored', 'optimized', 'enterprise']) {
       const code = String(refactorsObj[v]?.code ?? '');
       if (!code.trim()) { delete refactorsObj[v]; continue; }
-      const n = normCode(code);
-      if (seenCodes.includes(n)) {
-        console.log(`Refactor variant "${v}" discarded — identical to original or another variant`);
+      if (normCode(code) === normSource) {
+        console.log(`Refactor variant "${v}" discarded — identical to original source`);
         delete refactorsObj[v];
-      } else {
-        seenCodes.push(n);
       }
     }
     parsed.refactors = refactorsObj;

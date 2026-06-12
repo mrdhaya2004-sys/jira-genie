@@ -67,7 +67,7 @@ const IssueCard: React.FC<Props> = ({ issue }) => (
           <ArrowRight className="h-4 w-4 text-muted-foreground hidden md:block mx-auto" />
           {issue.codeAfter
             ? <CodeBlock code={issue.codeAfter} label="After" tone="after" />
-            : <div className="rounded-lg border border-dashed border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-300">AI did not produce a distinct fixed snippet. Switch to a stronger model (Gemini 2.5 Pro, GPT-5, Claude Sonnet) for an improved version.</div>}
+            : <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/30 p-3 text-xs text-muted-foreground">No significant optimization opportunity detected for this snippet — the existing code already follows acceptable practices for the issue described.</div>}
         </div>
       )}
       {issue.explanation && (
