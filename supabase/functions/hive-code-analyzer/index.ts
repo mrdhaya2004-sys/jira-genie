@@ -100,8 +100,8 @@ CATEGORY ANALYSIS (only for code that is actually present):
 
 REFACTORS:
 - Produce up to THREE variants ("refactored"=clean & readable, "optimized"=best performance, "enterprise"=production-grade with logging, error handling, POM, retries, config-driven). Each must compile/run in the detected language.
-- Each variant MUST be a GENUINE improvement that differs from the ORIGINAL code AND from the other variants.
-- If you cannot meaningfully improve the code for a variant, set that variant's "code" to "" (empty string) with empty changes/benefits. NEVER return code identical to the original or to another variant — duplicates are automatically discarded server-side.
+- Even SMALL improvements count: better variable naming (e.g. Boolean news → boolean isNewsDisplayed), narrower exception types (catch (Throwable) → catch (NoSuchElementException)), proper logging (System.out.println → logger.error), clearer assertions, explicit waits, comments, formatting, and structure are all valid refactors. Do NOT skip a variant just because the change is small.
+- Each variant should differ from the ORIGINAL and ideally from other variants, but a minor naming/logging/exception improvement is acceptable. Only leave a variant's code as "" if the original truly already follows best practices for that level — and then list in changes[] why no improvement was needed.
 - Each non-empty variant MUST list specific changes[] and benefits[].
 
 OUTPUT QUALITY:
