@@ -531,18 +531,15 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
       if (droppedCount > 0) console.log(`Verification engine dropped ${droppedCount} unverified/low-confidence findings`);
     }
 
-    // ===== Refactor validation: discard variants identical to the original or to another variant =====
+    // ===== Refactor validation: only discard variants that are byte-identical to the ORIGINAL.
+    // Variants similar to each other are kept — small improvements (renaming, logging, exception narrowing) are valid.
     const refactorsObj = (parsed.refactors && typeof parsed.refactors === 'object') ? parsed.refactors : {};
-    const seenCodes = [normSource];
     for (const v of ['refactored', 'optimized', 'enterprise']) {
       const code = String(refactorsObj[v]?.code ?? '');
       if (!code.trim()) { delete refactorsObj[v]; continue; }
-      const n = normCode(code);
-      if (seenCodes.includes(n)) {
-        console.log(`Refactor variant "${v}" discarded — identical to original or another variant`);
+      if (normCode(code) === normSource) {
+        console.log(`Refactor variant "${v}" discarded — identical to original source`);
         delete refactorsObj[v];
-      } else {
-        seenCodes.push(n);
       }
     }
     parsed.refactors = refactorsObj;
