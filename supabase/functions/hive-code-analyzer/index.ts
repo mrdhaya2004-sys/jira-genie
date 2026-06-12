@@ -489,8 +489,8 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
       console.warn('Structured JSON parse failed, falling back to section extraction', e, 'finish_reason=', finishReason);
       parsed = buildFallbackReport(content, detectedLang, body.framework);
       degradedNotice = finishReason === 'length' || finishReason === 'max_tokens'
-        ? 'Analysis completed, but the response was truncated by the selected AI model. For full structured reports, switch to Gemini 2.5 Pro, GPT-5, or Claude Sonnet in AI Configuration.'
-        : 'Analysis completed, but structured report generation was limited by the selected AI model. For full structured reports, switch to Gemini 2.5 Pro, GPT-5, or Claude Sonnet in AI Configuration.';
+        ? 'Analysis completed with a condensed report — some sections were reconstructed from the raw response.'
+        : 'Analysis completed with a condensed report — sections were reconstructed from the raw response.';
     }
 
     // ===== Code Verification Engine: drop hallucinated / unverified / low-confidence findings =====
