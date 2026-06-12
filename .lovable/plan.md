@@ -1,72 +1,60 @@
-## Hive Code Analyzer
+## Hive Code Analyzer — iOS 26 Liquid Glass Redesign
 
-An AI-powered code review module for QA Automation, SDET, API, mobile and web automation projects. Sits alongside existing modules (Test Case Generator, XPath Generator, Logic Scenario Creator, Defect Analyzer) in the sidebar and shares the same chat + card UI patterns.
+The user has given a very specific design direction (iOS 26 / Apple Intelligence / Xcode / Linear) with detailed section-by-section requirements. Implementing directly across the module's existing files — no new routes, no backend changes.
 
-### 1. Inputs
-- Paste snippet (Monaco editor with language picker).
-- Upload single / multiple files (drag-drop, up to 10 files, 2MB each).
-- GitHub repo URL (public + optional PAT for private).
-- GitLab repo URL (reuses existing `gitlab_connections` PAT when present, otherwise PAT input).
-- Auto language + framework detection from file extension / imports; user can override.
+### Visual language (added once, reused everywhere)
+- New CSS layer in `src/index.css` scoped via a `.hca` wrapper class on the module root so it does not bleed into other modules:
+  - `--hca-glass-bg`, `--hca-glass-border`, `--hca-glow`, `--hca-spring` tokens for light + dark
+  - `.hca-glass` (frosted, layered blur, soft inner highlight), `.hca-surface` (deep charcoal / white glass), `.hca-ring` (score ring), `.hca-chip`, `.hca-segmented` (iOS segmented control)
+  - Spring-style keyframes: `hca-rise`, `hca-shimmer`, `hca-pulse-soft`, `hca-ring-fill`
+- All colors stay on semantic HSL tokens — no hardcoded hex in components.
 
-Supported languages: Java, Python, JS, TS, C#, Kotlin, Swift, SQL, Shell.
-Supported frameworks: Selenium, Appium, Playwright, Cypress, TestNG, JUnit, Cucumber, Rest Assured, Postman, Robot Framework.
+### Header (`HiveCodeAnalyzerModule.tsx`)
+- Replace flat header with a liquid-glass bar: app icon tile with animated glow ring, title + new subtitle "AI-Powered Code Quality & Stability Analysis", animated status dot (Idle / Analyzing pulse / Healthy), quick-stats chips when a result exists (Quality, Security, Automation) using soft gradient pills.
 
-### 2. Analysis pipeline (edge function `hive-code-analyzer`)
-Single Lovable AI call (`google/gemini-3-flash-preview`, fallback `google/gemini-2.5-pro` for files >40KB) using structured output (Zod schema) returning:
+### Analysis dashboard (`AnalysisDashboard.tsx`)
+- Convert score grid to glass metric cards with animated SVG score rings (stroke-dashoffset spring fill), soft category gradients, delta label, and skeleton loader during analyze.
+- Top "AI Insights" panel (new sub-component inside the file): Most Critical Risk, Best Improvement Opportunity, Stability Prediction, Automation Maturity — derived from existing `result` fields, no new data.
+- "Analysis Timeline" strip below: Uploaded → Analyzing → Review → Refactor → Completed with spring stagger animation. Driven purely from `isAnalyzing` + `result` state.
 
-```text
-overallScore (0-100)
-subScores: { readability, maintainability, stability, performance, security,
-             automationBestPractice, scalability }
-automationStability: { score, risk: low|medium|high, reasons[] }
-issues[]: { line, endLine?, severity: critical|high|medium|low,
-            type, title, problem, suggestion, codeBefore, codeAfter, explanation, bestPractice }
-securityFindings[], performanceFindings[], testAutomationFindings[]
-refactors: { refactored: code, optimized: code, enterprise: code,
-             changes[], benefits[], expectedImprovements[] }
-summary, criticalCount, highCount, mediumCount, lowCount
-```
+### Tabs
+- Replace shadcn `TabsList` with an iOS-26 segmented control (`hca-segmented`): pill background slides under the active tab using a translate-x transform with spring easing. Keep Radix Tabs semantics for a11y, restyle the trigger.
 
-For repo inputs the edge function fetches up to 50 source files (filtered by extension), concatenates with file headers, and runs one analysis call per file in parallel (max 5 concurrent). Aggregated scores = weighted average.
+### Issue cards (`IssueCard.tsx`)
+- Convert to interactive collapsible cards (closed by default, expand on click): severity badge, line chip, type chip, impact + confidence rings on the header row.
+- Split-view Problem vs Suggested Fix using a 2-column grid with synced line gutters and a subtle diff highlight (added-line = emerald wash, removed-line = rose wash). Per-pane copy button, expand-to-fullscreen dialog (shadcn Dialog) for large snippets.
 
-### 3. UI components (`src/components/codeanalyzer/`)
-- `HiveCodeAnalyzerModule.tsx` — module shell (matches existing module headers: h-12 frosted, glass-bg).
-- `CodeInputPanel.tsx` — tabs: Snippet | Files | GitHub | GitLab. Monaco editor reused from scenario module.
-- `AnalysisDashboard.tsx` — score gauges, issue counts, automation stability ring, severity breakdown.
-- `LineByLineList.tsx` — virtualized list with severity badges; clicking jumps to highlighted line in Monaco viewer.
-- `IssueCard.tsx` — problem / suggestion / before-after diff (uses CodeSnippet component).
-- `RefactorPanel.tsx` — 3 tabs (Refactored / Optimized / Enterprise) with copy + download.
-- `SecurityPanel.tsx`, `PerformancePanel.tsx`, `AutomationReviewPanel.tsx`.
-- `ExportReportDialog.tsx` — PDF (jspdf+autotable), DOCX (docx lib), HTML (sanitized template).
-- `AnalysisHistoryPanel.tsx` — past analyses from `code_analyses` table.
+### Refactor panel (`RefactorPanel.tsx`)
+- Replace inner Tabs with iOS segmented control: Refactored / Optimized / Enterprise. Smooth crossfade + slight scale-in on switch. Keep existing copy / download.
 
-### 4. Database
-New tables (RLS owner-only, GRANTs included):
-- `code_analyses` — id, user_id, source_type (snippet|files|github|gitlab), language, framework, overall_score, sub_scores jsonb, automation_stability jsonb, summary, created_at.
-- `code_analysis_issues` — analysis_id, line, severity, type, title, problem, suggestion, code_before, code_after, explanation.
-- `code_analysis_refactors` — analysis_id, variant (refactored|optimized|enterprise), code, changes jsonb, benefits jsonb.
+### Findings panel (`FindingsPanel.tsx`)
+- Restyle to match glass cards, soft severity chips, confidence ring, evidence collapsible.
 
-### 5. Edge function + secrets
-- `supabase/functions/hive-code-analyzer/index.ts` (`verify_jwt = false`, manual `validateAuth`).
-- Uses existing `LOVABLE_API_KEY`. No new secrets required.
-- Optional GitHub PAT entered in UI is sent per-request (never stored).
+### Code input (`CodeInputPanel.tsx`)
+- Light glass surface, softer shadows, restyled drag-drop dashed area, segmented source-type selector. No logic changes.
 
-### 6. Sidebar & routing
-- Add nav entry "Hive Code Analyzer" in `DashboardSidebar` with `Code2` icon under the Automation group.
-- Register module in `DashboardPage`.
-- Update Hive AI assistant router to redirect "review my code / analyze code" intents to this module.
+### Dark + Light modes
+- Both modes share token names. Dark: deep charcoal (`hsl(220 18% 8%)` surface), subtle accent glows. Light: paper-white glass with soft elevation. No pure black, no pure white.
 
-### 7. Out of scope (v1)
-- Live GitHub PR comments.
-- Background re-analysis on push.
-- Multi-language repo-wide call-graph analysis.
+### Performance + a11y
+- Use `transform` + `opacity` only for animations.
+- Respect `prefers-reduced-motion` — disable rise/shimmer/pulse.
+- Skeleton loaders on dashboard + tabs during `isAnalyzing`.
+- All interactive elements remain keyboard-focusable; Radix primitives kept.
 
-### Delivery order
-1. Migration + tables.
-2. Edge function with structured output.
-3. UI shell + snippet flow + dashboard.
-4. File upload + GitHub/GitLab fetch.
-5. Refactor / Security / Performance / Automation panels.
-6. Export (PDF/DOCX/HTML) + history panel.
-7. Sidebar nav + Hive AI routing.
+### Files to touch
+- `src/index.css` — add `.hca-*` design layer
+- `src/components/codeanalyzer/HiveCodeAnalyzerModule.tsx`
+- `src/components/codeanalyzer/AnalysisDashboard.tsx`
+- `src/components/codeanalyzer/IssueCard.tsx`
+- `src/components/codeanalyzer/RefactorPanel.tsx`
+- `src/components/codeanalyzer/FindingsPanel.tsx`
+- `src/components/codeanalyzer/CodeInputPanel.tsx`
+- New: `src/components/codeanalyzer/ScoreRing.tsx`, `AIInsightsPanel.tsx`, `AnalysisTimeline.tsx`, `SegmentedControl.tsx`
+
+### Out of scope
+- No backend / edge function changes.
+- No new analysis fields — AI insights + timeline derive from the existing `AnalysisResult` shape.
+- No changes to other modules.
+
+Confirm and I will build it end-to-end.

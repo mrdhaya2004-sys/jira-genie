@@ -1,8 +1,6 @@
-import React from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
 import { RotateCcw, Sparkles, ScanLine, Shield, Zap, Bug, Wand2 } from 'lucide-react';
 import CodeInputPanel from './CodeInputPanel';
 import AnalysisDashboard from './AnalysisDashboard';
@@ -10,94 +8,140 @@ import IssueCard from './IssueCard';
 import RefactorPanel from './RefactorPanel';
 import FindingsPanel from './FindingsPanel';
 import ExportButtons from './ExportButtons';
+import SegmentedControl from './SegmentedControl';
+import AnalysisTimeline from './AnalysisTimeline';
 import { useCodeAnalyzer } from '@/hooks/useCodeAnalyzer';
+import { cn } from '@/lib/utils';
+
+type TabKey = 'issues' | 'security' | 'performance' | 'automation' | 'refactor';
 
 const HiveCodeAnalyzerModule: React.FC = () => {
   const { result, isAnalyzing, analyze, reset } = useCodeAnalyzer();
+  const [tab, setTab] = React.useState<TabKey>('issues');
+
+  const status = isAnalyzing ? 'analyzing' : result ? 'healthy' : 'idle';
+  const statusLabel = isAnalyzing ? 'Analyzing' : result ? 'Healthy' : 'Idle';
+
+  // Timeline step: 0 idle, 1 uploaded, 2 analyzing, 3 review, 4 refactor, 5 complete
+  const step = useMemo(() => {
+    if (!isAnalyzing && !result) return 0;
+    if (isAnalyzing && !result) return 2;
+    if (result && Object.keys(result.refactors || {}).length === 0) return 3;
+    if (result) return 5;
+    return 1;
+  }, [isAnalyzing, result]);
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
-      {/* Header */}
-      <div className="relative border-b border-border/60 backdrop-blur-xl bg-card/70 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 pointer-events-none" />
-        <div className="relative flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+    <div className="hca h-full flex flex-col">
+      {/* ===== Liquid-glass header ===== */}
+      <header className="relative border-b border-border/40 backdrop-blur-2xl bg-card/60 px-4 sm:px-6 py-3 flex items-center justify-between gap-3 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/8 via-transparent to-primary/8 pointer-events-none" />
+        <div className="relative flex items-center gap-3 min-w-0 flex-1">
           <div className="relative shrink-0">
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary/40 to-primary/10 blur-md animate-glow-pulse" />
-            <div className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-lg glass-effect flex items-center justify-center">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/40 to-primary/5 blur-md" />
+            <div className="relative h-10 w-10 rounded-2xl hca-glass flex items-center justify-center">
               <ScanLine className="h-5 w-5 text-primary" />
             </div>
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="font-semibold flex items-center gap-2 text-sm sm:text-base truncate">
-              <span className="truncate">🧠 Hive Code Analyzer</span>
-              <Badge variant="secondary" className="text-[10px] sm:text-xs hidden sm:inline-flex shrink-0 glass-effect border-primary/20">
-                <Sparkles className="h-2.5 w-2.5 mr-1 text-primary" />AI Code Review Copilot
-              </Badge>
+            <h2 className="font-semibold text-sm sm:text-base truncate flex items-center gap-2">
+              Hive Code Analyzer
+              <span className="hca-chip hidden sm:inline-flex">
+                <Sparkles className="h-3 w-3 text-primary" />
+                AI Code Review Copilot
+              </span>
             </h2>
-            <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
-              Enterprise code review · scoring · refactoring for QA Automation, API, Mobile & Web
+            <p className="text-[12px] text-muted-foreground truncate">
+              AI-Powered Code Quality & Stability Analysis
             </p>
           </div>
         </div>
-        {result && (
-          <div className="relative flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <ExportButtons result={result} />
-            <Button variant="outline" size="sm" onClick={reset} className="px-2 sm:px-3">
-              <RotateCcw className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">New Analysis</span>
-            </Button>
+
+        {/* Status + quick stats */}
+        <div className="relative flex items-center gap-2 shrink-0">
+          <div className="hca-chip">
+            <span className={cn(
+              'h-2 w-2 rounded-full',
+              status === 'analyzing' ? 'bg-primary hca-pulse-soft' : status === 'healthy' ? 'bg-emerald-500' : 'bg-muted-foreground/50',
+            )} />
+            <span>{statusLabel}</span>
           </div>
-        )}
-      </div>
+          {result && (
+            <>
+              <span className="hca-chip hidden md:inline-flex">Quality {result.overallScore}</span>
+              <span className="hca-chip hidden lg:inline-flex">Security {result.subScores.security}</span>
+              <span className="hca-chip hidden lg:inline-flex">Automation {result.subScores.automationBestPractice}</span>
+              <ExportButtons result={result} />
+              <Button variant="outline" size="sm" onClick={reset} className="rounded-xl">
+                <RotateCcw className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">New</span>
+              </Button>
+            </>
+          )}
+        </div>
+      </header>
 
       <ScrollArea className="flex-1">
-        <div className="p-4 max-w-6xl mx-auto space-y-5">
-          {!result && <CodeInputPanel onAnalyze={analyze} isAnalyzing={isAnalyzing} />}
+        <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-5">
+          {/* Workflow timeline — visible during analysis and after completion */}
+          {(isAnalyzing || result) && <AnalysisTimeline step={step} />}
+
+          {!result && !isAnalyzing && <CodeInputPanel onAnalyze={analyze} isAnalyzing={isAnalyzing} />}
+
+          {!result && isAnalyzing && (
+            <div className="space-y-3 hca-rise">
+              <div className="hca-skel h-40 w-full" />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="hca-skel h-20" /><div className="hca-skel h-20" /><div className="hca-skel h-20" /><div className="hca-skel h-20" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="hca-skel h-24" /><div className="hca-skel h-24" /><div className="hca-skel h-24" />
+              </div>
+            </div>
+          )}
 
           {result && (
             <>
               {result.degradedNotice && (
-                <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 px-4 py-3 text-sm flex gap-2 items-start">
+                <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 backdrop-blur px-4 py-3 text-sm flex gap-2 items-start text-amber-700 dark:text-amber-300 hca-rise">
                   <Sparkles className="h-4 w-4 mt-0.5 shrink-0" />
                   <span>{result.degradedNotice}</span>
                 </div>
               )}
               {result.verificationNotice && (
-                <div className="rounded-lg border border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300 px-4 py-3 text-sm flex gap-2 items-start">
+                <div className="rounded-2xl border border-sky-500/30 bg-sky-500/5 backdrop-blur px-4 py-3 text-sm flex gap-2 items-start text-sky-700 dark:text-sky-300 hca-rise">
                   <Shield className="h-4 w-4 mt-0.5 shrink-0" />
                   <span>{result.verificationNotice}</span>
                 </div>
               )}
+
               <AnalysisDashboard result={result} />
 
+              <div className="space-y-4">
+                <SegmentedControl
+                  ariaLabel="Result sections"
+                  value={tab}
+                  onChange={(v) => setTab(v as TabKey)}
+                  items={[
+                    { value: 'issues',      label: <>Issues <span className="opacity-60">({result.issues.length})</span></>, icon: <Bug className="h-3.5 w-3.5" /> },
+                    { value: 'security',    label: 'Security',    icon: <Shield className="h-3.5 w-3.5" /> },
+                    { value: 'performance', label: 'Performance', icon: <Zap className="h-3.5 w-3.5" /> },
+                    { value: 'automation',  label: 'Automation',  icon: <ScanLine className="h-3.5 w-3.5" /> },
+                    { value: 'refactor',    label: 'Refactor',    icon: <Wand2 className="h-3.5 w-3.5" /> },
+                  ]}
+                />
 
-
-              <Tabs defaultValue="issues" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
-                  <TabsTrigger value="issues"><Bug className="h-3.5 w-3.5 mr-1.5" />Issues ({result.issues.length})</TabsTrigger>
-                  <TabsTrigger value="security"><Shield className="h-3.5 w-3.5 mr-1.5" />Security</TabsTrigger>
-                  <TabsTrigger value="performance"><Zap className="h-3.5 w-3.5 mr-1.5" />Performance</TabsTrigger>
-                  <TabsTrigger value="automation"><ScanLine className="h-3.5 w-3.5 mr-1.5" />Automation</TabsTrigger>
-                  <TabsTrigger value="refactor"><Wand2 className="h-3.5 w-3.5 mr-1.5" />Refactor</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="issues" className="mt-4 space-y-3">
-                  {result.issues.length === 0
-                    ? <div className="text-center text-sm text-muted-foreground py-8">No issues found — clean code! ✨</div>
-                    : result.issues.map((issue, i) => <IssueCard key={i} issue={issue} />)}
-                </TabsContent>
-                <TabsContent value="security" className="mt-4">
-                  <FindingsPanel title="Security Findings" emptyText="No significant Security Issues Found" findings={result.securityFindings} icon={<Shield className="h-4 w-4 text-primary inline" />} />
-                </TabsContent>
-                <TabsContent value="performance" className="mt-4">
-                  <FindingsPanel title="Performance Findings" emptyText="No significant Performance Issues Found" findings={result.performanceFindings} icon={<Zap className="h-4 w-4 text-primary inline" />} />
-                </TabsContent>
-                <TabsContent value="automation" className="mt-4">
-                  <FindingsPanel title="Test Automation Review" emptyText="No significant Automation Risks Found" findings={result.testAutomationFindings} icon={<ScanLine className="h-4 w-4 text-primary inline" />} />
-                </TabsContent>
-                <TabsContent value="refactor" className="mt-4">
-                  <RefactorPanel result={result} />
-                </TabsContent>
-              </Tabs>
+                <div key={tab} className="hca-rise">
+                  {tab === 'issues' && (
+                    result.issues.length === 0
+                      ? <div className="hca-glass p-10 text-center text-sm text-muted-foreground">No issues found — clean code ✨</div>
+                      : <div className="space-y-3">{result.issues.map((issue, i) => <IssueCard key={i} issue={issue} />)}</div>
+                  )}
+                  {tab === 'security'    && <FindingsPanel title="Security Findings"    emptyText="No significant Security Issues Found"   findings={result.securityFindings}       icon={<Shield className="h-4 w-4 text-primary" />} />}
+                  {tab === 'performance' && <FindingsPanel title="Performance Findings" emptyText="No significant Performance Issues Found" findings={result.performanceFindings}   icon={<Zap className="h-4 w-4 text-primary" />} />}
+                  {tab === 'automation'  && <FindingsPanel title="Test Automation Review" emptyText="No significant Automation Risks Found" findings={result.testAutomationFindings} icon={<ScanLine className="h-4 w-4 text-primary" />} />}
+                  {tab === 'refactor'    && <RefactorPanel result={result} />}
+                </div>
+              </div>
             </>
           )}
         </div>
