@@ -22,13 +22,24 @@ const HiveCodeAnalyzerModule: React.FC = () => {
   const status = isAnalyzing ? 'analyzing' : result ? 'healthy' : 'idle';
   const statusLabel = isAnalyzing ? 'Analyzing' : result ? 'Healthy' : 'Idle';
 
-  // Timeline step: 0 idle, 1 uploaded, 2 analyzing, 3 review, 4 refactor, 5 complete
-  const step = useMemo(() => {
-    if (!isAnalyzing && !result) return 0;
-    if (isAnalyzing && !result) return 2;
-    if (result && Object.keys(result.refactors || {}).length === 0) return 3;
-    if (result) return 5;
-    return 1;
+  // Animated workflow progression:
+  // 0 idle → 1 uploaded → 2 analyzing → 3 review → 4 refactor → 5 complete
+  const [step, setStep] = React.useState(0);
+  React.useEffect(() => {
+    if (isAnalyzing) {
+      setStep(1);
+      const t1 = setTimeout(() => setStep(2), 350);
+      const t2 = setTimeout(() => setStep((s) => (s < 3 ? 3 : s)), 1800);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
+    }
+    if (result) {
+      setStep(3);
+      const hasRefactor = Object.values(result.refactors || {}).some((v) => v?.code);
+      const t1 = setTimeout(() => setStep(hasRefactor ? 4 : 5), 450);
+      const t2 = setTimeout(() => setStep(5), 1200);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
+    }
+    setStep(0);
   }, [isAnalyzing, result]);
 
   return (
