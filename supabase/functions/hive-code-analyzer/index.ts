@@ -489,8 +489,9 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
       false,
       {
         defaultModel: bundle.length > 40_000 ? 'google/gemini-2.5-pro' : 'google/gemini-3-flash-preview',
-        // Deterministic static-analysis output — zero temperature prevents hallucinated findings.
-        extraBody: { temperature: 0, top_p: 1 },
+        // Near-zero temperature for deterministic static-analysis output.
+        // Some providers (e.g. NVIDIA NIM) reject exactly 0 — use a tiny positive value.
+        extraBody: { temperature: 0.01, top_p: 1 },
       },
     );
 
