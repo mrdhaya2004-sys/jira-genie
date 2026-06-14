@@ -824,6 +824,7 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
         degradedNotice,
         verificationNotice,
         confidenceThreshold,
+        originalCode: sourceText.slice(0, 200_000),
       },
     }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
