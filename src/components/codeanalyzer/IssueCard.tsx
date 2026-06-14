@@ -5,6 +5,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Copy, Check, AlertTriangle, Lightbulb, BookOpen, ChevronDown, Maximize2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { sanitizeText } from '@/lib/sanitizeText';
 import type { CodeIssue, Severity } from '@/types/codeAnalyzer';
 
 const sevStyle: Record<Severity, string> = {
@@ -56,6 +57,13 @@ const IssueCard: React.FC<Props> = ({ issue }) => {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<null | { code: string; label: string }>(null);
   const conf = typeof issue.confidence === 'number' ? Math.round(issue.confidence) : null;
+  const title = sanitizeText(issue.title, 'Issue');
+  const problem = sanitizeText(issue.problem);
+  const suggestion = sanitizeText(issue.suggestion);
+  const explanation = sanitizeText(issue.explanation);
+  const bestPractice = sanitizeText(issue.bestPractice);
+  const evidence = sanitizeText(issue.evidence);
+  const type = sanitizeText(issue.type);
 
   return (
     <>
