@@ -282,7 +282,7 @@ function extractJSON(raw: string): any {
  * Splits content by category headings and turns each section into findings
  * so the UI always renders meaningful tabs instead of a blank screen.
  */
-function buildFallbackReport(raw: string, language: string, framework?: string): any {
+function buildFallbackReport(raw: string, language: string, framework?: string, sourceCode = ''): any {
   const text = (raw || '').replace(/```[\s\S]*?```/g, (m) => m).trim();
 
   // Section detection: match headings like "Security:", "## Security", "**Security**"
@@ -330,13 +330,39 @@ function buildFallbackReport(raw: string, language: string, framework?: string):
 
   const summary = text.slice(0, 600).replace(/\s+/g, ' ').trim();
 
+  // Heuristic scoring from source code — never default to a flat 50/50.
+  const src = sourceCode || '';
+  const lc = src.toLowerCase();
+  const penalty = (cond: boolean, n: number) => (cond ? n : 0);
+  const securityPenalty =
+    penalty(/password\s*=\s*["'][^"']+["']/i.test(src), 25) +
+    penalty(/api[_-]?key\s*=\s*["'][^"']+["']/i.test(src), 25) +
+    penalty(/http:\/\//.test(lc), 10);
+  const perfPenalty =
+    penalty(/thread\s*\.\s*sleep|time\s*\.\s*sleep|waitfortimeout|settimeout\s*\(\s*\d/i.test(src), 20) +
+    penalty(/for\s*\([^)]*\)\s*\{[^}]*for\s*\(/.test(src), 10);
+  const autoPenalty =
+    penalty(/catch\s*\(\s*(throwable|exception|error)\s/i.test(src), 15) +
+    penalty(/system\.out\.println|console\.log/i.test(src), 8) +
+    penalty(/by\.xpath\(\s*["']\/\//i.test(src), 12);
+  const clamp = (n: number) => Math.max(20, Math.min(95, n));
+  const security = clamp(95 - securityPenalty);
+  const performance = clamp(92 - perfPenalty);
+  const automationBestPractice = clamp(90 - autoPenalty);
+  const readability = clamp(85 - penalty(src.length > 4000, 10));
+  const maintainability = clamp(82 - autoPenalty / 2);
+  const stability = clamp(88 - perfPenalty / 2 - autoPenalty / 2);
+  const scalability = clamp(80 - perfPenalty / 2);
+  const overall = Math.round((readability + maintainability + stability + performance + security + automationBestPractice + scalability) / 7);
+  const stabRisk: 'low' | 'medium' | 'high' = stability >= 80 ? 'low' : stability >= 60 ? 'medium' : 'high';
+
   return {
     language,
     framework: framework || null,
     summary: summary || 'AI returned an unstructured response. Showing best-effort sections.',
-    overallScore: 50,
-    subScores: { readability: 50, maintainability: 50, stability: 50, performance: 50, security: 50, automationBestPractice: 50, scalability: 50 },
-    automationStability: { score: 50, risk: 'medium', reasons: [] },
+    overallScore: overall,
+    subScores: { readability, maintainability, stability, performance, security, automationBestPractice, scalability },
+    automationStability: { score: stability, risk: stabRisk, reasons: [] },
     issues,
     securityFindings: toFindings(sectionMap['security']),
     performanceFindings: toFindings(sectionMap['performance']),
@@ -463,6 +489,8 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
       false,
       {
         defaultModel: bundle.length > 40_000 ? 'google/gemini-2.5-pro' : 'google/gemini-3-flash-preview',
+        // Deterministic static-analysis output — zero temperature prevents hallucinated findings.
+        extraBody: { temperature: 0, top_p: 1 },
       },
     );
 
@@ -487,7 +515,7 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
       parsed = extractJSON(content);
     } catch (e) {
       console.warn('Structured JSON parse failed, falling back to section extraction', e, 'finish_reason=', finishReason);
-      parsed = buildFallbackReport(content, detectedLang, body.framework);
+      parsed = buildFallbackReport(content, detectedLang, body.framework, files.map(f => f.content).join('\n'));
       degradedNotice = finishReason === 'length' || finishReason === 'max_tokens'
         ? 'Analysis completed with a condensed report — some sections were reconstructed from the raw response.'
         : 'Analysis completed with a condensed report — sections were reconstructed from the raw response.';
