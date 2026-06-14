@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { RotateCcw, Sparkles, ScanLine, Shield, Zap, Bug, Wand2 } from 'lucide-react';
+import { RotateCcw, Sparkles, ScanLine, Shield, Zap, Bug, Wand2, BookOpen, Beaker, GraduationCap } from 'lucide-react';
 import CodeInputPanel from './CodeInputPanel';
 import AnalysisDashboard from './AnalysisDashboard';
 import IssueCard from './IssueCard';
@@ -10,10 +10,13 @@ import FindingsPanel from './FindingsPanel';
 import ExportButtons from './ExportButtons';
 import SegmentedControl from './SegmentedControl';
 import AnalysisTimeline from './AnalysisTimeline';
+import CodeExplanationPanel from './CodeExplanationPanel';
+import TestingIntelligencePanel from './TestingIntelligencePanel';
+import LearningModePanel from './LearningModePanel';
 import { useCodeAnalyzer } from '@/hooks/useCodeAnalyzer';
 import { cn } from '@/lib/utils';
 
-type TabKey = 'issues' | 'security' | 'performance' | 'automation' | 'refactor';
+type TabKey = 'issues' | 'explain' | 'testing' | 'security' | 'performance' | 'automation' | 'learn' | 'refactor';
 
 const HiveCodeAnalyzerModule: React.FC = () => {
   const { result, isAnalyzing, analyze, reset } = useCodeAnalyzer();
