@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { RotateCcw, Sparkles, ScanLine, Shield, Zap, Bug, Wand2 } from 'lucide-react';
+import { RotateCcw, Sparkles, ScanLine, Shield, Zap, Bug, Wand2, BookOpen, Beaker, GraduationCap } from 'lucide-react';
 import CodeInputPanel from './CodeInputPanel';
 import AnalysisDashboard from './AnalysisDashboard';
 import IssueCard from './IssueCard';
@@ -10,10 +10,13 @@ import FindingsPanel from './FindingsPanel';
 import ExportButtons from './ExportButtons';
 import SegmentedControl from './SegmentedControl';
 import AnalysisTimeline from './AnalysisTimeline';
+import CodeExplanationPanel from './CodeExplanationPanel';
+import TestingIntelligencePanel from './TestingIntelligencePanel';
+import LearningModePanel from './LearningModePanel';
 import { useCodeAnalyzer } from '@/hooks/useCodeAnalyzer';
 import { cn } from '@/lib/utils';
 
-type TabKey = 'issues' | 'security' | 'performance' | 'automation' | 'refactor';
+type TabKey = 'issues' | 'explain' | 'testing' | 'security' | 'performance' | 'automation' | 'learn' | 'refactor';
 
 const HiveCodeAnalyzerModule: React.FC = () => {
   const { result, isAnalyzing, analyze, reset } = useCodeAnalyzer();
@@ -134,9 +137,12 @@ const HiveCodeAnalyzerModule: React.FC = () => {
                   onChange={(v) => setTab(v as TabKey)}
                   items={[
                     { value: 'issues',      label: <>Issues <span className="opacity-60">({result.issues.length})</span></>, icon: <Bug className="h-3.5 w-3.5" /> },
+                    { value: 'explain',     label: 'Explain',     icon: <BookOpen className="h-3.5 w-3.5" /> },
+                    { value: 'testing',     label: 'Testing',     icon: <Beaker className="h-3.5 w-3.5" /> },
                     { value: 'security',    label: 'Security',    icon: <Shield className="h-3.5 w-3.5" /> },
                     { value: 'performance', label: 'Performance', icon: <Zap className="h-3.5 w-3.5" /> },
                     { value: 'automation',  label: 'Automation',  icon: <ScanLine className="h-3.5 w-3.5" /> },
+                    { value: 'learn',       label: 'Learn',       icon: <GraduationCap className="h-3.5 w-3.5" /> },
                     { value: 'refactor',    label: 'Refactor',    icon: <Wand2 className="h-3.5 w-3.5" /> },
                   ]}
                 />
@@ -147,9 +153,12 @@ const HiveCodeAnalyzerModule: React.FC = () => {
                       ? <div className="hca-glass p-10 text-center text-sm text-muted-foreground">No issues found — clean code ✨</div>
                       : <div className="space-y-3">{result.issues.map((issue, i) => <IssueCard key={i} issue={issue} />)}</div>
                   )}
+                  {tab === 'explain'     && <CodeExplanationPanel result={result} />}
+                  {tab === 'testing'     && <TestingIntelligencePanel result={result} />}
                   {tab === 'security'    && <FindingsPanel title="Security Findings"    emptyText="No significant Security Issues Found"   findings={result.securityFindings}       icon={<Shield className="h-4 w-4 text-primary" />} />}
                   {tab === 'performance' && <FindingsPanel title="Performance Findings" emptyText="No significant Performance Issues Found" findings={result.performanceFindings}   icon={<Zap className="h-4 w-4 text-primary" />} />}
                   {tab === 'automation'  && <FindingsPanel title="Test Automation Review" emptyText="No significant Automation Risks Found" findings={result.testAutomationFindings} icon={<ScanLine className="h-4 w-4 text-primary" />} />}
+                  {tab === 'learn'       && <LearningModePanel result={result} />}
                   {tab === 'refactor'    && <RefactorPanel result={result} />}
                 </div>
               </div>

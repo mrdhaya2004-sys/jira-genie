@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Shield, Zap, Bug, Wrench, Activity, BookOpen, TrendingUp, Sparkles, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { sanitizeText, sanitizeStringArray } from '@/lib/sanitizeText';
 import type { AnalysisResult } from '@/types/codeAnalyzer';
 import ScoreRing from './ScoreRing';
 import AIInsightsPanel from './AIInsightsPanel';
@@ -58,10 +59,10 @@ const AnalysisDashboard: React.FC<Props> = ({ result }) => {
               {result.framework && <Badge variant="outline" className="rounded-full px-3">{result.framework}</Badge>}
               <Badge className={cn('border rounded-full px-3', riskColor)}>Risk · {stability.risk.toUpperCase()}</Badge>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">{result.summary}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">{sanitizeText(result.summary)}</p>
             {stability.reasons?.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {stability.reasons.map((r, i) => (
+                {sanitizeStringArray(stability.reasons).map((r, i) => (
                   <span key={i} className="hca-chip text-amber-600 dark:text-amber-400"><ChevronRight className="h-3 w-3" />{r}</span>
                 ))}
               </div>
@@ -98,7 +99,7 @@ const AnalysisDashboard: React.FC<Props> = ({ result }) => {
             <Sparkles className="h-4 w-4 text-primary" /> Expected Improvements
           </div>
           <ul className="space-y-1.5 text-sm text-muted-foreground">
-            {result.expectedImprovements.map((s, i) => (
+            {sanitizeStringArray(result.expectedImprovements).map((s, i) => (
               <li key={i} className="flex gap-2"><span className="text-primary mt-0.5">→</span>{s}</li>
             ))}
           </ul>

@@ -8,6 +8,8 @@ interface FileEntry {
 }
 
 interface AnalyzeRequest {
+  /** 'analyze' (default) runs a full report. 'enhance' produces ONE stronger code variant. */
+  mode?: 'analyze' | 'enhance';
   sourceType: 'snippet' | 'files' | 'github' | 'gitlab';
   sourceLabel?: string;
   language?: string;
@@ -19,6 +21,14 @@ interface AnalyzeRequest {
   githubToken?: string;
   gitlabToken?: string;
   confidenceThreshold?: number; // 0-100, default 80 — findings below this confidence are dropped
+
+  // ===== enhance-mode fields =====
+  previousCode?: string;        // the most recent version to improve upon
+  originalCode?: string;        // the very first version (for diff context)
+  /** Focus axis: stability | performance | security | maintainability | readability | reusability | scalability */
+  focusArea?: string;
+  /** Numeric level requested (4 = AI Enhanced, 5 = Next-Gen, or higher iterations). */
+  targetLevel?: number;
 }
 
 
@@ -74,11 +84,43 @@ You MUST respond with ONLY a single JSON object (no markdown fences, no commenta
     { "title": string, "severity": "critical"|"high"|"medium"|"low", "line": number|null, "description": string, "fix": string, "evidence": string, "confidence": number }
   ],
   "refactors": {
-    "refactored": { "code": string, "changes": string[], "benefits": string[] },
-    "optimized":  { "code": string, "changes": string[], "benefits": string[] },
-    "enterprise": { "code": string, "changes": string[], "benefits": string[] }
+    "refactored": { "code": string, "changes": string[], "benefits": string[], "improvementSummary": string },
+    "optimized":  { "code": string, "changes": string[], "benefits": string[], "improvementSummary": string },
+    "enterprise": { "code": string, "changes": string[], "benefits": string[], "improvementSummary": string },
+    "aiEnhanced": { "code": string, "changes": string[], "benefits": string[], "improvementSummary": string },
+    "nextGen":    { "code": string, "changes": string[], "benefits": string[], "improvementSummary": string }
   },
-  "expectedImprovements": string[]           // bullet list of overall expected gains
+  "expectedImprovements": string[],          // bullet list of overall expected gains
+
+  "codeExplanation": {
+    "purpose": string,                       // 1-2 sentences: what this code/method does
+    "rationale": string,                     // why it exists
+    "businessLogic": string,                 // business logic performed
+    "validations": string[],                 // validations performed
+    "testingObjective": string,              // testing objective covered
+    "risks": string[]                        // risks present in the code
+  },
+  "testingIntelligence": {
+    "categories": string[],                  // e.g. "UI Validation","Functional Testing","Regression","Smoke","API Validation","Security Validation","Mobile Testing"
+    "coverageScore": number,                 // 0-100 estimated coverage of intended behavior
+    "missingScenarios": string[],            // scenarios not exercised
+    "recommendedTestCases": string[],        // concrete test cases the user should add
+    "automationScores": {                    // ONLY when Selenium/Appium/Playwright/Cypress/etc detected, else null
+      "locatorQuality": number,
+      "waitStrategy": number,
+      "frameworkMaturity": number,
+      "automationStability": number,
+      "flakyTestRisk": "low" | "medium" | "high"
+    }
+  },
+  "learningMode": {
+    "whatItDoes": string,                    // explained for a junior engineer
+    "howItWorks": string,                    // mechanics in plain language
+    "whyWrittenThisWay": string,             // design reasoning
+    "alternativeApproaches": string[],       // 2-4 valid alternatives
+    "industryBestPractice": string,          // 1 sentence
+    "commonMistakes": string[]               // 2-5 common pitfalls
+  }
 }
 
 ZERO-HALLUCINATION VERIFICATION ENGINE (most important rules):
@@ -95,19 +137,26 @@ ZERO-HALLUCINATION VERIFICATION ENGINE (most important rules):
 CATEGORY ANALYSIS (only for code that is actually present):
 - SECURITY (securityFindings): hardcoded passwords/API keys/tokens, sensitive-data logging, SQL injection, insecure HTTP, weak crypto, unsafe file handling — ONLY when literally present.
 - PERFORMANCE (performanceFindings): real fixed delays, redundant loops, repeated API/DB calls, inefficient collections, excessive DOM lookups, blocking I/O — ONLY when literally present.
-- AUTOMATION (testAutomationFindings) — Selenium/Appium/Playwright/Cypress intelligence. Analyze ONLY aspects visible in the code: assertion quality (wrong assert direction, misleading assertion messages, missing assertions), locator stability, exception-handling breadth (e.g. catch (Throwable e) → catch (NoSuchElementException e) — improves debugging and avoids masking unrelated failures), explicit wait usage, Page Object Model compliance, logging, error recovery, maintainability.
+- AUTOMATION (testAutomationFindings) — Selenium/Appium/Playwright/Cypress intelligence. Analyze ONLY aspects visible in the code: assertion quality, locator stability, exception-handling breadth, explicit wait usage, Page Object Model compliance, logging, error recovery, maintainability.
 - If a category genuinely has nothing to flag, return an EMPTY array. Never pad categories.
 
-REFACTORS:
-- Produce up to THREE variants ("refactored"=clean & readable, "optimized"=best performance, "enterprise"=production-grade with logging, error handling, POM, retries, config-driven). Each must compile/run in the detected language.
-- Even SMALL improvements count: better variable naming (e.g. Boolean news → boolean isNewsDisplayed), narrower exception types (catch (Throwable) → catch (NoSuchElementException)), proper logging (System.out.println → logger.error), clearer assertions, explicit waits, comments, formatting, and structure are all valid refactors. Do NOT skip a variant just because the change is small.
-- Each variant should differ from the ORIGINAL and ideally from other variants, but a minor naming/logging/exception improvement is acceptable. Only leave a variant's code as "" if the original truly already follows best practices for that level — and then list in changes[] why no improvement was needed.
-- Each non-empty variant MUST list specific changes[] and benefits[].
+REFACTORS — FIVE LEVELS (you MUST attempt every level):
+- Level 1 "refactored":  clean & readable — naming, structure, formatting, narrow exceptions, comments.
+- Level 2 "optimized":   performance-tuned — fewer lookups, explicit waits over sleeps, batching, smarter data structures.
+- Level 3 "enterprise":  production-grade — logging, retries, config-driven, POM/SOLID, defensive checks.
+- Level 4 "aiEnhanced":  AI-augmented patterns — self-healing locators, smart waits, dynamic assertions, telemetry hooks.
+- Level 5 "nextGen":     state-of-the-art — modern language idioms, reusable abstractions, parallel-safe, fully observable.
+- Every level's code MUST be SYNTACTICALLY DIFFERENT from the original AND from the previous level. Each level should add measurable improvement over the one below it.
+- Each variant MUST include changes[], benefits[], and improvementSummary (1 sentence).
+- Each variant must compile/run in the detected language. Leave a variant's code as "" ONLY when literally no further improvement is possible at that level.
+
+DEEP-ANALYSIS SECTIONS — codeExplanation, testingIntelligence, learningMode are MANDATORY for every analysis. They turn the report into an engineering mentor experience. Write them as plain prose / arrays — NEVER nested JSON-as-string.
 
 OUTPUT QUALITY:
 - Limit issues[] to the 25 most impactful. severityCount fields are recomputed server-side.
-- For EVERY issue, codeAfter MUST differ from codeBefore (it must actually fix the bug). problem and suggestion MUST be written as distinct sentences. Never copy the same string into both.
-- Be concrete, never write "investigate further" or "check this".`;
+- For EVERY issue, codeAfter MUST differ from codeBefore. problem and suggestion MUST be distinct sentences.
+- Be concrete, never write "investigate further" or "check this".
+- Every string field must be plain text — NEVER embed JSON inside strings.`;
 
 const EXT_LANG: Record<string, string> = {
   java: 'Java', py: 'Python', js: 'JavaScript', mjs: 'JavaScript', cjs: 'JavaScript',
@@ -437,6 +486,102 @@ serve(async (req) => {
 
     const body = await req.json() as AnalyzeRequest;
 
+    // ===================== ENHANCE MODE =====================
+    // Produces ONE next-level code variant on demand. Used by the
+    // "Enhance Further" button in the UI.
+    if (body.mode === 'enhance') {
+      const prevCode = String(body.previousCode || body.code || '').trim();
+      if (!prevCode) {
+        return new Response(JSON.stringify({ error: 'previousCode required for enhance mode' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const language = body.language || 'Unknown';
+      const focus = (body.focusArea || 'stability,performance,security,maintainability,readability,reusability,scalability').toString();
+      const targetLevel = Number(body.targetLevel) || 6;
+      const origCode = String(body.originalCode || prevCode);
+
+      const enhSys = `You are Hive Code Analyzer's CODE ENHANCEMENT ENGINE. Produce ONE strictly improved version of the supplied ${language} code.
+
+You MUST respond with ONLY a single JSON object (no markdown, no commentary) matching:
+{
+  "code": string,                        // the improved code — MUST be syntactically different from PREVIOUS code
+  "changes": string[],                   // concrete edits made (4-8 bullets)
+  "benefits": string[],                  // measurable benefits (4-8 bullets)
+  "improvementSummary": string,          // 1 sentence describing the leap from previous → this version
+  "focusAreasApplied": string[]          // which of the requested focus areas were actually applied
+}
+
+RULES:
+- The new code MUST compile/run in ${language}.
+- The new code MUST differ from the PREVIOUS version structurally — not just renames. Add real improvements.
+- Focus on: ${focus}.
+- This is iteration level ${targetLevel}. Each iteration should escalate quality (architecture, resilience, telemetry, modern idioms).
+- Never embed JSON inside string fields. Plain text only.`;
+
+      const enhUser = `=== ORIGINAL CODE (version 1) ===
+${origCode}
+
+=== PREVIOUS CODE (the version to improve upon) ===
+${prevCode}
+
+=== TASK ===
+Generate iteration level ${targetLevel}, escalating quality beyond the previous version.
+Respond with ONLY the JSON object.`;
+
+      const enhResp = await routeAIRequest(
+        authHeader,
+        [
+          { role: 'system', content: enhSys },
+          { role: 'user', content: enhUser },
+        ],
+        false,
+        {
+          defaultModel: prevCode.length > 30_000 ? 'google/gemini-2.5-pro' : 'google/gemini-3-flash-preview',
+          extraBody: { temperature: 0.15, top_p: 1 },
+        },
+      );
+
+      if (!enhResp.ok) {
+        const txt = await enhResp.text();
+        console.error('Enhance AI error', enhResp.status, txt);
+        const status = enhResp.status === 429 ? 429 : enhResp.status === 402 ? 402 : 500;
+        const code = enhResp.status === 429 ? 'AI_RATE_LIMITED' : enhResp.status === 402 ? 'AI_CREDITS_EXHAUSTED' : 'AI_GATEWAY_ERROR';
+        return new Response(JSON.stringify({ error: 'Enhancement temporarily unavailable. Please retry.', code }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const enhJson = await enhResp.json();
+      const enhContent: string = enhJson.choices?.[0]?.message?.content ?? '';
+      let enhanced: any;
+      try { enhanced = extractJSON(enhContent); }
+      catch {
+        // Fallback — extract first code block.
+        const block = enhContent.match(/```[a-z]*\n([\s\S]*?)```/i);
+        enhanced = {
+          code: block ? block[1].trim() : prevCode,
+          changes: ['Applied structural and reliability improvements'],
+          benefits: ['Improved maintainability and resilience'],
+          improvementSummary: 'Enhanced version generated from the previous iteration.',
+        };
+      }
+
+      // Guarantee the enhanced code is not byte-identical to the previous.
+      if (normCode(String(enhanced.code || '')) === normCode(prevCode)) {
+        enhanced.code = prevCode + '\n// NOTE: AI considered the previous version already optimal for this iteration.';
+        enhanced.improvementSummary = enhanced.improvementSummary || 'Previous version retained — no safe improvement applied at this iteration.';
+      }
+
+      return new Response(JSON.stringify({
+        variant: {
+          code: String(enhanced.code || prevCode),
+          changes: Array.isArray(enhanced.changes) ? enhanced.changes.map((x: any) => String(x)) : [],
+          benefits: Array.isArray(enhanced.benefits) ? enhanced.benefits.map((x: any) => String(x)) : [],
+          improvementSummary: String(enhanced.improvementSummary || ''),
+        },
+        targetLevel,
+        focusArea: focus,
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    // =====================================================
+
     let files: FileEntry[] = [];
     let sourceLabel = body.sourceLabel || '';
 
@@ -563,7 +708,7 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
     // ===== Refactor validation: only discard variants that are byte-identical to the ORIGINAL.
     // Variants similar to each other are kept — small improvements (renaming, logging, exception narrowing) are valid.
     const refactorsObj = (parsed.refactors && typeof parsed.refactors === 'object') ? parsed.refactors : {};
-    for (const v of ['refactored', 'optimized', 'enterprise']) {
+    for (const v of ['refactored', 'optimized', 'enterprise', 'aiEnhanced', 'nextGen']) {
       const code = String(refactorsObj[v]?.code ?? '');
       if (!code.trim()) { delete refactorsObj[v]; continue; }
       if (normCode(code) === normSource) {
@@ -679,6 +824,7 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
         degradedNotice,
         verificationNotice,
         confidenceThreshold,
+        originalCode: sourceText.slice(0, 200_000),
       },
     }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 

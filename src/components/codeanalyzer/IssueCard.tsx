@@ -5,6 +5,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Copy, Check, AlertTriangle, Lightbulb, BookOpen, ChevronDown, Maximize2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { sanitizeText } from '@/lib/sanitizeText';
 import type { CodeIssue, Severity } from '@/types/codeAnalyzer';
 
 const sevStyle: Record<Severity, string> = {
@@ -56,6 +57,13 @@ const IssueCard: React.FC<Props> = ({ issue }) => {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<null | { code: string; label: string }>(null);
   const conf = typeof issue.confidence === 'number' ? Math.round(issue.confidence) : null;
+  const title = sanitizeText(issue.title, 'Issue');
+  const problem = sanitizeText(issue.problem);
+  const suggestion = sanitizeText(issue.suggestion);
+  const explanation = sanitizeText(issue.explanation);
+  const bestPractice = sanitizeText(issue.bestPractice);
+  const evidence = sanitizeText(issue.evidence);
+  const type = sanitizeText(issue.type);
 
   return (
     <>
@@ -70,13 +78,13 @@ const IssueCard: React.FC<Props> = ({ issue }) => {
                 <div className="flex flex-wrap items-center gap-2 mb-1">
                   <Badge className={cn('border rounded-full px-2.5 text-[10px]', sevStyle[issue.severity])}>{issue.severity.toUpperCase()}</Badge>
                   {issue.line ? <span className="hca-chip">Line {issue.line}{issue.endLine ? `–${issue.endLine}` : ''}</span> : null}
-                  {issue.type && <span className="hca-chip text-muted-foreground">{issue.type}</span>}
+                  {type && <span className="hca-chip text-muted-foreground">{type}</span>}
                   {conf !== null && (
                     <span className={cn('hca-chip border', confidenceTone(conf))}>{conf}% confidence</span>
                   )}
                 </div>
-                <h4 className="text-sm font-semibold leading-tight">{issue.title}</h4>
-                {issue.problem && <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{issue.problem}</p>}
+                <h4 className="text-sm font-semibold leading-tight">{title}</h4>
+                {problem && <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{problem}</p>}
               </div>
               <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform shrink-0 mt-1', open && 'rotate-180')} />
             </button>
@@ -84,10 +92,10 @@ const IssueCard: React.FC<Props> = ({ issue }) => {
 
           <CollapsibleContent className="data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
             <div className="px-4 pb-4 space-y-4 border-t border-border/40 pt-4">
-              {issue.evidence && issue.evidence.trim() && issue.evidence.trim() !== (issue.codeBefore || '').trim() && (
+              {evidence && evidence !== (issue.codeBefore || '').trim() && (
                 <div className="rounded-xl border border-border/50 bg-muted/40 px-3 py-2 text-xs font-mono overflow-x-auto">
                   <span className="text-[10px] font-sans uppercase tracking-wider text-muted-foreground mr-2">Evidence</span>
-                  <code>{issue.evidence}</code>
+                  <code>{evidence}</code>
                 </div>
               )}
 
@@ -96,14 +104,14 @@ const IssueCard: React.FC<Props> = ({ issue }) => {
                   <AlertTriangle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
                   <div>
                     <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-0.5">Problem</div>
-                    <p className="leading-snug">{issue.problem || '—'}</p>
+                    <p className="leading-snug">{problem || '—'}</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Lightbulb className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                   <div>
                     <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-0.5">Suggested Fix</div>
-                    <p className={cn('leading-snug', !issue.suggestion && 'italic text-muted-foreground')}>{issue.suggestion || 'See the fixed snippet below.'}</p>
+                    <p className={cn('leading-snug', !suggestion && 'italic text-muted-foreground')}>{suggestion || 'See the fixed snippet below.'}</p>
                   </div>
                 </div>
               </div>
@@ -124,16 +132,16 @@ const IssueCard: React.FC<Props> = ({ issue }) => {
                 </div>
               )}
 
-              {issue.explanation && (
+              {explanation && (
                 <div className="text-xs text-muted-foreground bg-muted/30 rounded-xl p-3 border border-border/40">
                   <div className="font-medium text-foreground mb-1">Why it matters</div>
-                  {issue.explanation}
+                  {explanation}
                 </div>
               )}
-              {issue.bestPractice && (
+              {bestPractice && (
                 <div className="flex gap-2 text-xs text-muted-foreground">
                   <BookOpen className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
-                  <span><span className="font-medium text-foreground">Best practice: </span>{issue.bestPractice}</span>
+                  <span><span className="font-medium text-foreground">Best practice: </span>{bestPractice}</span>
                 </div>
               )}
             </div>
