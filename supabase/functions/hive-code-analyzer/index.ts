@@ -515,7 +515,7 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
       parsed = extractJSON(content);
     } catch (e) {
       console.warn('Structured JSON parse failed, falling back to section extraction', e, 'finish_reason=', finishReason);
-      parsed = buildFallbackReport(content, detectedLang, body.framework);
+      parsed = buildFallbackReport(content, detectedLang, body.framework, files.map(f => f.content).join('\n'));
       degradedNotice = finishReason === 'length' || finishReason === 'max_tokens'
         ? 'Analysis completed with a condensed report — some sections were reconstructed from the raw response.'
         : 'Analysis completed with a condensed report — sections were reconstructed from the raw response.';
