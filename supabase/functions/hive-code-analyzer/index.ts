@@ -708,7 +708,7 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
     // ===== Refactor validation: only discard variants that are byte-identical to the ORIGINAL.
     // Variants similar to each other are kept — small improvements (renaming, logging, exception narrowing) are valid.
     const refactorsObj = (parsed.refactors && typeof parsed.refactors === 'object') ? parsed.refactors : {};
-    for (const v of ['refactored', 'optimized', 'enterprise']) {
+    for (const v of ['refactored', 'optimized', 'enterprise', 'aiEnhanced', 'nextGen']) {
       const code = String(refactorsObj[v]?.code ?? '');
       if (!code.trim()) { delete refactorsObj[v]; continue; }
       if (normCode(code) === normSource) {
