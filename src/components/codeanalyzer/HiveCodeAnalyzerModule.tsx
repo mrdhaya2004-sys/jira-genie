@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RotateCcw, Sparkles, ScanLine, Shield, Zap, Bug, Wand2 } from 'lucide-react';
