@@ -84,11 +84,43 @@ You MUST respond with ONLY a single JSON object (no markdown fences, no commenta
     { "title": string, "severity": "critical"|"high"|"medium"|"low", "line": number|null, "description": string, "fix": string, "evidence": string, "confidence": number }
   ],
   "refactors": {
-    "refactored": { "code": string, "changes": string[], "benefits": string[] },
-    "optimized":  { "code": string, "changes": string[], "benefits": string[] },
-    "enterprise": { "code": string, "changes": string[], "benefits": string[] }
+    "refactored": { "code": string, "changes": string[], "benefits": string[], "improvementSummary": string },
+    "optimized":  { "code": string, "changes": string[], "benefits": string[], "improvementSummary": string },
+    "enterprise": { "code": string, "changes": string[], "benefits": string[], "improvementSummary": string },
+    "aiEnhanced": { "code": string, "changes": string[], "benefits": string[], "improvementSummary": string },
+    "nextGen":    { "code": string, "changes": string[], "benefits": string[], "improvementSummary": string }
   },
-  "expectedImprovements": string[]           // bullet list of overall expected gains
+  "expectedImprovements": string[],          // bullet list of overall expected gains
+
+  "codeExplanation": {
+    "purpose": string,                       // 1-2 sentences: what this code/method does
+    "rationale": string,                     // why it exists
+    "businessLogic": string,                 // business logic performed
+    "validations": string[],                 // validations performed
+    "testingObjective": string,              // testing objective covered
+    "risks": string[]                        // risks present in the code
+  },
+  "testingIntelligence": {
+    "categories": string[],                  // e.g. "UI Validation","Functional Testing","Regression","Smoke","API Validation","Security Validation","Mobile Testing"
+    "coverageScore": number,                 // 0-100 estimated coverage of intended behavior
+    "missingScenarios": string[],            // scenarios not exercised
+    "recommendedTestCases": string[],        // concrete test cases the user should add
+    "automationScores": {                    // ONLY when Selenium/Appium/Playwright/Cypress/etc detected, else null
+      "locatorQuality": number,
+      "waitStrategy": number,
+      "frameworkMaturity": number,
+      "automationStability": number,
+      "flakyTestRisk": "low" | "medium" | "high"
+    }
+  },
+  "learningMode": {
+    "whatItDoes": string,                    // explained for a junior engineer
+    "howItWorks": string,                    // mechanics in plain language
+    "whyWrittenThisWay": string,             // design reasoning
+    "alternativeApproaches": string[],       // 2-4 valid alternatives
+    "industryBestPractice": string,          // 1 sentence
+    "commonMistakes": string[]               // 2-5 common pitfalls
+  }
 }
 
 ZERO-HALLUCINATION VERIFICATION ENGINE (most important rules):
@@ -105,19 +137,26 @@ ZERO-HALLUCINATION VERIFICATION ENGINE (most important rules):
 CATEGORY ANALYSIS (only for code that is actually present):
 - SECURITY (securityFindings): hardcoded passwords/API keys/tokens, sensitive-data logging, SQL injection, insecure HTTP, weak crypto, unsafe file handling — ONLY when literally present.
 - PERFORMANCE (performanceFindings): real fixed delays, redundant loops, repeated API/DB calls, inefficient collections, excessive DOM lookups, blocking I/O — ONLY when literally present.
-- AUTOMATION (testAutomationFindings) — Selenium/Appium/Playwright/Cypress intelligence. Analyze ONLY aspects visible in the code: assertion quality (wrong assert direction, misleading assertion messages, missing assertions), locator stability, exception-handling breadth (e.g. catch (Throwable e) → catch (NoSuchElementException e) — improves debugging and avoids masking unrelated failures), explicit wait usage, Page Object Model compliance, logging, error recovery, maintainability.
+- AUTOMATION (testAutomationFindings) — Selenium/Appium/Playwright/Cypress intelligence. Analyze ONLY aspects visible in the code: assertion quality, locator stability, exception-handling breadth, explicit wait usage, Page Object Model compliance, logging, error recovery, maintainability.
 - If a category genuinely has nothing to flag, return an EMPTY array. Never pad categories.
 
-REFACTORS:
-- Produce up to THREE variants ("refactored"=clean & readable, "optimized"=best performance, "enterprise"=production-grade with logging, error handling, POM, retries, config-driven). Each must compile/run in the detected language.
-- Even SMALL improvements count: better variable naming (e.g. Boolean news → boolean isNewsDisplayed), narrower exception types (catch (Throwable) → catch (NoSuchElementException)), proper logging (System.out.println → logger.error), clearer assertions, explicit waits, comments, formatting, and structure are all valid refactors. Do NOT skip a variant just because the change is small.
-- Each variant should differ from the ORIGINAL and ideally from other variants, but a minor naming/logging/exception improvement is acceptable. Only leave a variant's code as "" if the original truly already follows best practices for that level — and then list in changes[] why no improvement was needed.
-- Each non-empty variant MUST list specific changes[] and benefits[].
+REFACTORS — FIVE LEVELS (you MUST attempt every level):
+- Level 1 "refactored":  clean & readable — naming, structure, formatting, narrow exceptions, comments.
+- Level 2 "optimized":   performance-tuned — fewer lookups, explicit waits over sleeps, batching, smarter data structures.
+- Level 3 "enterprise":  production-grade — logging, retries, config-driven, POM/SOLID, defensive checks.
+- Level 4 "aiEnhanced":  AI-augmented patterns — self-healing locators, smart waits, dynamic assertions, telemetry hooks.
+- Level 5 "nextGen":     state-of-the-art — modern language idioms, reusable abstractions, parallel-safe, fully observable.
+- Every level's code MUST be SYNTACTICALLY DIFFERENT from the original AND from the previous level. Each level should add measurable improvement over the one below it.
+- Each variant MUST include changes[], benefits[], and improvementSummary (1 sentence).
+- Each variant must compile/run in the detected language. Leave a variant's code as "" ONLY when literally no further improvement is possible at that level.
+
+DEEP-ANALYSIS SECTIONS — codeExplanation, testingIntelligence, learningMode are MANDATORY for every analysis. They turn the report into an engineering mentor experience. Write them as plain prose / arrays — NEVER nested JSON-as-string.
 
 OUTPUT QUALITY:
 - Limit issues[] to the 25 most impactful. severityCount fields are recomputed server-side.
-- For EVERY issue, codeAfter MUST differ from codeBefore (it must actually fix the bug). problem and suggestion MUST be written as distinct sentences. Never copy the same string into both.
-- Be concrete, never write "investigate further" or "check this".`;
+- For EVERY issue, codeAfter MUST differ from codeBefore. problem and suggestion MUST be distinct sentences.
+- Be concrete, never write "investigate further" or "check this".
+- Every string field must be plain text — NEVER embed JSON inside strings.`;
 
 const EXT_LANG: Record<string, string> = {
   java: 'Java', py: 'Python', js: 'JavaScript', mjs: 'JavaScript', cjs: 'JavaScript',
