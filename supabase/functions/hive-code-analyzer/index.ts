@@ -8,6 +8,8 @@ interface FileEntry {
 }
 
 interface AnalyzeRequest {
+  /** 'analyze' (default) runs a full report. 'enhance' produces ONE stronger code variant. */
+  mode?: 'analyze' | 'enhance';
   sourceType: 'snippet' | 'files' | 'github' | 'gitlab';
   sourceLabel?: string;
   language?: string;
@@ -19,6 +21,14 @@ interface AnalyzeRequest {
   githubToken?: string;
   gitlabToken?: string;
   confidenceThreshold?: number; // 0-100, default 80 — findings below this confidence are dropped
+
+  // ===== enhance-mode fields =====
+  previousCode?: string;        // the most recent version to improve upon
+  originalCode?: string;        // the very first version (for diff context)
+  /** Focus axis: stability | performance | security | maintainability | readability | reusability | scalability */
+  focusArea?: string;
+  /** Numeric level requested (4 = AI Enhanced, 5 = Next-Gen, or higher iterations). */
+  targetLevel?: number;
 }
 
 
