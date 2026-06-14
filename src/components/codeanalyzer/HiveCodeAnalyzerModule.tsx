@@ -137,9 +137,12 @@ const HiveCodeAnalyzerModule: React.FC = () => {
                   onChange={(v) => setTab(v as TabKey)}
                   items={[
                     { value: 'issues',      label: <>Issues <span className="opacity-60">({result.issues.length})</span></>, icon: <Bug className="h-3.5 w-3.5" /> },
+                    { value: 'explain',     label: 'Explain',     icon: <BookOpen className="h-3.5 w-3.5" /> },
+                    { value: 'testing',     label: 'Testing',     icon: <Beaker className="h-3.5 w-3.5" /> },
                     { value: 'security',    label: 'Security',    icon: <Shield className="h-3.5 w-3.5" /> },
                     { value: 'performance', label: 'Performance', icon: <Zap className="h-3.5 w-3.5" /> },
                     { value: 'automation',  label: 'Automation',  icon: <ScanLine className="h-3.5 w-3.5" /> },
+                    { value: 'learn',       label: 'Learn',       icon: <GraduationCap className="h-3.5 w-3.5" /> },
                     { value: 'refactor',    label: 'Refactor',    icon: <Wand2 className="h-3.5 w-3.5" /> },
                   ]}
                 />
@@ -150,9 +153,12 @@ const HiveCodeAnalyzerModule: React.FC = () => {
                       ? <div className="hca-glass p-10 text-center text-sm text-muted-foreground">No issues found — clean code ✨</div>
                       : <div className="space-y-3">{result.issues.map((issue, i) => <IssueCard key={i} issue={issue} />)}</div>
                   )}
+                  {tab === 'explain'     && <CodeExplanationPanel result={result} />}
+                  {tab === 'testing'     && <TestingIntelligencePanel result={result} />}
                   {tab === 'security'    && <FindingsPanel title="Security Findings"    emptyText="No significant Security Issues Found"   findings={result.securityFindings}       icon={<Shield className="h-4 w-4 text-primary" />} />}
                   {tab === 'performance' && <FindingsPanel title="Performance Findings" emptyText="No significant Performance Issues Found" findings={result.performanceFindings}   icon={<Zap className="h-4 w-4 text-primary" />} />}
                   {tab === 'automation'  && <FindingsPanel title="Test Automation Review" emptyText="No significant Automation Risks Found" findings={result.testAutomationFindings} icon={<ScanLine className="h-4 w-4 text-primary" />} />}
+                  {tab === 'learn'       && <LearningModePanel result={result} />}
                   {tab === 'refactor'    && <RefactorPanel result={result} />}
                 </div>
               </div>
