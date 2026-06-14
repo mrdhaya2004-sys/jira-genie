@@ -463,6 +463,8 @@ Produce the JSON report exactly per the system prompt. Tie EVERY issue to a real
       false,
       {
         defaultModel: bundle.length > 40_000 ? 'google/gemini-2.5-pro' : 'google/gemini-3-flash-preview',
+        // Deterministic static-analysis output — zero temperature prevents hallucinated findings.
+        extraBody: { temperature: 0, top_p: 1 },
       },
     );
 
