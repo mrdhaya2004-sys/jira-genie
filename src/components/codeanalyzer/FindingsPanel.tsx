@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { sanitizeText } from '@/lib/sanitizeText';
 import type { CategoryFinding, Severity } from '@/types/codeAnalyzer';
 
 const sevStyle: Record<Severity, string> = {
@@ -33,17 +34,17 @@ const FindingsPanel: React.FC<Props> = ({ title, emptyText, findings, icon }) =>
               {f.line != null && <span className="hca-chip">Line {f.line}</span>}
               {conf !== null && <span className="hca-chip text-primary">{conf}% confidence</span>}
             </div>
-            <h4 className="font-semibold text-sm">{f.title}</h4>
-            {f.evidence && f.evidence.trim() && (
+            <h4 className="font-semibold text-sm">{sanitizeText(f.title, 'Finding')}</h4>
+            {f.evidence && sanitizeText(f.evidence) && (
               <div className="rounded-xl border border-border/50 bg-muted/40 px-3 py-2 text-xs font-mono overflow-x-auto">
                 <span className="text-[10px] font-sans uppercase tracking-wider text-muted-foreground mr-2">Evidence</span>
-                <code>{f.evidence}</code>
+                <code>{sanitizeText(f.evidence)}</code>
               </div>
             )}
-            <p className="text-sm text-muted-foreground leading-snug">{f.description}</p>
-            {f.fix && (
+            <p className="text-sm text-muted-foreground leading-snug">{sanitizeText(f.description)}</p>
+            {sanitizeText(f.fix) && (
               <div className="text-sm rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3 text-emerald-700 dark:text-emerald-400">
-                <span className="font-medium">Fix: </span>{f.fix}
+                <span className="font-medium">Fix: </span>{sanitizeText(f.fix)}
               </div>
             )}
           </div>
