@@ -1070,16 +1070,29 @@
   position: absolute;
   top: 4px;
   bottom: 4px;
-  border-radius: 10px;
-  background: hsl(var(--card));
+  border-radius: 14px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
   box-shadow:
-    0 1px 2px hsl(var(--glass-shadow)),
-    0 6px 18px -8px hsl(var(--glow-primary));
-  transition: transform 0.45s var(--hca-spring), width 0.45s var(--hca-spring);
+    0 4px 16px rgba(59, 130, 246, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(59, 130, 246, 0.08);
+  transition:
+    transform 300ms var(--hca-spring),
+    width 300ms var(--hca-spring),
+    background 300ms ease,
+    box-shadow 300ms ease;
   z-index: 0;
 }
 .dark .hca-segmented-thumb {
-  background: hsl(var(--card) / 0.9);
+  background: rgba(96, 165, 250, 0.15);
+  border-color: rgba(96, 165, 250, 0.3);
+  box-shadow:
+    0 4px 18px rgba(96, 165, 250, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(96, 165, 250, 0.12);
 }
 .hca-segmented-item {
   position: relative;
@@ -1093,18 +1106,40 @@
   font-size: 12.5px;
   font-weight: 500;
   color: hsl(var(--muted-foreground));
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
-  transition: color 0.25s var(--hca-ease);
+  transition:
+    color 300ms ease,
+    transform 300ms var(--hca-spring),
+    background 300ms ease;
   background: transparent;
   border: 0;
 }
-.hca-segmented-item[data-active="true"] {
+.hca-segmented-item > svg { transition: color 300ms ease, transform 300ms ease; }
+.hca-segmented-item:hover:not([data-active="true"]) {
   color: hsl(var(--foreground));
+  transform: scale(1.02);
+  background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0));
+}
+.dark .hca-segmented-item:hover:not([data-active="true"]) {
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
+}
+.hca-segmented-item[data-active="true"] {
+  color: hsl(217 91% 35%);
   font-weight: 600;
 }
+.hca-segmented-item[data-active="true"] > svg {
+  color: hsl(217 91% 52%);
+}
+.dark .hca-segmented-item[data-active="true"] {
+  color: hsl(213 94% 86%);
+}
+.dark .hca-segmented-item[data-active="true"] > svg {
+  color: hsl(213 94% 78%);
+}
+
 .hca-segmented-item:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
