@@ -191,7 +191,7 @@ const CreateChatDialog: React.FC<CreateChatDialogProps> = ({
                         {userProfile.full_name}
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
-                        {userProfile.email}
+                        @{userProfile.user_id.slice(0, 8)}
                       </p>
                     </div>
                   </div>
