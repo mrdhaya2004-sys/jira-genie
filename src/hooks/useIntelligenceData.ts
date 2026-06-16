@@ -70,10 +70,10 @@ export function useIntelligenceData() {
       ]);
 
       if (!summaryRes.error && summaryRes.data) {
-        setSummary({ ...EMPTY_SUMMARY, ...(summaryRes.data as IntelligenceSummary) });
+        setSummary({ ...EMPTY_SUMMARY, ...(summaryRes.data as unknown as IntelligenceSummary) });
       }
       if (!recentRes.error && recentRes.data) {
-        setRecent(recentRes.data as RecentEvent[]);
+        setRecent(recentRes.data as unknown as RecentEvent[]);
       }
     } finally {
       setLoading(false);

@@ -27,13 +27,13 @@ export async function trackEvent({ module, action, durationMs = 0, metadata }: T
   try {
     const user_id = await getUserId();
     if (!user_id) return;
-    await supabase.from('user_events').insert({
+    await supabase.from('user_events').insert([{
       user_id,
       module,
       action,
       duration_ms: Math.max(0, Math.floor(durationMs)),
-      metadata: metadata ?? {},
-    });
+      metadata: (metadata ?? {}) as never,
+    }]);
   } catch {
     // Swallow — analytics must never break the app.
   }
