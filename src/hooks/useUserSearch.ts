@@ -5,7 +5,6 @@ import { useAuth } from '@/contexts/AuthContext';
 export interface SearchResult {
   user_id: string;
   full_name: string;
-  email: string;
   avatar_url: string | null;
   profile_id: string | null;
 }
@@ -35,7 +34,7 @@ export function useUserSearch() {
       if (query.startsWith('@')) {
         queryBuilder = queryBuilder.ilike('profile_id', `${searchTerm}%`);
       } else {
-        queryBuilder = queryBuilder.or(`full_name.ilike.${searchTerm},email.ilike.${searchTerm},profile_id.ilike.%${query}%`);
+        queryBuilder = queryBuilder.or(`full_name.ilike.${searchTerm},profile_id.ilike.%${query}%`);
       }
 
       const { data, error } = await queryBuilder;

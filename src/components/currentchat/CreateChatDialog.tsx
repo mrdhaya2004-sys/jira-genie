@@ -20,7 +20,6 @@ import { CreateConversationData } from '@/types/chat';
 interface UserProfile {
   user_id: string;
   full_name: string;
-  email: string;
   avatar_url: string | null;
 }
 
@@ -74,9 +73,8 @@ const CreateChatDialog: React.FC<CreateChatDialogProps> = ({
     }
   };
 
-  const filteredUsers = users.filter(u => 
-    u.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = users.filter(u =>
+    u.full_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const toggleUserSelection = (userId: string) => {
