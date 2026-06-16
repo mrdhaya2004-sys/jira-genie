@@ -18,7 +18,8 @@ import {
   Info,
   ShieldAlert,
   GitBranch,
-  ScanLine } from
+  ScanLine,
+  Sparkles } from
 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
@@ -61,6 +62,11 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
   const menuItems = [
   {
+    icon: Sparkles,
+    label: 'Intelligence Hub',
+    module: 'intelligence-hub' as ActiveModule,
+  },
+  {
     icon: AtSign,
     label: 'Mentioned on you',
     module: 'mentions' as ActiveModule,
@@ -96,7 +102,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         <img src={testzoneLogo} alt="Test Zone" className="h-9 w-9 rounded-lg object-contain" />
         <div>
           <h1 className="font-semibold text-sm text-sidebar-foreground tracking-tight">Test Zone</h1>
-          <p className="text-[11px] text-sidebar-foreground/50">Dashboard</p>
+          <p className="text-[11px] text-sidebar-foreground/50">Intelligence Hub</p>
         </div>
       </div>
 
