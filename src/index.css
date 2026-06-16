@@ -1230,3 +1230,98 @@
   .hca-rise, .hca-ring-anim, .hca-pulse-soft, .hca-step-pop, .hca-skel { animation: none !important; }
   .hca-segmented-thumb { transition: none !important; }
 }
+
+/* ============================================================
+   Hover stability layer
+   Eliminates edge-of-element flickering caused by:
+   - hover:scale-* growing the box into/out of the cursor
+   - border-width changes on hover shifting the hit area
+   - transition: all animating layout properties
+   Replaces aggressive scaling with a stable translateY lift.
+   ============================================================ */
+@layer utilities {
+  /* Promote common interactive surfaces to their own compositor layer so
+     hover transitions don't re-rasterize the parent and cause flicker. */
+  button,
+  a[role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [data-radix-collection-item],
+  .hover-scale,
+  .hover-lift {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* Replace `hover:scale-105` style growth with a stable 1px lift.
+     Scaling changes the hit-box mid-transition and causes the mouse
+     to repeatedly enter/leave the element near the edges. */
+  .hover-scale {
+    transition:
+      background-color 0.25s var(--ease-ios),
+      border-color 0.25s var(--ease-ios),
+      box-shadow 0.25s var(--ease-ios),
+      transform 0.25s var(--ease-ios) !important;
+  }
+  .hover-scale:hover {
+    transform: translateY(-1px) !important;
+  }
+
+  /* Neutralize Tailwind hover:scale-* on interactive controls — keep
+     dimensions constant, lift instead. Cards/tabs/buttons are the
+     common offenders. */
+  button.hover\:scale-105:hover,
+  button.hover\:scale-110:hover,
+  a.hover\:scale-105:hover,
+  a.hover\:scale-110:hover,
+  [role="tab"].hover\:scale-105:hover,
+  .card.hover\:scale-105:hover {
+    transform: translateY(-1px) !important;
+  }
+
+  /* Forbid border-width changes on hover — they shift layout by 1px
+     and the cursor pops out of the element. Use color/shadow instead. */
+  button:hover,
+  a:hover,
+  [role="tab"]:hover,
+  [role="menuitem"]:hover,
+  .card:hover {
+    border-width: inherit;
+  }
+}
+
+/* Replace `transition: all` on shadcn primitives with a specific list so
+   hover never animates layout-affecting properties (width, padding, border). */
+@layer base {
+  button,
+  a[role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [data-radix-collection-item],
+  .card {
+    transition-property: background-color, border-color, color, box-shadow,
+      opacity, transform, backdrop-filter;
+    transition-duration: 250ms;
+    transition-timing-function: var(--ease-ios);
+  }
+}
+
+/* Keep glass blur constant on hover so backdrop-filter doesn't
+   recompute and cause a visible flicker. */
+.backdrop-blur-xl:hover,
+.backdrop-blur-2xl:hover,
+.backdrop-blur-3xl:hover {
+  backdrop-filter: inherit;
+  -webkit-backdrop-filter: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hover-scale:hover,
+  button:hover,
+  a:hover,
+  [role="tab"]:hover,
+  .card:hover {
+    transform: none !important;
+  }
+}
+
