@@ -172,22 +172,29 @@ const ActivityRings: React.FC<{ rings: { value: number; color: string; label: st
   const radii = [62, 48, 34];
   return (
     <div className="relative h-44 w-44 mx-auto">
-      <svg viewBox="0 0 160 160" className="h-full w-full -rotate-90">
+      {/* subtle backing disc so rings pop on the hero gradient */}
+      <div className="absolute inset-2 rounded-full bg-black/25 backdrop-blur-sm" />
+      <svg viewBox="0 0 160 160" className="h-full w-full -rotate-90 relative z-10">
         {rings.map((r, i) => {
           const radius = radii[i] ?? 30;
           const c = 2 * Math.PI * radius;
           const off = c - (Math.min(100, r.value) / 100) * c;
           return (
             <g key={i}>
-              <circle cx="80" cy="80" r={radius} stroke={`${r.color}33`} strokeWidth="11" fill="none" />
+              {/* track: white-ish at 25 % so it’s visible on dark backgrounds */}
+              <circle cx="80" cy="80" r={radius} stroke="rgba(255,255,255,0.25)" strokeWidth="11" fill="none" />
+              {/* progress ring with soft glow */}
               <circle cx="80" cy="80" r={radius} stroke={r.color} strokeWidth="11" fill="none"
                 strokeLinecap="round" strokeDasharray={c} strokeDashoffset={off}
-                style={{ transition: 'stroke-dashoffset 900ms cubic-bezier(.2,.7,.2,1)' }} />
+                style={{
+                  transition: 'stroke-dashoffset 900ms cubic-bezier(.2,.7,.2,1)',
+                  filter: `drop-shadow(0 0 4px ${r.color})`,
+                }} />
             </g>
           );
         })}
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
         <div className="text-3xl font-bold tabular-nums text-white">
           <Counter value={Math.round((rings.reduce((s, r) => s + r.value, 0) / rings.length))} />
         </div>
