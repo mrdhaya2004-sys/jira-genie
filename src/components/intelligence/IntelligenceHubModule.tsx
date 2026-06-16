@@ -188,10 +188,10 @@ const ActivityRings: React.FC<{ rings: { value: number; color: string; label: st
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <div className="text-3xl font-bold tabular-nums bg-gradient-to-br from-blue-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent">
+        <div className="text-3xl font-bold tabular-nums text-white">
           <Counter value={Math.round((rings.reduce((s, r) => s + r.value, 0) / rings.length))} />
         </div>
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">avg score</div>
+        <div className="text-[10px] uppercase tracking-wider text-white/90 mt-0.5">avg score</div>
       </div>
     </div>
   );
