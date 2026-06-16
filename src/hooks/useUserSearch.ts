@@ -28,7 +28,7 @@ export function useUserSearch() {
       
       let queryBuilder = supabase
         .from('profiles')
-        .select('user_id, full_name, email, avatar_url, profile_id')
+        .select('user_id, full_name, avatar_url, profile_id')
         .neq('user_id', user.id)
         .limit(20);
 

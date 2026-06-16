@@ -61,7 +61,7 @@ const CreateChatDialog: React.FC<CreateChatDialogProps> = ({
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('user_id, full_name, email, avatar_url')
+        .select('user_id, full_name, avatar_url')
         .neq('user_id', user?.id || '')
         .limit(50);
 

@@ -69,7 +69,7 @@ export function useChat() {
       // Fetch all participant profiles in one query
       const { data: allProfiles } = await supabase
         .from('profiles')
-        .select('user_id, full_name, email, avatar_url')
+        .select('user_id, full_name, avatar_url')
         .in('user_id', Array.from(allParticipantIds));
 
       const profileMap = new Map(allProfiles?.map(p => [p.user_id, p]) || []);
@@ -188,7 +188,7 @@ export function useChat() {
       const senderIds = [...new Set((data || []).map(m => m.sender_id))];
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, full_name, email, avatar_url')
+        .select('user_id, full_name, avatar_url')
         .in('user_id', senderIds);
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
@@ -248,7 +248,7 @@ export function useChat() {
       const userIds = (data || []).map(p => p.user_id);
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, full_name, email, avatar_url')
+        .select('user_id, full_name, avatar_url')
         .in('user_id', userIds);
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
@@ -687,7 +687,7 @@ export function useChat() {
           if (selectedConvRef.current === newMessage.conversation_id) {
             const { data: senderProfile } = await supabase
               .from('profiles')
-              .select('user_id, full_name, email, avatar_url')
+              .select('user_id, full_name, avatar_url')
               .eq('user_id', newMessage.sender_id)
               .maybeSingle();
 
