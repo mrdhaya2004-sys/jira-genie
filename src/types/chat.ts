@@ -28,7 +28,6 @@ export interface ConversationParticipant {
   is_favorite?: boolean;
   profile?: {
     full_name: string;
-    email: string;
     avatar_url: string | null;
   };
 }
@@ -54,7 +53,6 @@ export interface ChatMessageData {
   } | null;
   sender?: {
     full_name: string;
-    email: string;
     avatar_url: string | null;
   };
 }
