@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import HiveAIButton from "./components/hiveai/HiveAIButton";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
+import { NavigationStackProvider } from "@/navigation/NavigationStack";
 import testzoneLogo from "@/assets/testzone-logo.png";
 
 // Lazy-loaded pages
@@ -124,12 +125,14 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <ErrorBoundary label="Routes">
-                <AppRoutes />
-              </ErrorBoundary>
-              <ErrorBoundary label="Hive AI button" fallback={null}>
-                <HiveAIButton />
-              </ErrorBoundary>
+              <NavigationStackProvider>
+                <ErrorBoundary label="Routes">
+                  <AppRoutes />
+                </ErrorBoundary>
+                <ErrorBoundary label="Hive AI button" fallback={null}>
+                  <HiveAIButton />
+                </ErrorBoundary>
+              </NavigationStackProvider>
             </BrowserRouter>
           </TooltipProvider>
         </AuthProvider>
