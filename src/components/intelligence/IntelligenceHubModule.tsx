@@ -188,17 +188,18 @@ const ActivityRings: React.FC<{ rings: { value: number; color: string; label: st
                 strokeLinecap="round" strokeDasharray={c} strokeDashoffset={off}
                 style={{
                   transition: 'stroke-dashoffset 900ms cubic-bezier(.2,.7,.2,1)',
-                  filter: `drop-shadow(0 0 4px ${r.color})`,
+                  filter: `drop-shadow(0 0 6px ${r.color}) drop-shadow(0 0 14px ${r.color}66)`,
                 }} />
             </g>
           );
         })}
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+      <div className="absolute inset-0 flex flex-col items-center justify-center z-20"
+        style={{ filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.55))' }}>
         <div className="text-3xl font-bold tabular-nums text-white">
           <Counter value={Math.round((rings.reduce((s, r) => s + r.value, 0) / rings.length))} />
         </div>
-        <div className="text-[10px] uppercase tracking-wider text-white/90 mt-0.5">avg score</div>
+        <div className="text-[10px] uppercase tracking-wider text-white/95 mt-0.5">avg score</div>
       </div>
     </div>
   );
