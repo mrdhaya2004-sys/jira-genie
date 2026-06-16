@@ -39,6 +39,7 @@ import HelpChatDialog from '@/components/help/HelpChatDialog';
 import LogoutConfirmDialog from '@/components/auth/LogoutConfirmDialog';
 
 const MODULE_LABELS: Record<ActiveModule, string> = {
+  'intelligence-hub': 'TestZone Intelligence Hub',
   'mentions': 'Mentions',
   'chat': 'Chat',
   'tickets': 'My Tickets',

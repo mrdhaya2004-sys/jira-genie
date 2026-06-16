@@ -6,6 +6,7 @@ import type { ActiveModule } from '@/pages/DashboardPage';
 type Loader = () => Promise<unknown>;
 
 export const moduleLoaders = {
+  'intelligence-hub': () => import('@/components/intelligence/IntelligenceHubModule'),
   'agentic-ai': () => import('@/components/workspace/AgenticAIModule'),
   'jira-ticket-raiser': () => import('@/components/jira/JiraTicketRaiserModule'),
   'logic-scenario-creator': () => import('@/components/scenario/LogicScenarioCreatorModule'),
