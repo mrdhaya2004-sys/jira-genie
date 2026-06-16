@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import AIActivationBanner from '@/components/ai/AIActivationBanner';
 import { moduleLoaders, preloadFrequentModules } from '@/lib/modulePreloader';
+import { trackEvent } from '@/lib/eventTracker';
 
 // Lazy-load every module — only the active one is fetched/parsed.
 // Loader factories are shared with the preloader so hover/focus preloads dedupe.
@@ -28,8 +29,9 @@ const ProfileModule = lazy(moduleLoaders['profile'] as () => Promise<AnyComp>);
 const AccountSettingsModule = lazy(moduleLoaders['account-settings'] as () => Promise<AnyComp>);
 const AboutUsModule = lazy(moduleLoaders['about'] as () => Promise<AnyComp>);
 const FounderPage = lazy(moduleLoaders['founder'] as () => Promise<AnyComp>);
+const IntelligenceHubModule = lazy(moduleLoaders['intelligence-hub'] as () => Promise<AnyComp>);
 
-export type ActiveModule = 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'defect-analyzer' | 'gitlab-execution' | 'code-analyzer' | 'ai-settings' | 'profile' | 'account-settings' | 'about' | 'founder';
+export type ActiveModule = 'intelligence-hub' | 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'defect-analyzer' | 'gitlab-execution' | 'code-analyzer' | 'ai-settings' | 'profile' | 'account-settings' | 'about' | 'founder';
 
 const MODULE_MAP: Record<string, ActiveModule> = {
   'test-case-generator': 'test-case-generator',
@@ -74,7 +76,7 @@ const ModuleCrashFallback: React.FC<{ onRecover: () => void }> = ({ onRecover })
 );
 
 const DashboardPage: React.FC = () => {
-  const [activeModule, setActiveModule] = useState<ActiveModule>('mentions');
+  const [activeModule, setActiveModule] = useState<ActiveModule>('intelligence-hub');
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
 
   const handleResumeAction = useCallback((module: string, prompt: string, historyLogId?: string) => {
@@ -90,6 +92,15 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     preloadFrequentModules();
   }, []);
+
+  // Persist a `module_opened` event with duration whenever the active module changes.
+  useEffect(() => {
+    const openedAt = Date.now();
+    void trackEvent({ module: activeModule, action: 'module_opened' });
+    return () => {
+      void trackEvent({ module: activeModule, action: 'module_closed', durationMs: Date.now() - openedAt });
+    };
+  }, [activeModule]);
 
   return (
     <div className="flex h-screen bg-background">
@@ -123,6 +134,7 @@ const DashboardPage: React.FC = () => {
             <div className="h-full module-enter flex flex-col">
               <div className="flex-1 min-h-0">
                 <Suspense fallback={<ModuleFallback />}>
+                  {activeModule === 'intelligence-hub' && <IntelligenceHubModule />}
                   {activeModule === 'mentions' && <MentionsPanel />}
                   {activeModule === 'chat' && <CurrentChatModule />}
                   {activeModule === 'tickets' && <MyTicketsModule />}
