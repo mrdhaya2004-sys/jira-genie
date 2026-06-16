@@ -1361,6 +1361,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_events: {
+        Row: {
+          action: string
+          created_at: string
+          duration_ms: number
+          id: string
+          metadata: Json
+          module: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          duration_ms?: number
+          id?: string
+          metadata?: Json
+          module: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          duration_ms?: number
+          id?: string
+          metadata?: Json
+          module?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_presence: {
         Row: {
           last_seen_at: string
@@ -1646,6 +1676,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      get_intelligence_summary: { Args: { _user_id: string }; Returns: Json }
       get_public_profile: {
         Args: { _target_user_id: string }
         Returns: {
