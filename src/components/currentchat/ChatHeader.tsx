@@ -109,11 +109,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
             {conversation.type === 'direct' && !isTestChat && (
               <OnlineStatusIndicator status={otherStatus} showLabel size="sm" />
             )}
-            {conversation.type === 'direct' && isTestChat && otherParticipant?.profile?.email && (
-              <span className="text-xs text-muted-foreground truncate">
-                {otherParticipant.profile.email}
-              </span>
-            )}
+            {/* Email previously shown here removed for privacy — emails are owner-only. */}
           </div>
         </div>
       </div>

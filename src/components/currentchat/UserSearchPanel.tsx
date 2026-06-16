@@ -119,7 +119,7 @@ const UserSearchPanel: React.FC<UserSearchPanelProps> = ({
                     {result.profile_id && (
                       <p className="text-xs text-primary font-medium">{result.profile_id}</p>
                     )}
-                    <p className="text-xs text-muted-foreground truncate">{result.email}</p>
+                    {result.profile_id && null}
                   </div>
 
                   <Button

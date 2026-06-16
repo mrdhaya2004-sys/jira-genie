@@ -51,9 +51,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchProfile = useCallback(async (userId: string) => {
+    // Email is no longer readable from profiles by RLS/column grants; pull it from the auth session instead.
+    const { data: authData } = await supabase.auth.getUser();
+    const authEmail = authData?.user?.email ?? '';
+
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, user_id, full_name, avatar_url, profile_id, created_at, updated_at')
       .eq('user_id', userId)
       .maybeSingle();
 
@@ -71,6 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setProfile({
       ...(data as any),
+      email: authEmail,
       employee_id: priv?.employee_id ?? '',
       mobile_number: priv?.mobile_number ?? undefined,
       date_of_birth: priv?.date_of_birth ?? undefined,

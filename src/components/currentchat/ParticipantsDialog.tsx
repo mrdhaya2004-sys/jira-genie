@@ -76,9 +76,7 @@ const ParticipantsDialog: React.FC<ParticipantsDialogProps> = ({
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {participant.profile?.email}
-                    </p>
+                    {/* Email removed for privacy */}
                   </div>
 
                   {isAdmin && !isCurrentUser && !participant.is_admin && (

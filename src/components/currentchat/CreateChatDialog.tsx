@@ -20,7 +20,6 @@ import { CreateConversationData } from '@/types/chat';
 interface UserProfile {
   user_id: string;
   full_name: string;
-  email: string;
   avatar_url: string | null;
 }
 
@@ -61,7 +60,7 @@ const CreateChatDialog: React.FC<CreateChatDialogProps> = ({
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('user_id, full_name, email, avatar_url')
+        .select('user_id, full_name, avatar_url')
         .neq('user_id', user?.id || '')
         .limit(50);
 
@@ -74,9 +73,8 @@ const CreateChatDialog: React.FC<CreateChatDialogProps> = ({
     }
   };
 
-  const filteredUsers = users.filter(u => 
-    u.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = users.filter(u =>
+    u.full_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const toggleUserSelection = (userId: string) => {
@@ -193,7 +191,7 @@ const CreateChatDialog: React.FC<CreateChatDialogProps> = ({
                         {userProfile.full_name}
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
-                        {userProfile.email}
+                        @{userProfile.user_id.slice(0, 8)}
                       </p>
                     </div>
                   </div>
