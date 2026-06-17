@@ -261,8 +261,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
                     {profile?.full_name || 'User'}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
-                  <span className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />
+                  <span className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
                     Member
                   </span>
                 </div>
