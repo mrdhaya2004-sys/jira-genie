@@ -275,48 +275,52 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
             {/* Menu items */}
             <div className="relative p-1.5">
               <DropdownMenuItem
-                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
-                  hover:bg-[#F5F7FA] focus:bg-[#F5F7FA] hover:text-primary focus:text-primary hover:translate-x-0.5
-                  data-[highlighted]:bg-[#F5F7FA] data-[highlighted]:text-primary"
+                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition-all duration-200
+                  hover:bg-[#EEF2F7] focus:bg-[#EEF2F7] hover:text-foreground focus:text-foreground hover:translate-x-0.5
+                  data-[highlighted]:bg-[#EEF2F7] data-[highlighted]:text-foreground
+                  dark:hover:bg-white/[0.08] dark:focus:bg-white/[0.08] dark:data-[highlighted]:bg-white/[0.08]"
                 onClick={() => onModuleChange('profile')}
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors group-hover:bg-primary/90">
                   <User className="h-3.5 w-3.5" />
                 </span>
                 Profile
               </DropdownMenuItem>
 
               <DropdownMenuItem
-                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
-                  hover:bg-[#F5F7FA] focus:bg-[#F5F7FA] hover:text-primary focus:text-primary hover:translate-x-0.5
-                  data-[highlighted]:bg-[#F5F7FA] data-[highlighted]:text-primary"
+                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition-all duration-200
+                  hover:bg-[#EEF2F7] focus:bg-[#EEF2F7] hover:text-foreground focus:text-foreground hover:translate-x-0.5
+                  data-[highlighted]:bg-[#EEF2F7] data-[highlighted]:text-foreground
+                  dark:hover:bg-white/[0.08] dark:focus:bg-white/[0.08] dark:data-[highlighted]:bg-white/[0.08]"
                 onClick={() => setChangePasswordOpen(true)}
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors group-hover:bg-primary/90">
                   <Key className="h-3.5 w-3.5" />
                 </span>
                 Change Password
               </DropdownMenuItem>
 
               <DropdownMenuItem
-                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
-                  hover:bg-[#F5F7FA] focus:bg-[#F5F7FA] hover:text-primary focus:text-primary hover:translate-x-0.5
-                  data-[highlighted]:bg-[#F5F7FA] data-[highlighted]:text-primary"
+                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition-all duration-200
+                  hover:bg-[#EEF2F7] focus:bg-[#EEF2F7] hover:text-foreground focus:text-foreground hover:translate-x-0.5
+                  data-[highlighted]:bg-[#EEF2F7] data-[highlighted]:text-foreground
+                  dark:hover:bg-white/[0.08] dark:focus:bg-white/[0.08] dark:data-[highlighted]:bg-white/[0.08]"
                 onClick={() => onModuleChange('account-settings')}
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors group-hover:bg-primary/90">
                   <Settings className="h-3.5 w-3.5" />
                 </span>
                 Account Settings
               </DropdownMenuItem>
 
               <DropdownMenuItem
-                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
-                  hover:bg-[#F5F7FA] focus:bg-[#F5F7FA] hover:text-primary focus:text-primary hover:translate-x-0.5
-                  data-[highlighted]:bg-[#F5F7FA] data-[highlighted]:text-primary"
+                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition-all duration-200
+                  hover:bg-[#EEF2F7] focus:bg-[#EEF2F7] hover:text-foreground focus:text-foreground hover:translate-x-0.5
+                  data-[highlighted]:bg-[#EEF2F7] data-[highlighted]:text-foreground
+                  dark:hover:bg-white/[0.08] dark:focus:bg-white/[0.08] dark:data-[highlighted]:bg-white/[0.08]"
                 onClick={() => onModuleChange('account-settings')}
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors group-hover:bg-primary/90">
                   <Sliders className="h-3.5 w-3.5" />
                 </span>
                 Preferences
@@ -325,12 +329,13 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
               <div className="my-1.5 mx-2 h-px bg-gradient-to-r from-transparent via-border/50 to-transparent" />
 
               <DropdownMenuItem
-                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
-                  hover:bg-[#F5F7FA] focus:bg-[#F5F7FA] hover:text-primary focus:text-primary hover:translate-x-0.5
-                  data-[highlighted]:bg-[#F5F7FA] data-[highlighted]:text-primary"
+                className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition-all duration-200
+                  hover:bg-[#EEF2F7] focus:bg-[#EEF2F7] hover:text-foreground focus:text-foreground hover:translate-x-0.5
+                  data-[highlighted]:bg-[#EEF2F7] data-[highlighted]:text-foreground
+                  dark:hover:bg-white/[0.08] dark:focus:bg-white/[0.08] dark:data-[highlighted]:bg-white/[0.08]"
                 onClick={() => setHelpChatOpen(true)}
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors group-hover:bg-primary/90">
                   <HelpCircle className="h-3.5 w-3.5" />
                 </span>
                 Help
@@ -340,11 +345,13 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
 
               <DropdownMenuItem
                 className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm text-destructive transition-all duration-200
-                  hover:bg-red-50 focus:bg-red-50 hover:translate-x-0.5
-                  data-[highlighted]:bg-red-50 data-[highlighted]:text-destructive"
+                  hover:bg-[#FDECEC] focus:bg-[#FDECEC] hover:text-destructive focus:text-destructive hover:translate-x-0.5
+                  data-[highlighted]:bg-[#FDECEC] data-[highlighted]:text-destructive
+                  dark:hover:bg-red-500/15 dark:focus:bg-red-500/15 dark:data-[highlighted]:bg-red-500/15
+                  dark:text-red-300 dark:hover:text-red-200 dark:focus:text-red-200 dark:data-[highlighted]:text-red-200"
                 onClick={() => setLogoutOpen(true)}
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-destructive/10 text-destructive transition-all group-hover:bg-destructive/20 group-hover:animate-pulse">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-destructive text-destructive-foreground transition-all group-hover:bg-destructive/90 group-hover:animate-pulse">
                   <LogOut className="h-3.5 w-3.5" />
                 </span>
                 Logout
