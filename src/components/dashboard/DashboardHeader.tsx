@@ -232,32 +232,14 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
           <DropdownMenuContent
             align="end"
             sideOffset={10}
-            className="w-72 p-0 overflow-hidden rounded-[22px] border border-white/15 dark:border-white/10
-              bg-popover/70 backdrop-blur-2xl backdrop-saturate-150
-              shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.25),0_8px_24px_-8px_hsl(0_0%_0%/0.18)]
+            className="w-72 p-0 overflow-hidden rounded-[20px] border border-black/[0.08] dark:border-white/[0.08]
+              bg-white dark:bg-[#111827]
+              shadow-[0_20px_40px_rgba(0,0,0,0.12)]
               data-[state=open]:animate-in data-[state=closed]:animate-out
               data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0
               data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95
               data-[side=bottom]:slide-in-from-top-2"
           >
-            {/* Soft gradient overlay */}
-            <div
-              className="pointer-events-none absolute inset-0 opacity-80"
-              style={{
-                background:
-                  'radial-gradient(120% 60% at 50% 0%, hsl(var(--primary) / 0.18) 0%, transparent 55%), linear-gradient(180deg, hsl(var(--primary) / 0.06) 0%, transparent 100%)',
-              }}
-              aria-hidden="true"
-            />
-            {/* Border highlight */}
-            <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-px"
-              style={{
-                background:
-                  'linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.5) 50%, transparent 100%)',
-              }}
-              aria-hidden="true"
-            />
 
             {/* Profile header */}
             <div className="relative px-4 pt-4 pb-3">
@@ -279,7 +261,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
                     {profile?.full_name || 'User'}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
-                  <span className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary backdrop-blur-sm">
+                  <span className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                     <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />
                     Member
                   </span>
@@ -294,8 +276,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
             <div className="relative p-1.5">
               <DropdownMenuItem
                 className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
-                  hover:bg-primary/10 focus:bg-primary/10 hover:translate-x-0.5
-                  data-[highlighted]:bg-primary/10 data-[highlighted]:shadow-[0_0_0_1px_hsl(var(--primary)/0.18),0_4px_14px_-6px_hsl(var(--primary)/0.35)]"
+                  hover:bg-[#F5F7FA] focus:bg-[#F5F7FA] hover:text-primary focus:text-primary hover:translate-x-0.5
+                  data-[highlighted]:bg-[#F5F7FA] data-[highlighted]:text-primary"
                 onClick={() => onModuleChange('profile')}
               >
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
@@ -306,8 +288,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
 
               <DropdownMenuItem
                 className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
-                  hover:bg-primary/10 focus:bg-primary/10 hover:translate-x-0.5
-                  data-[highlighted]:bg-primary/10 data-[highlighted]:shadow-[0_0_0_1px_hsl(var(--primary)/0.18),0_4px_14px_-6px_hsl(var(--primary)/0.35)]"
+                  hover:bg-[#F5F7FA] focus:bg-[#F5F7FA] hover:text-primary focus:text-primary hover:translate-x-0.5
+                  data-[highlighted]:bg-[#F5F7FA] data-[highlighted]:text-primary"
                 onClick={() => setChangePasswordOpen(true)}
               >
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
@@ -318,8 +300,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
 
               <DropdownMenuItem
                 className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
-                  hover:bg-primary/10 focus:bg-primary/10 hover:translate-x-0.5
-                  data-[highlighted]:bg-primary/10 data-[highlighted]:shadow-[0_0_0_1px_hsl(var(--primary)/0.18),0_4px_14px_-6px_hsl(var(--primary)/0.35)]"
+                  hover:bg-[#F5F7FA] focus:bg-[#F5F7FA] hover:text-primary focus:text-primary hover:translate-x-0.5
+                  data-[highlighted]:bg-[#F5F7FA] data-[highlighted]:text-primary"
                 onClick={() => onModuleChange('account-settings')}
               >
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
@@ -330,8 +312,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
 
               <DropdownMenuItem
                 className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
-                  hover:bg-primary/10 focus:bg-primary/10 hover:translate-x-0.5
-                  data-[highlighted]:bg-primary/10 data-[highlighted]:shadow-[0_0_0_1px_hsl(var(--primary)/0.18),0_4px_14px_-6px_hsl(var(--primary)/0.35)]"
+                  hover:bg-[#F5F7FA] focus:bg-[#F5F7FA] hover:text-primary focus:text-primary hover:translate-x-0.5
+                  data-[highlighted]:bg-[#F5F7FA] data-[highlighted]:text-primary"
                 onClick={() => onModuleChange('account-settings')}
               >
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
@@ -344,8 +326,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
 
               <DropdownMenuItem
                 className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200
-                  hover:bg-primary/10 focus:bg-primary/10 hover:translate-x-0.5
-                  data-[highlighted]:bg-primary/10 data-[highlighted]:shadow-[0_0_0_1px_hsl(var(--primary)/0.18),0_4px_14px_-6px_hsl(var(--primary)/0.35)]"
+                  hover:bg-[#F5F7FA] focus:bg-[#F5F7FA] hover:text-primary focus:text-primary hover:translate-x-0.5
+                  data-[highlighted]:bg-[#F5F7FA] data-[highlighted]:text-primary"
                 onClick={() => setHelpChatOpen(true)}
               >
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
@@ -358,9 +340,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
 
               <DropdownMenuItem
                 className="group cursor-pointer gap-3 rounded-xl px-3 py-2 text-sm text-destructive transition-all duration-200
-                  hover:bg-destructive/10 focus:bg-destructive/10 hover:translate-x-0.5
-                  data-[highlighted]:bg-destructive/10 data-[highlighted]:text-destructive
-                  data-[highlighted]:shadow-[0_0_0_1px_hsl(var(--destructive)/0.25),0_4px_14px_-6px_hsl(var(--destructive)/0.4)]"
+                  hover:bg-red-50 focus:bg-red-50 hover:translate-x-0.5
+                  data-[highlighted]:bg-red-50 data-[highlighted]:text-destructive"
                 onClick={() => setLogoutOpen(true)}
               >
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-destructive/10 text-destructive transition-all group-hover:bg-destructive/20 group-hover:animate-pulse">
