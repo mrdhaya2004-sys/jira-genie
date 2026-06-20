@@ -459,12 +459,12 @@ const IntelligenceHubModule: React.FC = () => {
                 ? <div className="h-full flex items-center justify-center text-sm text-muted-foreground">Start using a module to see your distribution.</div>
                 : <GradientDonut data={derived.pieData} />}
             </div>
-            <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5">
+            <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2">
               {derived.pieData.map((d) => (
-                <div key={d.name} className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
-                  <span className="h-2.5 w-2.5 rounded-sm flex-shrink-0" style={{ background: d.color, boxShadow: `0 0 8px ${d.color}80` }} />
-                  <span className="truncate flex-1">{d.name}</span>
-                  <span className="tabular-nums text-foreground/80">{d.value}</span>
+                <div key={d.name} className="flex items-start gap-2 text-xs text-muted-foreground min-w-0">
+                  <span className="h-2.5 w-2.5 rounded-sm flex-shrink-0 mt-[3px]" style={{ background: d.color, boxShadow: `0 0 8px ${d.color}80` }} />
+                  <span className="flex-1 leading-snug break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{d.name}</span>
+                  <span className="tabular-nums text-foreground/80 flex-shrink-0">{d.value}</span>
                 </div>
               ))}
             </div>
