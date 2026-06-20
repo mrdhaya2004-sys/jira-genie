@@ -478,7 +478,7 @@ const IntelligenceHubModule: React.FC = () => {
                     <BarChart data={derived.barData} layout="vertical" margin={{ left: 12, right: 12 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                       <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} allowDecimals={false} />
-                      <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} width={120} />
+                      <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} width={160} interval={0} />
                       <RTooltip contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }} />
                       <Bar dataKey="value" radius={[0, 8, 8, 0]}>
                         {derived.barData.map((d, i) => <Cell key={i} fill={d.color} />)}
