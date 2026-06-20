@@ -274,7 +274,7 @@ const IntelligenceHubModule: React.FC = () => {
 
     const pieData = moduleEntries.slice(0, 8).map(([k, v], i) => ({ name: moduleLabel(k), value: v, color: moduleColor(k, i) }));
     const barData = moduleEntries.slice(0, 10).map(([k, v], i) => ({
-      name: moduleLabel(k).split(' ').slice(0, 2).join(' '),
+      name: moduleLabel(k),
       value: v,
       color: moduleColor(k, i),
     }));
