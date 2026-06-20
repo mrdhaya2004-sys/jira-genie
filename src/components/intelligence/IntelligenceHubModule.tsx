@@ -274,7 +274,7 @@ const IntelligenceHubModule: React.FC = () => {
 
     const pieData = moduleEntries.slice(0, 8).map(([k, v], i) => ({ name: moduleLabel(k), value: v, color: moduleColor(k, i) }));
     const barData = moduleEntries.slice(0, 10).map(([k, v], i) => ({
-      name: moduleLabel(k).split(' ').slice(0, 2).join(' '),
+      name: moduleLabel(k),
       value: v,
       color: moduleColor(k, i),
     }));
@@ -459,12 +459,12 @@ const IntelligenceHubModule: React.FC = () => {
                 ? <div className="h-full flex items-center justify-center text-sm text-muted-foreground">Start using a module to see your distribution.</div>
                 : <GradientDonut data={derived.pieData} />}
             </div>
-            <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5">
+            <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2">
               {derived.pieData.map((d) => (
-                <div key={d.name} className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
-                  <span className="h-2.5 w-2.5 rounded-sm flex-shrink-0" style={{ background: d.color, boxShadow: `0 0 8px ${d.color}80` }} />
-                  <span className="truncate flex-1">{d.name}</span>
-                  <span className="tabular-nums text-foreground/80">{d.value}</span>
+                <div key={d.name} className="flex items-start gap-2 text-xs text-muted-foreground min-w-0">
+                  <span className="h-2.5 w-2.5 rounded-sm flex-shrink-0 mt-[3px]" style={{ background: d.color, boxShadow: `0 0 8px ${d.color}80` }} />
+                  <span className="flex-1 leading-snug break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{d.name}</span>
+                  <span className="tabular-nums text-foreground/80 flex-shrink-0">{d.value}</span>
                 </div>
               ))}
             </div>
@@ -478,7 +478,7 @@ const IntelligenceHubModule: React.FC = () => {
                     <BarChart data={derived.barData} layout="vertical" margin={{ left: 12, right: 12 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                       <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} allowDecimals={false} />
-                      <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} width={120} />
+                      <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} width={160} interval={0} />
                       <RTooltip contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }} />
                       <Bar dataKey="value" radius={[0, 8, 8, 0]}>
                         {derived.barData.map((d, i) => <Cell key={i} fill={d.color} />)}
