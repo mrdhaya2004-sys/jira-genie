@@ -18,32 +18,78 @@ Deno.serve(async (req) => {
       });
     }
     try { base_url = sanitizeBaseUrl(base_url); } catch {
-      return new Response(JSON.stringify({ error: "Enter a valid HTTPS GitLab URL. You may paste a dashboard, project, or group page; TestZone will save only the root host." }), {
+      return new Response(JSON.stringify({ error: "Enter a valid HTTPS URL for GitLab or GitHub. You may paste any page from the host; TestZone will save only the root." }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Validate the normalized GitLab root URL + token by calling <origin>/api/v4/user.
-    let userRes: Response;
-    try {
-      userRes = await gitlabFetch({ base_url, encrypted_token: token }, "/user");
-    } catch (netErr) {
-      console.error("gitlab-connect network error", netErr);
-      return new Response(JSON.stringify({
-        error: `Unable to reach GitLab at ${base_url}. Please verify the URL is correct and reachable.`,
-        fallback: true,
-      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    // Provider detection — route by host so GitHub URLs hit GitHub APIs (never GitLab's /api/v4).
+    const host = new URL(base_url).host.toLowerCase();
+    const isGitHub = host === "github.com" || host.endsWith(".github.com") || host === "api.github.com";
+    const provider: "github" | "gitlab" = isGitHub ? "github" : "gitlab";
 
-    if (!userRes.ok) {
-      const text = await userRes.text().catch(() => "");
-      return new Response(JSON.stringify({
-        error: userRes.status === 401 ? "Invalid GitLab token. Please check your PAT (api scope required)."
-          : userRes.status === 404 ? `We reached ${base_url}, but GitLab API was not found at ${gitlabApiUrl(base_url, "/user")}. Please enter the GitLab root URL.`
-          : `GitLab rejected the connection (${userRes.status}). ${text.slice(0, 200)}`,
-      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    let providerUser: { username: string; id: number | string; avatar_url?: string };
+
+    if (provider === "github") {
+      // Normalize base_url to https://github.com for GitHub.com; keep enterprise hosts as-is (api at /api/v3).
+      const apiUrl = host === "github.com" || host === "api.github.com"
+        ? "https://api.github.com/user"
+        : `https://${host}/api/v3/user`;
+      if (host === "api.github.com") base_url = "https://github.com";
+
+      let ghRes: Response;
+      try {
+        ghRes = await fetch(apiUrl, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+            "User-Agent": "TestZone-Lovable",
+          },
+        });
+      } catch (netErr) {
+        console.error("github-connect network error", netErr);
+        return new Response(JSON.stringify({
+          error: `Unable to reach GitHub at ${apiUrl}. Please verify the URL is reachable.`,
+          fallback: true,
+        }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      if (!ghRes.ok) {
+        const text = await ghRes.text().catch(() => "");
+        return new Response(JSON.stringify({
+          error: ghRes.status === 401 ? "Invalid GitHub token. Use a fine-grained or classic PAT (github_pat_… or ghp_…) with repo + read:user scopes."
+            : ghRes.status === 404 ? `We reached ${apiUrl}, but the GitHub API endpoint was not found. Confirm the URL is correct.`
+            : `GitHub rejected the connection (${ghRes.status}). ${text.slice(0, 200)}`,
+        }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const ghUser = await ghRes.json();
+      providerUser = { username: ghUser.login, id: ghUser.id, avatar_url: ghUser.avatar_url };
+    } else {
+      // GitLab path
+      let userRes: Response;
+      try {
+        userRes = await gitlabFetch({ base_url, encrypted_token: token }, "/user");
+      } catch (netErr) {
+        console.error("gitlab-connect network error", netErr);
+        return new Response(JSON.stringify({
+          error: `Unable to reach GitLab at ${base_url}. Please verify the URL is correct and reachable.`,
+          fallback: true,
+        }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      if (!userRes.ok) {
+        const text = await userRes.text().catch(() => "");
+        return new Response(JSON.stringify({
+          error: userRes.status === 401 ? "Invalid GitLab token. Please check your PAT (api scope required)."
+            : userRes.status === 404 ? `We reached ${base_url}, but the GitLab API was not found at ${gitlabApiUrl(base_url, "/user")}. Please enter the GitLab root URL.`
+            : `GitLab rejected the connection (${userRes.status}). ${text.slice(0, 200)}`,
+        }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const gitlabUser = await userRes.json();
+      providerUser = { username: gitlabUser.username, id: gitlabUser.id, avatar_url: gitlabUser.avatar_url };
     }
-    const gitlabUser = await userRes.json();
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
