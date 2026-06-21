@@ -102,8 +102,8 @@ Deno.serve(async (req) => {
         user_id: auth.user.id,
         base_url,
         encrypted_token: token,
-        gitlab_username: gitlabUser.username,
-        gitlab_user_id: gitlabUser.id,
+        gitlab_username: providerUser.username,
+        gitlab_user_id: typeof providerUser.id === "number" ? providerUser.id : null,
         is_active: true,
         last_sync_error: null,
       }, { onConflict: "user_id" })
@@ -119,11 +119,13 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true,
+      provider,
       connection: {
         id: connection.id,
         base_url,
-        username: gitlabUser.username,
-        avatar_url: gitlabUser.avatar_url,
+        provider,
+        username: providerUser.username,
+        avatar_url: providerUser.avatar_url,
       },
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
