@@ -14,24 +14,34 @@ Deno.serve(async (req) => {
     let base_url = String(body.base_url || "https://gitlab.com").trim();
     if (!token) {
       return new Response(JSON.stringify({ error: "Personal Access Token is required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     try { base_url = sanitizeBaseUrl(base_url); } catch {
       return new Response(JSON.stringify({ error: "Enter a valid HTTPS GitLab URL. You may paste a dashboard, project, or group page; TestZone will save only the root host." }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     // Validate the normalized GitLab root URL + token by calling <origin>/api/v4/user.
-    const userRes = await gitlabFetch({ base_url, encrypted_token: token }, "/user");
+    let userRes: Response;
+    try {
+      userRes = await gitlabFetch({ base_url, encrypted_token: token }, "/user");
+    } catch (netErr) {
+      console.error("gitlab-connect network error", netErr);
+      return new Response(JSON.stringify({
+        error: `Unable to reach GitLab at ${base_url}. Please verify the URL is correct and reachable.`,
+        fallback: true,
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (!userRes.ok) {
-      const text = await userRes.text();
+      const text = await userRes.text().catch(() => "");
       return new Response(JSON.stringify({
         error: userRes.status === 401 ? "Invalid GitLab token. Please check your PAT (api scope required)."
           : userRes.status === 404 ? `We reached ${base_url}, but GitLab API was not found at ${gitlabApiUrl(base_url, "/user")}. Please enter the GitLab root URL.`
           : `GitLab rejected the connection (${userRes.status}). ${text.slice(0, 200)}`,
-      }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     const gitlabUser = await userRes.json();
 
@@ -54,7 +64,12 @@ Deno.serve(async (req) => {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("gitlab-connect upsert error", error);
+      return new Response(JSON.stringify({ error: `Failed to save connection: ${error.message}` }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     return new Response(JSON.stringify({
       success: true,
@@ -64,11 +79,15 @@ Deno.serve(async (req) => {
         username: gitlabUser.username,
         avatar_url: gitlabUser.avatar_url,
       },
-    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     console.error("gitlab-connect error", e);
-    return new Response(JSON.stringify({ error: (e as Error).message }), {
-      status: e instanceof GitLabConnectionError ? 400 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return new Response(JSON.stringify({
+      error: (e as Error).message || "Unexpected error while connecting to GitLab",
+      fallback: true,
+    }), {
+      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
+
