@@ -25,10 +25,10 @@ export function useGitLabConnection() {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const connect = useCallback(async (base_url: string, token: string) => {
+  const connect = useCallback(async (base_url: string, token: string, provider?: 'github' | 'gitlab') => {
     setConnecting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('gitlab-connect', { body: { base_url, token } });
+      const { data, error } = await supabase.functions.invoke('gitlab-connect', { body: { base_url, token, provider } });
       if (error || data?.error) throw new Error(data?.error || error?.message || 'Failed');
       const providerLabel = data?.provider === 'github' ? 'GitHub' : 'GitLab';
       toast({ title: `${providerLabel} connected`, description: `Hi ${data.connection.username}, syncing your projects…` });

@@ -12,6 +12,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const token = String(body.token || "").trim();
     let base_url = String(body.base_url || "https://gitlab.com").trim();
+    const requestedProvider = (body.provider === "github" || body.provider === "gitlab") ? body.provider as "github" | "gitlab" : null;
     if (!token) {
       return new Response(JSON.stringify({ error: "Personal Access Token is required" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -23,19 +24,36 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Provider detection — route by host so GitHub URLs hit GitHub APIs (never GitLab's /api/v4).
+    // Provider resolution — explicit body.provider wins; otherwise detect by host.
     const host = new URL(base_url).host.toLowerCase();
-    const isGitHub = host === "github.com" || host.endsWith(".github.com") || host === "api.github.com";
-    const provider: "github" | "gitlab" = isGitHub ? "github" : "gitlab";
+    const hostIsGitHub = host === "github.com" || host.endsWith(".github.com") || host === "api.github.com";
+    const hostIsGitLab = host === "gitlab.com" || host.startsWith("gitlab.") || host.includes(".gitlab.");
+    const provider: "github" | "gitlab" = requestedProvider ?? (hostIsGitHub ? "github" : "gitlab");
+
+    // Mismatch guard
+    if (provider === "github" && hostIsGitLab) {
+      return new Response(JSON.stringify({ error: `Provider/URL mismatch — selected GitHub but URL is ${host}. Use https://github.com.` }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (provider === "gitlab" && hostIsGitHub) {
+      return new Response(JSON.stringify({ error: `Provider/URL mismatch — selected GitLab but URL is ${host}. Use https://gitlab.com or your self-hosted GitLab root URL.` }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     let providerUser: { username: string; id: number | string; avatar_url?: string };
 
     if (provider === "github") {
       // Normalize base_url to https://github.com for GitHub.com; keep enterprise hosts as-is (api at /api/v3).
-      const apiUrl = host === "github.com" || host === "api.github.com"
+      const apiUrl = hostIsGitHub
         ? "https://api.github.com/user"
         : `https://${host}/api/v3/user`;
-      if (host === "api.github.com") base_url = "https://github.com";
+      if (host === "api.github.com" || host === "www.github.com") base_url = "https://github.com";
+
+      console.log("[connect] Provider:", provider);
+      console.log("[connect] Endpoint:", apiUrl);
+      console.log("[connect] Connection Type: GitHub PAT (Bearer)");
 
       let ghRes: Response;
       try {
@@ -68,6 +86,11 @@ Deno.serve(async (req) => {
       providerUser = { username: ghUser.login, id: ghUser.id, avatar_url: ghUser.avatar_url };
     } else {
       // GitLab path
+      const glEndpoint = gitlabApiUrl(base_url, "/user");
+      console.log("[connect] Provider:", provider);
+      console.log("[connect] Endpoint:", glEndpoint);
+      console.log("[connect] Connection Type: GitLab PAT (PRIVATE-TOKEN)");
+
       let userRes: Response;
       try {
         userRes = await gitlabFetch({ base_url, encrypted_token: token }, "/user");
@@ -83,7 +106,7 @@ Deno.serve(async (req) => {
         const text = await userRes.text().catch(() => "");
         return new Response(JSON.stringify({
           error: userRes.status === 401 ? "Invalid GitLab token. Please check your PAT (api scope required)."
-            : userRes.status === 404 ? `We reached ${base_url}, but the GitLab API was not found at ${gitlabApiUrl(base_url, "/user")}. Please enter the GitLab root URL.`
+            : userRes.status === 404 ? `We reached ${base_url}, but the GitLab API was not found at ${glEndpoint}. Please enter the GitLab root URL.`
             : `GitLab rejected the connection (${userRes.status}). ${text.slice(0, 200)}`,
         }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }

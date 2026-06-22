@@ -1,60 +1,35 @@
-## Hive Code Analyzer — iOS 26 Liquid Glass Redesign
+## Goal
+Force GitHub connections through `api.github.com` and prove it with logs, so a GitHub URL can never hit GitLab's `/api/v4/user`.
 
-The user has given a very specific design direction (iOS 26 / Apple Intelligence / Xcode / Linear) with detailed section-by-section requirements. Implementing directly across the module's existing files — no new routes, no backend changes.
+## Root cause
+Backend currently auto‑detects the provider from the URL host only. There is no explicit signal from the UI and no log line confirming which branch ran, so a stale deployment, a typo'd host, or an SSRF‑guard re‑throw can silently fall into the GitLab branch — producing the exact error you saw: "Please enter the GitLab root URL" (that string only exists in the GitLab 404 path inside `supabase/functions/gitlab-connect/index.ts`).
 
-### Visual language (added once, reused everywhere)
-- New CSS layer in `src/index.css` scoped via a `.hca` wrapper class on the module root so it does not bleed into other modules:
-  - `--hca-glass-bg`, `--hca-glass-border`, `--hca-glow`, `--hca-spring` tokens for light + dark
-  - `.hca-glass` (frosted, layered blur, soft inner highlight), `.hca-surface` (deep charcoal / white glass), `.hca-ring` (score ring), `.hca-chip`, `.hca-segmented` (iOS segmented control)
-  - Spring-style keyframes: `hca-rise`, `hca-shimmer`, `hca-pulse-soft`, `hca-ring-fill`
-- All colors stay on semantic HSL tokens — no hardcoded hex in components.
+## Changes
 
-### Header (`HiveCodeAnalyzerModule.tsx`)
-- Replace flat header with a liquid-glass bar: app icon tile with animated glow ring, title + new subtitle "AI-Powered Code Quality & Stability Analysis", animated status dot (Idle / Analyzing pulse / Healthy), quick-stats chips when a result exists (Quality, Security, Automation) using soft gradient pills.
+### 1. `src/components/gitlab/GitLabConnectionGate.tsx`
+- Pass the selected provider explicitly on submit: `connect(baseUrl, token, provider)`.
+- On submit, if `provider === 'github'` and the URL host is not a GitHub host, normalize `baseUrl` to `https://github.com` before calling.
 
-### Analysis dashboard (`AnalysisDashboard.tsx`)
-- Convert score grid to glass metric cards with animated SVG score rings (stroke-dashoffset spring fill), soft category gradients, delta label, and skeleton loader during analyze.
-- Top "AI Insights" panel (new sub-component inside the file): Most Critical Risk, Best Improvement Opportunity, Stability Prediction, Automation Maturity — derived from existing `result` fields, no new data.
-- "Analysis Timeline" strip below: Uploaded → Analyzing → Review → Refactor → Completed with spring stagger animation. Driven purely from `isAnalyzing` + `result` state.
+### 2. `src/hooks/useGitLabConnection.ts`
+- Update `connect(base_url, token, provider?)` to forward `provider` in the invoke body.
 
-### Tabs
-- Replace shadcn `TabsList` with an iOS-26 segmented control (`hca-segmented`): pill background slides under the active tab using a translate-x transform with spring easing. Keep Radix Tabs semantics for a11y, restyle the trigger.
+### 3. `supabase/functions/gitlab-connect/index.ts` — provider‑first routing
+- Read `provider` from the request body. If present (`'github' | 'gitlab'`), it wins. Otherwise fall back to host detection.
+- If `provider === 'github'` but the URL host is a GitLab host (or vice versa), return a clear 200 error: "Provider/URL mismatch — selected GitHub but URL is …".
+- For GitHub: always call `https://api.github.com/user` for `github.com` / `www.github.com` / `api.github.com`; use `https://{host}/api/v3/user` only for enterprise hosts. Never call `gitlabFetch` / `gitlabApiUrl` in this branch.
+- Add explicit debug logs BEFORE the network call:
+  ```
+  console.log('[connect] Provider:', provider);
+  console.log('[connect] Endpoint:', apiUrl);
+  console.log('[connect] Connection Type:', provider === 'github' ? 'GitHub PAT (Bearer)' : 'GitLab PAT (PRIVATE-TOKEN)');
+  ```
+- GitHub headers: `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`.
+- GitLab headers (unchanged): `PRIVATE-TOKEN: <token>`, URL `${base}/api/v4/user` via `gitlabFetch`.
+- Persist `provider` alongside the connection row (use existing columns; no schema change — `provider` is already returned in the response).
 
-### Issue cards (`IssueCard.tsx`)
-- Convert to interactive collapsible cards (closed by default, expand on click): severity badge, line chip, type chip, impact + confidence rings on the header row.
-- Split-view Problem vs Suggested Fix using a 2-column grid with synced line gutters and a subtle diff highlight (added-line = emerald wash, removed-line = rose wash). Per-pane copy button, expand-to-fullscreen dialog (shadcn Dialog) for large snippets.
+### 4. Verification
+- Use `supabase--curl_edge_functions` to POST to `/gitlab-connect` with `{ provider: 'github', base_url: 'https://github.com', token: '<dummy>' }` and confirm logs show `Endpoint: https://api.github.com/user` and a 401 from GitHub (not a 404 from GitLab).
+- Repeat with `{ provider: 'gitlab', base_url: 'https://gitlab.com', token: '<dummy>' }` and confirm logs show `/api/v4/user`.
 
-### Refactor panel (`RefactorPanel.tsx`)
-- Replace inner Tabs with iOS segmented control: Refactored / Optimized / Enterprise. Smooth crossfade + slight scale-in on switch. Keep existing copy / download.
-
-### Findings panel (`FindingsPanel.tsx`)
-- Restyle to match glass cards, soft severity chips, confidence ring, evidence collapsible.
-
-### Code input (`CodeInputPanel.tsx`)
-- Light glass surface, softer shadows, restyled drag-drop dashed area, segmented source-type selector. No logic changes.
-
-### Dark + Light modes
-- Both modes share token names. Dark: deep charcoal (`hsl(220 18% 8%)` surface), subtle accent glows. Light: paper-white glass with soft elevation. No pure black, no pure white.
-
-### Performance + a11y
-- Use `transform` + `opacity` only for animations.
-- Respect `prefers-reduced-motion` — disable rise/shimmer/pulse.
-- Skeleton loaders on dashboard + tabs during `isAnalyzing`.
-- All interactive elements remain keyboard-focusable; Radix primitives kept.
-
-### Files to touch
-- `src/index.css` — add `.hca-*` design layer
-- `src/components/codeanalyzer/HiveCodeAnalyzerModule.tsx`
-- `src/components/codeanalyzer/AnalysisDashboard.tsx`
-- `src/components/codeanalyzer/IssueCard.tsx`
-- `src/components/codeanalyzer/RefactorPanel.tsx`
-- `src/components/codeanalyzer/FindingsPanel.tsx`
-- `src/components/codeanalyzer/CodeInputPanel.tsx`
-- New: `src/components/codeanalyzer/ScoreRing.tsx`, `AIInsightsPanel.tsx`, `AnalysisTimeline.tsx`, `SegmentedControl.tsx`
-
-### Out of scope
-- No backend / edge function changes.
-- No new analysis fields — AI insights + timeline derive from the existing `AnalysisResult` shape.
-- No changes to other modules.
-
-Confirm and I will build it end-to-end.
+## Out of scope
+- No schema migration. No changes to repo/branch/workflow fetch endpoints in this round — once `gitlab-connect` is correctly routed, those flows (which use the stored `base_url`) can be split next. I'll note follow‑ups for `gitlab-sync` / `hive-code-analyzer` to branch on host the same way.
