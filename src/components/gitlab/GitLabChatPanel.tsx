@@ -71,6 +71,7 @@ const GitLabChatPanel: React.FC<Props> = ({ onConnect, onShowHistory }) => {
   const activeProject = useMemo(() => projects.find((p) => p.id === activeProjectId) || null, [projects, activeProjectId]);
   const branches = useMemo(() => (activeProjectId ? branchesByProject[activeProjectId] || [] : []), [branchesByProject, activeProjectId]);
   const branchNames = useMemo(() => branches.map((b) => b.name), [branches]);
+  const isGitHub = (connection?.provider ?? (connection?.base_url?.toLowerCase().includes('github.com') ? 'github' : 'gitlab')) === 'github';
 
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
