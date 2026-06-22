@@ -181,16 +181,27 @@ const GitLabChatPanel: React.FC<Props> = ({ onConnect, onShowHistory }) => {
         {/* Toolbar */}
         <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border/60 bg-card/40 backdrop-blur-sm">
           <Select value={activeProjectId} onValueChange={setActiveProjectId}>
-            <SelectTrigger className="h-9 w-[260px]">
-              <SelectValue placeholder="Select project" />
+            <SelectTrigger className="h-9 w-[300px]">
+              <SelectValue placeholder={isGitHub ? 'Select repository' : 'Select project'} />
             </SelectTrigger>
             <SelectContent>
               {projects.map((p) => (
                 <SelectItem key={p.id} value={p.id}>
-                  <span className="truncate">{p.path_with_namespace}</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="truncate">{p.path_with_namespace}</span>
+                    {p.visibility && (
+                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground border border-border/60 rounded px-1 py-0.5">
+                        {p.visibility}
+                      </span>
+                    )}
+                  </div>
                 </SelectItem>
               ))}
-              {projects.length === 0 && <div className="px-3 py-2 text-xs text-muted-foreground">No projects synced</div>}
+              {projects.length === 0 && (
+                <div className="px-3 py-2 text-xs text-muted-foreground">
+                  {isGitHub ? 'No repositories synced' : 'No projects synced'}
+                </div>
+              )}
             </SelectContent>
           </Select>
           <Button size="sm" variant="ghost" onClick={sync} disabled={syncing} className="gap-1.5">
