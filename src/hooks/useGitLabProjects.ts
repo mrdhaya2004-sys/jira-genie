@@ -14,7 +14,7 @@ export function useGitLabProjects(enabled: boolean) {
     setLoading(true);
     const { data: ps } = await supabase
       .from('gitlab_projects')
-      .select('id, project_id, name, path_with_namespace, default_branch, web_url, avatar_url')
+      .select('id, project_id, name, path_with_namespace, default_branch, web_url, avatar_url, owner, visibility')
       .eq('user_id', user.id)
       .order('last_activity_at', { ascending: false, nullsFirst: false });
     setProjects((ps || []) as GitLabProject[]);

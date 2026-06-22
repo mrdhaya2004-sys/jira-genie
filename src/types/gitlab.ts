@@ -6,6 +6,7 @@ export interface GitLabConnection {
   is_active: boolean;
   last_sync_at: string | null;
   last_sync_error: string | null;
+  provider?: 'github' | 'gitlab' | null;
 }
 
 export interface GitLabProject {
@@ -16,6 +17,8 @@ export interface GitLabProject {
   default_branch: string | null;
   web_url: string | null;
   avatar_url: string | null;
+  owner?: string | null;
+  visibility?: string | null;
 }
 
 export interface GitLabBranch {

@@ -16,7 +16,7 @@ export function useGitLabConnection() {
     setLoading(true);
     const { data } = await supabase
       .from('gitlab_connections')
-      .select('id, base_url, gitlab_username, gitlab_user_id, is_active, last_sync_at, last_sync_error')
+      .select('id, base_url, gitlab_username, gitlab_user_id, is_active, last_sync_at, last_sync_error, provider')
       .eq('user_id', user.id)
       .maybeSingle();
     setConnection(data as GitLabConnection | null);
@@ -25,13 +25,37 @@ export function useGitLabConnection() {
 
   useEffect(() => { refresh(); }, [refresh]);
 
+  const sync = useCallback(async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('gitlab-sync', { body: {} });
+      if (error || data?.error) throw new Error(data?.error || error?.message || 'Failed');
+      const isGitHub = data?.provider === 'github';
+      const count = data?.repositories ?? data?.projects ?? 0;
+      const label = isGitHub ? 'Repositories' : 'Projects';
+      const when = data?.last_sync_at
+        ? new Date(data.last_sync_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })
+        : '';
+      toast({
+        title: `${isGitHub ? 'GitHub' : 'GitLab'} synced`,
+        description: `${label} Synced: ${count}${when ? ` · Last Sync: ${when}` : ''} · ${data.branches} branches`,
+      });
+      await refresh();
+    } catch (e) {
+      toast({ title: 'Sync failed', description: (e as Error).message, variant: 'destructive' });
+    } finally {
+      setSyncing(false);
+    }
+  }, [refresh]);
+
   const connect = useCallback(async (base_url: string, token: string, provider?: 'github' | 'gitlab') => {
     setConnecting(true);
     try {
       const { data, error } = await supabase.functions.invoke('gitlab-connect', { body: { base_url, token, provider } });
       if (error || data?.error) throw new Error(data?.error || error?.message || 'Failed');
       const providerLabel = data?.provider === 'github' ? 'GitHub' : 'GitLab';
-      toast({ title: `${providerLabel} connected`, description: `Hi ${data.connection.username}, syncing your projects…` });
+      const itemLabel = data?.provider === 'github' ? 'repositories' : 'projects';
+      toast({ title: `${providerLabel} connected`, description: `Hi ${data.connection.username}, syncing your ${itemLabel}…` });
       await refresh();
       // fire-and-forget sync
       sync();
@@ -42,21 +66,7 @@ export function useGitLabConnection() {
     } finally {
       setConnecting(false);
     }
-  }, [refresh]);
-
-  const sync = useCallback(async () => {
-    setSyncing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('gitlab-sync', { body: {} });
-      if (error || data?.error) throw new Error(data?.error || error?.message || 'Failed');
-      toast({ title: 'GitLab synced', description: `${data.projects} projects · ${data.branches} branches` });
-      await refresh();
-    } catch (e) {
-      toast({ title: 'Sync failed', description: (e as Error).message, variant: 'destructive' });
-    } finally {
-      setSyncing(false);
-    }
-  }, [refresh]);
+  }, [refresh, sync]);
 
   const disconnect = useCallback(async () => {
     await supabase.functions.invoke('gitlab-disconnect', { body: {} });

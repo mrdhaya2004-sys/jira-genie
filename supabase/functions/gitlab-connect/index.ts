@@ -125,6 +125,7 @@ Deno.serve(async (req) => {
         user_id: auth.user.id,
         base_url,
         encrypted_token: token,
+        provider,
         gitlab_username: providerUser.username,
         gitlab_user_id: typeof providerUser.id === "number" ? providerUser.id : null,
         is_active: true,
