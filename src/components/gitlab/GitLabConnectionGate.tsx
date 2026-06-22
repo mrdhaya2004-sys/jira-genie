@@ -60,7 +60,11 @@ const GitLabConnectionGate: React.FC<Props> = ({ onCancel }) => {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const ok = await connect(baseUrl, token);
+    // If user picked GitHub but URL host isn't a GitHub host, force canonical GitHub URL
+    let urlToSend = baseUrl;
+    if (provider === 'github' && detected !== 'github') urlToSend = 'https://github.com';
+    if (provider === 'gitlab' && detected === 'github') urlToSend = 'https://gitlab.com';
+    const ok = await connect(urlToSend, token, provider);
     if (ok) onCancel();
   };
 
