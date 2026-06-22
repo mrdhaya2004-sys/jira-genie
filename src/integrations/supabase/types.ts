@@ -565,6 +565,7 @@ export type Database = {
           is_active: boolean
           last_sync_at: string | null
           last_sync_error: string | null
+          provider: string
           updated_at: string
           user_id: string
         }
@@ -578,6 +579,7 @@ export type Database = {
           is_active?: boolean
           last_sync_at?: string | null
           last_sync_error?: string | null
+          provider?: string
           updated_at?: string
           user_id: string
         }
@@ -591,6 +593,7 @@ export type Database = {
           is_active?: boolean
           last_sync_at?: string | null
           last_sync_error?: string | null
+          provider?: string
           updated_at?: string
           user_id?: string
         }
@@ -676,10 +679,12 @@ export type Database = {
           id: string
           last_activity_at: string | null
           name: string
+          owner: string | null
           path_with_namespace: string
           project_id: number
           updated_at: string
           user_id: string
+          visibility: string | null
           web_url: string | null
         }
         Insert: {
@@ -690,10 +695,12 @@ export type Database = {
           id?: string
           last_activity_at?: string | null
           name: string
+          owner?: string | null
           path_with_namespace: string
           project_id: number
           updated_at?: string
           user_id: string
+          visibility?: string | null
           web_url?: string | null
         }
         Update: {
@@ -704,10 +711,12 @@ export type Database = {
           id?: string
           last_activity_at?: string | null
           name?: string
+          owner?: string | null
           path_with_namespace?: string
           project_id?: number
           updated_at?: string
           user_id?: string
+          visibility?: string | null
           web_url?: string | null
         }
         Relationships: [
