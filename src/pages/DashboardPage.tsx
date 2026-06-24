@@ -17,6 +17,7 @@ const AgenticAIModule = lazy(moduleLoaders['agentic-ai'] as () => Promise<AnyCom
 const JiraTicketRaiserModule = lazy(moduleLoaders['jira-ticket-raiser'] as () => Promise<AnyComp>);
 const LogicScenarioCreatorModule = lazy(moduleLoaders['logic-scenario-creator'] as () => Promise<AnyComp>);
 const TestCaseGeneratorModule = lazy(moduleLoaders['test-case-generator'] as () => Promise<AnyComp>);
+const TestDataGeneratorModule = lazy(moduleLoaders['test-data-generator'] as () => Promise<AnyComp>);
 const XPathGeneratorModule = lazy(moduleLoaders['xpath-generator'] as () => Promise<AnyComp>);
 const DefectAnalyzerModule = lazy(moduleLoaders['defect-analyzer'] as () => Promise<AnyComp>);
 const GitLabExecutionModule = lazy(moduleLoaders['gitlab-execution'] as () => Promise<AnyComp>);
