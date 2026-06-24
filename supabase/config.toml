@@ -84,5 +84,10 @@ verify_jwt = false
 [functions.gitlab-disconnect]
 verify_jwt = false
 
+[functions.test-data-generator]
+verify_jwt = false
+
+
+
 
 
