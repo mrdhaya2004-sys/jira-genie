@@ -11,6 +11,7 @@ export const moduleLoaders = {
   'jira-ticket-raiser': () => import('@/components/jira/JiraTicketRaiserModule'),
   'logic-scenario-creator': () => import('@/components/scenario/LogicScenarioCreatorModule'),
   'test-case-generator': () => import('@/components/testcase/TestCaseGeneratorModule'),
+  'test-data-generator': () => import('@/components/testdata/TestDataGeneratorModule'),
   'xpath-generator': () => import('@/components/xpath/XPathGeneratorModule'),
   'defect-analyzer': () => import('@/components/defect/DefectAnalyzerModule'),
   'gitlab-execution': () => import('@/components/gitlab/GitLabExecutionModule'),
