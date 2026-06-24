@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   Code2,
   ClipboardList,
+  Database,
   FileCode2,
   Brain,
   Info,
@@ -80,6 +81,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   const automationItems = [
   { icon: LayoutDashboard, label: 'Hive AI – Core Workspace', module: 'agentic-ai' as ActiveModule },
   { icon: ClipboardList, label: 'Test Case Generator', module: 'test-case-generator' as ActiveModule },
+  { icon: Database, label: 'Test Data Generator', module: 'test-data-generator' as ActiveModule },
   { icon: Code2, label: 'Logic Scenario Creator', module: 'logic-scenario-creator' as ActiveModule },
   { icon: FileCode2, label: 'XPath Generator', module: 'xpath-generator' as ActiveModule },
   { icon: ShieldAlert, label: 'AI Defect Analyzer', module: 'defect-analyzer' as ActiveModule },

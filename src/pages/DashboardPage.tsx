@@ -17,6 +17,7 @@ const AgenticAIModule = lazy(moduleLoaders['agentic-ai'] as () => Promise<AnyCom
 const JiraTicketRaiserModule = lazy(moduleLoaders['jira-ticket-raiser'] as () => Promise<AnyComp>);
 const LogicScenarioCreatorModule = lazy(moduleLoaders['logic-scenario-creator'] as () => Promise<AnyComp>);
 const TestCaseGeneratorModule = lazy(moduleLoaders['test-case-generator'] as () => Promise<AnyComp>);
+const TestDataGeneratorModule = lazy(moduleLoaders['test-data-generator'] as () => Promise<AnyComp>);
 const XPathGeneratorModule = lazy(moduleLoaders['xpath-generator'] as () => Promise<AnyComp>);
 const DefectAnalyzerModule = lazy(moduleLoaders['defect-analyzer'] as () => Promise<AnyComp>);
 const GitLabExecutionModule = lazy(moduleLoaders['gitlab-execution'] as () => Promise<AnyComp>);
@@ -31,7 +32,7 @@ const AboutUsModule = lazy(moduleLoaders['about'] as () => Promise<AnyComp>);
 const FounderPage = lazy(moduleLoaders['founder'] as () => Promise<AnyComp>);
 const IntelligenceHubModule = lazy(moduleLoaders['intelligence-hub'] as () => Promise<AnyComp>);
 
-export type ActiveModule = 'intelligence-hub' | 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'defect-analyzer' | 'gitlab-execution' | 'code-analyzer' | 'ai-settings' | 'profile' | 'account-settings' | 'about' | 'founder';
+export type ActiveModule = 'intelligence-hub' | 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'test-data-generator' | 'xpath-generator' | 'defect-analyzer' | 'gitlab-execution' | 'code-analyzer' | 'ai-settings' | 'profile' | 'account-settings' | 'about' | 'founder';
 
 const MODULE_MAP: Record<string, ActiveModule> = {
   'test-case-generator': 'test-case-generator',
@@ -143,6 +144,7 @@ const DashboardPage: React.FC = () => {
                   {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule onNavigateBack={() => setActiveModule('mentions')} />}
                   {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule resumeData={resumeData} />}
                   {activeModule === 'test-case-generator' && <TestCaseGeneratorModule resumeData={resumeData} />}
+                  {activeModule === 'test-data-generator' && <TestDataGeneratorModule />}
                   {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
                   {activeModule === 'defect-analyzer' && <DefectAnalyzerModule />}
                   {activeModule === 'gitlab-execution' && <GitLabExecutionModule />}
