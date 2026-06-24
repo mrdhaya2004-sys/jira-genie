@@ -144,6 +144,7 @@ const DashboardPage: React.FC = () => {
                   {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule onNavigateBack={() => setActiveModule('mentions')} />}
                   {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule resumeData={resumeData} />}
                   {activeModule === 'test-case-generator' && <TestCaseGeneratorModule resumeData={resumeData} />}
+                  {activeModule === 'test-data-generator' && <TestDataGeneratorModule />}
                   {activeModule === 'xpath-generator' && <XPathGeneratorModule resumeData={resumeData} />}
                   {activeModule === 'defect-analyzer' && <DefectAnalyzerModule />}
                   {activeModule === 'gitlab-execution' && <GitLabExecutionModule />}
