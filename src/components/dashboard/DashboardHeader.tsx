@@ -48,6 +48,7 @@ const MODULE_LABELS: Record<ActiveModule, string> = {
   'jira-ticket-raiser': 'Jira Ticket Raiser',
   'logic-scenario-creator': 'Scenario Creator',
   'test-case-generator': 'Test Case Generator',
+  'test-data-generator': 'Test Data Generator',
   'xpath-generator': 'XPath Generator',
   'defect-analyzer': 'AI Defect Analyzer',
   'gitlab-execution': 'GitLab AI',
