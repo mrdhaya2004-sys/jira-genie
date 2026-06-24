@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   Code2,
   ClipboardList,
+  Database,
   FileCode2,
   Brain,
   Info,
