@@ -32,7 +32,7 @@ const AboutUsModule = lazy(moduleLoaders['about'] as () => Promise<AnyComp>);
 const FounderPage = lazy(moduleLoaders['founder'] as () => Promise<AnyComp>);
 const IntelligenceHubModule = lazy(moduleLoaders['intelligence-hub'] as () => Promise<AnyComp>);
 
-export type ActiveModule = 'intelligence-hub' | 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'xpath-generator' | 'defect-analyzer' | 'gitlab-execution' | 'code-analyzer' | 'ai-settings' | 'profile' | 'account-settings' | 'about' | 'founder';
+export type ActiveModule = 'intelligence-hub' | 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'test-data-generator' | 'xpath-generator' | 'defect-analyzer' | 'gitlab-execution' | 'code-analyzer' | 'ai-settings' | 'profile' | 'account-settings' | 'about' | 'founder';
 
 const MODULE_MAP: Record<string, ActiveModule> = {
   'test-case-generator': 'test-case-generator',
