@@ -66,31 +66,63 @@ serve(async (req) => {
       ? fields.map(f => `- ${f.name}${f.type ? ` (${f.type})` : ""}${f.mandatory ? " [mandatory]" : ""}${f.validation ? ` — ${f.validation}` : ""}`).join("\n")
       : "";
 
-    const systemPrompt = `You are a Senior QA Engineer who reads project requirements FIRST and then designs intelligent, business-aware test data — never random values.
+    const systemPrompt = `You are a SENIOR QA INTELLIGENCE ENGINE. You read project requirements first, INFER fields the user did not mention, identify business + validation rules, and design enterprise-grade test data — never random values.
 
-Your job: produce a context-aware test data plan for the screen / module described by the user.
+## FIELD DETECTION ENGINE
+Before generating data, infer ALL plausible fields for the screen/module — not just what the user wrote.
+Example — module "LOGIN" → infer: Email, Password, Phone Number, Country, OTP, Username.
+Example — "5 logins different country" → infer intent = Login Validation Testing → fields Email, Password, Country, Phone Number.
 
-## CATEGORIES (cover ALL when relevant)
-- positive          — valid, happy-path values
-- negative          — invalid inputs that should be rejected
-- boundary          — min/max values, length limits
-- edge              — rare or extreme conditions
-- invalid_format    — wrong format (e.g. bad email pattern)
-- security          — XSS, SQLi, command injection payloads
-- special_character — unicode, emoji, accents, RTL
-- null_empty        — null, empty string, whitespace-only
+## CATEGORIES (cover ALL relevant)
+positive | negative | boundary | edge | invalid_format | security | special_character | null_empty | exploratory
 
-## TESTING TYPE (one per dataset)
+## TESTING TYPE
 functional | validation | boundary | negative | security | exploratory
+
+## SECURITY DATA (always include for text inputs)
+SQL Injection (' OR 1=1 --, admin'--, '; DROP TABLE users;--), XSS (<script>alert(1)</script>, <img src=x onerror=alert(1)>), HTML injection, command injection, path traversal.
+
+## BOUNDARY DATA — MEANINGFUL ONLY
+Use field-type aware boundaries. Country → "U", "US", "USA", "IN", "SG", "Very Long Country Name". NEVER "1234567890" for a country.
+
+## BUSINESS RULES
+Auto-detect: Email must contain @, Password min 8 chars + complexity, Country must match ISO code, Phone E.164, Age 0-150, etc.
 
 ## OUTPUT — STRICT
 Return EXACTLY ONE \`\`\`json ... \`\`\` code block. No other text.
 Schema:
 {
   "context_used": boolean,
-  "context_summary": string,        // 1–2 sentences. If no project context, say so.
+  "context_summary": string,
   "module_name": string,
   "screen_name": string,
+  "ai_summary": {
+    "fields_identified": number,
+    "datasets_generated": number,
+    "coverage_overall": number,        // 0-100
+    "confidence": number,              // 0-100
+    "risk_level": "Low"|"Medium"|"High"
+  },
+  "confidence": {
+    "score": number,                   // 0-100
+    "reasons": string[]                // e.g. "Based on User Story", "Screen Name", "Knowledge Hub"
+  },
+  "coverage": {
+    "functional": number,
+    "validation": number,
+    "boundary": number,
+    "security": number,
+    "data_quality": number,
+    "overall": number
+  },
+  "insights": {
+    "fields_identified": string[],
+    "business_rules": string[],
+    "validation_rules": string[],
+    "missing_requirements": string[],
+    "suggested_fields": string[]
+  },
+  "recommendations": string[],
   "fields": [
     {
       "name": string,
@@ -102,7 +134,7 @@ Schema:
       "expected_behavior": string,
       "datasets": [
         {
-          "category": "positive"|"negative"|"boundary"|"edge"|"invalid_format"|"security"|"special_character"|"null_empty",
+          "category": "positive"|"negative"|"boundary"|"edge"|"invalid_format"|"security"|"special_character"|"null_empty"|"exploratory",
           "testing_type": "functional"|"validation"|"boundary"|"negative"|"security"|"exploratory",
           "value": string,
           "expected_result": string,
@@ -115,12 +147,15 @@ Schema:
 }
 
 Rules:
-- Every field MUST have at least one positive, one negative, one boundary, one null_empty dataset. Add edge/security/special_character where it makes sense.
-- "value" must be the literal test value as a string (escape quotes). For empty/null use "" or "null".
-- Ground field labels and validations in the project context below when present. Do NOT invent UI labels not in context.
-- If no context AND no fields provided AND screen name is generic, still produce a sensible generic plan but set context_used=false and explain in notes.
+- INFER missing fields proactively — never return a single-field plan for a multi-field screen.
+- Every field MUST have at least: 1 positive, 1 negative, 1 boundary, 1 null_empty. Add security/special_character/invalid_format/edge/exploratory where relevant.
+- "value" is the literal string (escape quotes). For null use "null", for empty use "".
+- Boundaries must be field-aware and realistic (see above).
+- Coverage % must reflect honest assessment, not always 100.
+- Confidence reasons must cite the actual sources used (User Story / Screen Name / Knowledge Hub / Module Name / Generic Heuristics).
+- If context is missing, set context_used=false, lower confidence, and list what's missing in insights.missing_requirements.
 
-${hasBrain ? `## PROJECT CONTEXT (workspace brain — REAL data)\n${brain.slice(0, 12000)}` : "## PROJECT CONTEXT\n(none provided — generate generic but professional test data and clearly mark context_used=false)"}
+${hasBrain ? `## PROJECT CONTEXT (workspace brain — REAL data)\n${brain.slice(0, 12000)}` : "## PROJECT CONTEXT\n(none provided — infer from screen/module name; set context_used=false; populate missing_requirements)"}
 
 ${fieldsBlock ? `## USER-PROVIDED FIELDS\n${fieldsBlock}` : ""}
 ${screenName ? `\n## SCREEN NAME: ${screenName}` : ""}
@@ -144,16 +179,13 @@ ${moduleName ? `\n## MODULE NAME: ${moduleName}` : ""}`;
       ?? json?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text).join("")
       ?? "";
 
-    // Extract JSON object from response
     let parsed: any = null;
     const fence = raw.match(/```json\s*([\s\S]*?)```/i) || raw.match(/```\s*([\s\S]*?)```/);
     const candidate = fence ? fence[1] : raw;
     const s = candidate.indexOf("{");
     const e = candidate.lastIndexOf("}");
     if (s !== -1 && e > s) {
-      try {
-        parsed = JSON.parse(candidate.slice(s, e + 1));
-      } catch (_) { /* ignore */ }
+      try { parsed = JSON.parse(candidate.slice(s, e + 1)); } catch (_) { /* ignore */ }
     }
 
     if (!parsed || !Array.isArray(parsed.fields)) {
@@ -162,6 +194,19 @@ ${moduleName ? `\n## MODULE NAME: ${moduleName}` : ""}`;
         raw: raw.slice(0, 1000),
       }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    // Compute fallbacks so the UI always has numbers
+    const totalDatasets = parsed.fields.reduce((n: number, f: any) => n + (f.datasets?.length || 0), 0);
+    parsed.ai_summary = parsed.ai_summary || {};
+    parsed.ai_summary.fields_identified = parsed.ai_summary.fields_identified ?? parsed.fields.length;
+    parsed.ai_summary.datasets_generated = parsed.ai_summary.datasets_generated ?? totalDatasets;
+    parsed.ai_summary.coverage_overall = parsed.ai_summary.coverage_overall ?? parsed.coverage?.overall ?? 80;
+    parsed.ai_summary.confidence = parsed.ai_summary.confidence ?? parsed.confidence?.score ?? (hasBrain ? 85 : 60);
+    parsed.ai_summary.risk_level = parsed.ai_summary.risk_level || (parsed.ai_summary.coverage_overall >= 85 ? "Low" : parsed.ai_summary.coverage_overall >= 65 ? "Medium" : "High");
+    parsed.confidence = parsed.confidence || { score: parsed.ai_summary.confidence, reasons: hasBrain ? ["Workspace Knowledge Hub"] : ["Module / Screen heuristics"] };
+    parsed.coverage = parsed.coverage || { functional: 80, validation: 80, boundary: 75, security: 70, data_quality: 80, overall: parsed.ai_summary.coverage_overall };
+    parsed.insights = parsed.insights || { fields_identified: parsed.fields.map((f: any) => f.name), business_rules: [], validation_rules: [], missing_requirements: [], suggested_fields: [] };
+    parsed.recommendations = parsed.recommendations || [];
 
     return new Response(JSON.stringify({ result: parsed }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
