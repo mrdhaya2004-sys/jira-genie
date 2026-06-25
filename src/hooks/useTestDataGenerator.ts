@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export type TDCategory =
   | "positive" | "negative" | "boundary" | "edge"
-  | "invalid_format" | "security" | "special_character" | "null_empty";
+  | "invalid_format" | "security" | "special_character" | "null_empty" | "exploratory";
 
 export type TDTestingType =
   | "functional" | "validation" | "boundary" | "negative" | "security" | "exploratory";
@@ -28,11 +28,41 @@ export interface TDField {
   datasets: TDDataset[];
 }
 
+export interface TDAiSummary {
+  fields_identified: number;
+  datasets_generated: number;
+  coverage_overall: number;
+  confidence: number;
+  risk_level: "Low" | "Medium" | "High";
+}
+
+export interface TDCoverage {
+  functional: number;
+  validation: number;
+  boundary: number;
+  security: number;
+  data_quality: number;
+  overall: number;
+}
+
+export interface TDInsights {
+  fields_identified: string[];
+  business_rules: string[];
+  validation_rules: string[];
+  missing_requirements: string[];
+  suggested_fields: string[];
+}
+
 export interface TDResult {
   context_used: boolean;
   context_summary: string;
   module_name: string;
   screen_name: string;
+  ai_summary: TDAiSummary;
+  confidence: { score: number; reasons: string[] };
+  coverage: TDCoverage;
+  insights: TDInsights;
+  recommendations: string[];
   fields: TDField[];
   notes?: string;
 }
