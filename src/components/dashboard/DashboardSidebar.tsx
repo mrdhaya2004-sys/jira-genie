@@ -214,6 +214,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Sign out"
             className="text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent h-8 w-8"
             onClick={() => setLogoutOpen(true)}>
             
