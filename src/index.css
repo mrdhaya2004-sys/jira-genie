@@ -438,6 +438,7 @@
     color: hsl(0 0% 100%);
     font-weight: 600;
   }
+  .menu-item.is-active:hover { transform: none; }
   .menu-item:focus-visible {
     outline: none;
     box-shadow:
