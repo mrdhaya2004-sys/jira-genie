@@ -438,7 +438,14 @@
     color: hsl(0 0% 100%);
     font-weight: 600;
   }
-  .menu-item.is-active:hover { transform: none; }
+  .menu-item:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px hsl(var(--background)),
+      0 0 0 4px hsl(var(--brand-blue)),
+      0 4px 18px -6px hsl(var(--brand-blue) / 0.45);
+    color: hsl(var(--menu-fg));
+  }
 
 
   /* Active indicator — TestZone brand gradient (blue → green) with 4px animated bar */
