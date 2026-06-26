@@ -127,6 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           <Button 
             variant="ghost" 
             size="icon-sm"
+            aria-label="Sign out"
             className="text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
             onClick={() => setLogoutOpen(true)}
           >
