@@ -18,10 +18,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 215 30% 12%;
 
-    /* Sky / cyan primary */
-    --primary: 205 95% 52%;
+    /* TestZone brand — primary blue #2563EB */
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 195 100% 62%;
+    --primary-glow: 213 94% 68%;
+
+    /* TestZone brand — supporting palette */
+    --brand-blue: 221 83% 53%;
+    --brand-blue-light: 213 94% 68%;
+    --brand-green: 160 84% 39%;
+    --brand-teal: 173 80% 40%;
+    --brand-mint: 152 76% 80%;
 
     --secondary: 210 40% 96%;
     --secondary-foreground: 215 25% 22%;
@@ -30,12 +37,12 @@
     --muted-foreground: 215 16% 46%;
 
     --accent: 195 100% 95%;
-    --accent-foreground: 205 95% 30%;
+    --accent-foreground: 221 83% 35%;
 
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 85% 97%;
 
-    --success: 152 70% 42%;
+    --success: 160 84% 39%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
@@ -43,22 +50,23 @@
 
     --border: 210 30% 88%;
     --input: 210 30% 88%;
-    --ring: 205 95% 52%;
+    --ring: 221 83% 53%;
 
     --radius: 0.875rem;
 
-    /* Glass effects — soft frosted white with sky tint */
+    /* iOS 26 glass — frosted white with brand tint */
     --glass-bg: 0 0% 100% / 0.55;
     --glass-bg-strong: 0 0% 100% / 0.78;
-    --glass-border: 205 60% 88% / 0.6;
+    --glass-border: 221 60% 88% / 0.6;
     --glass-highlight: 0 0% 100% / 0.55;
-    --glass-shadow: 205 60% 30% / 0.18;
-    --glow-primary: 205 95% 55% / 0.45;
+    --glass-shadow: 221 60% 25% / 0.18;
+    --glow-primary: 221 83% 55% / 0.45;
+    --glow-secondary: 160 84% 45% / 0.40;
 
-    /* Ambient page gradient (iOS 26 wallpaper feel) */
-    --ambient-1: 205 100% 92%;
-    --ambient-2: 195 100% 88%;
-    --ambient-3: 215 100% 95%;
+    /* Ambient page gradient (iOS 26 wallpaper, blue → mint → white) */
+    --ambient-1: 221 100% 92%;
+    --ambient-2: 160 80% 88%;
+    --ambient-3: 213 100% 96%;
 
     /* Sidebar - Dark theme */
     --sidebar-background: 215 35% 12%;
@@ -120,9 +128,15 @@
     --popover: 217 32% 14%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 198 100% 62%;
-    --primary-foreground: 215 35% 8%;
-    --primary-glow: 190 100% 65%;
+    --primary: 221 90% 65%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 213 94% 72%;
+
+    --brand-blue: 221 90% 65%;
+    --brand-blue-light: 213 94% 72%;
+    --brand-green: 160 84% 50%;
+    --brand-teal: 173 80% 50%;
+    --brand-mint: 152 76% 70%;
 
     --secondary: 217 28% 22%;
     --secondary-foreground: 210 40% 98%;
@@ -130,25 +144,26 @@
     --muted: 217 28% 22%;
     --muted-foreground: 215 20% 70%;
 
-    --accent: 205 80% 18%;
-    --accent-foreground: 198 100% 75%;
+    --accent: 221 60% 18%;
+    --accent-foreground: 213 94% 80%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 85% 97%;
 
     --border: 217 28% 22%;
     --input: 217 28% 22%;
-    --ring: 198 100% 62%;
+    --ring: 221 90% 65%;
 
     --glass-bg: 217 32% 16% / 0.55;
     --glass-bg-strong: 217 32% 16% / 0.78;
-    --glass-border: 205 50% 40% / 0.35;
+    --glass-border: 221 50% 50% / 0.30;
     --glass-highlight: 0 0% 100% / 0.08;
-    --glass-shadow: 215 60% 4% / 0.55;
-    --glow-primary: 198 100% 62% / 0.55;
+    --glass-shadow: 220 60% 4% / 0.55;
+    --glow-primary: 221 90% 65% / 0.55;
+    --glow-secondary: 160 84% 50% / 0.45;
 
-    --ambient-1: 215 60% 12%;
-    --ambient-2: 205 70% 14%;
+    --ambient-1: 221 60% 14%;
+    --ambient-2: 160 60% 14%;
     --ambient-3: 220 50% 10%;
 
     --sidebar-background: 218 40% 6%;
@@ -186,11 +201,36 @@
     font-family: 'Inter', system-ui, sans-serif;
     background-color: hsl(var(--background));
     background-image:
-      radial-gradient(at 8% 0%, hsl(var(--ambient-1) / 0.85) 0px, transparent 55%),
-      radial-gradient(at 100% 5%, hsl(var(--ambient-2) / 0.75) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, hsl(var(--ambient-3) / 0.6) 0px, transparent 55%);
+      radial-gradient(at 12% 8%, hsl(var(--brand-blue) / 0.22) 0px, transparent 55%),
+      radial-gradient(at 88% 92%, hsl(var(--brand-green) / 0.20) 0px, transparent 55%),
+      radial-gradient(at 50% 50%, hsl(0 0% 100% / 0.85) 0px, transparent 60%),
+      radial-gradient(at 8% 0%, hsl(var(--ambient-1) / 0.6) 0px, transparent 55%),
+      radial-gradient(at 100% 5%, hsl(var(--ambient-2) / 0.5) 0px, transparent 50%);
     background-attachment: fixed;
     min-height: 100vh;
+  }
+
+  /* TestZone ambient aurora — soft floating blobs behind app shell */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(600px 600px at 10% 10%, hsl(var(--brand-blue) / 0.18), transparent 70%),
+      radial-gradient(600px 600px at 90% 90%, hsl(var(--brand-green) / 0.16), transparent 70%),
+      radial-gradient(800px 500px at 50% 40%, hsl(0 0% 100% / 0.35), transparent 70%);
+    filter: blur(40px) saturate(115%);
+    opacity: 0.85;
+    animation: tz-aurora-drift 24s ease-in-out infinite alternate;
+  }
+  .dark body::before { opacity: 0.55; }
+
+  @keyframes tz-aurora-drift {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    50%  { transform: translate3d(2%, -1.5%, 0) scale(1.05); }
+    100% { transform: translate3d(-1.5%, 2%, 0) scale(1.02); }
   }
 }
 
@@ -266,29 +306,47 @@
       0 8px 32px -12px hsl(var(--glass-shadow));
   }
 
-  /* Premium glass card — floating, layered, with soft sky glow */
+  /* iOS 26 premium glass card — TestZone spec */
   .glass-card {
     position: relative;
     background:
-      linear-gradient(135deg, hsl(var(--glass-bg-strong)), hsl(var(--glass-bg)) 60%, hsl(var(--primary) / 0.04)),
-      hsl(var(--card) / 0.4);
-    backdrop-filter: blur(14px) saturate(135%);
-    -webkit-backdrop-filter: blur(14px) saturate(135%);
-    border: 1px solid hsl(var(--glass-border));
-    border-radius: calc(var(--radius) + 4px);
+      linear-gradient(135deg,
+        hsl(0 0% 100% / 0.85),
+        hsl(0 0% 100% / 0.55) 55%,
+        hsl(var(--brand-blue) / 0.06) 100%);
+    backdrop-filter: blur(35px) saturate(140%);
+    -webkit-backdrop-filter: blur(35px) saturate(140%);
+    border: 1px solid hsl(0 0% 100% / 0.55);
+    border-radius: 24px;
     box-shadow:
-      inset 0 1px 0 hsl(var(--glass-highlight)),
+      inset 0 1px 0 hsl(0 0% 100% / 0.65),
       0 1px 2px hsl(var(--glass-shadow)),
-      0 12px 40px -16px hsl(var(--glass-shadow));
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      0 20px 60px -20px hsl(221 60% 30% / 0.18);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.25s ease;
+  }
+  .dark .glass-card {
+    background:
+      linear-gradient(135deg,
+        hsl(0 0% 100% / 0.08),
+        hsl(0 0% 100% / 0.04) 55%,
+        hsl(var(--brand-blue) / 0.10) 100%);
+    border-color: hsl(0 0% 100% / 0.15);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.08),
+      0 20px 60px -20px hsl(0 0% 0% / 0.5);
   }
   .glass-card:hover {
-    border-color: hsl(var(--primary) / 0.4);
+    transform: translateY(-4px);
+    border-color: hsl(var(--brand-blue) / 0.45);
     box-shadow:
-      inset 0 1px 0 hsl(var(--glass-highlight)),
-      0 2px 4px hsl(var(--glass-shadow)),
-      0 18px 48px -16px hsl(var(--glow-primary));
+      inset 0 1px 0 hsl(0 0% 100% / 0.7),
+      0 4px 8px hsl(var(--glass-shadow)),
+      0 28px 70px -20px hsl(var(--glow-primary)),
+      0 0 40px -10px hsl(var(--glow-secondary));
   }
+
 
   /* Glass input / panel surfaces */
   .glass-panel {
@@ -355,57 +413,55 @@
     --menu-hover-shadow: 0 2px 12px -4px hsl(var(--menu-primary) / 0.45);
   }
 
-  /* Shared menu item: base + hover + shine. Add `is-active` for active. */
+  /* Shared menu item: base + hover. Add `is-active` for the brand-gradient active state. */
   .menu-item {
-    @apply menu-item-shine w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-200;
-    color: hsl(var(--menu-fg-muted) / 0.6);
+    @apply menu-item-shine w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium;
+    color: hsl(var(--menu-fg-muted) / 0.65);
+    transition:
+      transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 0.25s ease,
+      box-shadow 0.25s ease,
+      color 0.25s ease;
   }
   .menu-item:hover {
-    background-color: hsl(var(--menu-accent) / var(--menu-hover-bg-opacity));
+    background-image: linear-gradient(90deg,
+      hsl(var(--brand-blue) / 0.18),
+      hsl(var(--brand-green) / 0.18));
     color: hsl(var(--menu-fg));
-    transform: translateX(2px);
-    box-shadow: var(--menu-hover-shadow);
+    transform: scale(1.02);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.08),
+      0 4px 18px -6px hsl(var(--brand-blue) / 0.45),
+      0 4px 18px -10px hsl(var(--brand-green) / 0.35);
   }
   .menu-item.is-active {
-    color: hsl(var(--menu-fg));
+    color: hsl(0 0% 100%);
     font-weight: 600;
   }
-  .menu-item.is-active:hover {
-    transform: none;
-    background: hsl(var(--menu-fg) / 0.09);
-  }
+  .menu-item.is-active:hover { transform: none; }
 
 
-  /* Active indicator — premium, theme-aware, subtle.
-     Light: soft frosted neutral surface. Dark: low-contrast charcoal.
-     Triggered by: .is-active class OR [data-state="active"] (Radix Tabs/etc.) */
+  /* Active indicator — TestZone brand gradient (blue → green) with 4px animated bar */
   .sidebar-active-indicator,
   .menu-item.is-active,
   .menu-item-shine.is-active,
   .menu-item-shine[data-state="active"] {
     position: relative;
-    background: hsl(var(--menu-fg) / 0.06);
+    background-image: linear-gradient(90deg,
+      hsl(var(--brand-blue) / 0.35),
+      hsl(var(--brand-green) / 0.35));
     color: hsl(var(--menu-fg));
     box-shadow:
-      inset 0 0 0 1px hsl(var(--menu-fg) / 0.08),
-      0 1px 2px hsl(0 0% 0% / 0.04);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    animation: none;
+      inset 0 1px 0 hsl(0 0% 100% / 0.14),
+      inset 0 0 0 1px hsl(0 0% 100% / 0.10),
+      0 6px 24px -8px hsl(var(--brand-blue) / 0.55),
+      0 6px 24px -10px hsl(var(--brand-green) / 0.45);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     transition:
-      background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1),
-      box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1),
-      transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .dark .sidebar-active-indicator,
-  .dark .menu-item.is-active,
-  .dark .menu-item-shine.is-active,
-  .dark .menu-item-shine[data-state="active"] {
-    background: hsl(var(--menu-fg) / 0.08);
-    box-shadow:
-      inset 0 0 0 1px hsl(var(--menu-fg) / 0.06),
-      0 1px 2px hsl(0 0% 0% / 0.25),
-      0 0 12px -4px hsl(var(--menu-primary) / 0.25);
+      background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .sidebar-active-indicator::before,
   .menu-item.is-active::before,
@@ -416,14 +472,33 @@
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    width: 2.5px;
-    height: 60%;
-    border-radius: 0 2px 2px 0;
-    background: hsl(var(--menu-primary));
-    opacity: 0.85;
-    animation: scaleIn 0.18s ease-out;
+    width: 4px;
+    height: 70%;
+    border-radius: 0 4px 4px 0;
+    background: linear-gradient(180deg,
+      hsl(var(--brand-blue)),
+      hsl(var(--brand-green)));
+    box-shadow:
+      0 0 10px hsl(var(--brand-blue) / 0.75),
+      0 0 18px hsl(var(--brand-green) / 0.55);
+    animation: tz-indicator-glow 2.4s ease-in-out infinite, scaleIn 0.22s ease-out;
     z-index: 2;
   }
+
+  @keyframes tz-indicator-glow {
+    0%, 100% {
+      box-shadow:
+        0 0 10px hsl(var(--brand-blue) / 0.75),
+        0 0 18px hsl(var(--brand-green) / 0.55);
+    }
+    50% {
+      box-shadow:
+        0 0 16px hsl(var(--brand-blue) / 0.95),
+        0 0 26px hsl(var(--brand-green) / 0.75);
+    }
+  }
+
+
 
 
   /* Professional shine sweep + unified hover treatment.
@@ -478,6 +553,87 @@
     transform: translateY(0);
     box-shadow: 0 2px 8px -4px hsl(var(--primary) / 0.4);
   }
+
+  /* ===== TestZone brand utilities ===== */
+
+  /* Brand gradient primary button (blue → green) */
+  .btn-brand {
+    background-image: linear-gradient(135deg,
+      hsl(var(--brand-blue)),
+      hsl(var(--brand-green)));
+    color: hsl(0 0% 100%);
+    border: 1px solid hsl(0 0% 100% / 0.15);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.25),
+      0 8px 24px -10px hsl(var(--brand-blue) / 0.6),
+      0 8px 24px -14px hsl(var(--brand-green) / 0.5);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.25s ease,
+                filter 0.25s ease;
+  }
+  .btn-brand:hover {
+    transform: translateY(-2px) scale(1.02);
+    filter: brightness(1.05);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.3),
+      0 14px 36px -10px hsl(var(--brand-blue) / 0.7),
+      0 14px 36px -14px hsl(var(--brand-green) / 0.6);
+  }
+  .btn-brand:active { transform: translateY(0) scale(1); }
+
+  /* Premium SaaS table — glass rows, sticky header, hover highlight */
+  .glass-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    background: hsl(0 0% 100% / 0.5);
+    backdrop-filter: blur(20px) saturate(135%);
+    -webkit-backdrop-filter: blur(20px) saturate(135%);
+    border: 1px solid hsl(var(--glass-border));
+  }
+  .dark .glass-table { background: hsl(0 0% 100% / 0.04); }
+  .glass-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: linear-gradient(180deg,
+      hsl(var(--brand-blue) / 0.08),
+      hsl(var(--brand-green) / 0.05));
+    backdrop-filter: blur(20px);
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+    padding: 12px 16px;
+    border-bottom: 1px solid hsl(var(--glass-border));
+  }
+  .glass-table tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid hsl(var(--border) / 0.5);
+    transition: background-color 0.25s ease;
+  }
+  .glass-table tbody tr:hover td {
+    background: linear-gradient(90deg,
+      hsl(var(--brand-blue) / 0.07),
+      hsl(var(--brand-green) / 0.07));
+  }
+
+  /* Refresh module icon gradient with brand palette */
+  .module-icon-brand {
+    background: linear-gradient(135deg,
+      hsl(var(--brand-blue) / 0.18),
+      hsl(var(--brand-green) / 0.14));
+    border: 1px solid hsl(var(--brand-blue) / 0.18);
+    color: hsl(var(--brand-blue));
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.35),
+      0 8px 18px -10px hsl(var(--brand-blue) / 0.45);
+  }
+
 
 @keyframes menu-active-sheen {
   0%, 100% { background-position: 0% 50%; }
