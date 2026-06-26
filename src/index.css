@@ -18,10 +18,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 215 30% 12%;
 
-    /* Sky / cyan primary */
-    --primary: 205 95% 52%;
+    /* TestZone brand — primary blue #2563EB */
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 195 100% 62%;
+    --primary-glow: 213 94% 68%;
+
+    /* TestZone brand — supporting palette */
+    --brand-blue: 221 83% 53%;
+    --brand-blue-light: 213 94% 68%;
+    --brand-green: 160 84% 39%;
+    --brand-teal: 173 80% 40%;
+    --brand-mint: 152 76% 80%;
 
     --secondary: 210 40% 96%;
     --secondary-foreground: 215 25% 22%;
@@ -30,12 +37,12 @@
     --muted-foreground: 215 16% 46%;
 
     --accent: 195 100% 95%;
-    --accent-foreground: 205 95% 30%;
+    --accent-foreground: 221 83% 35%;
 
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 85% 97%;
 
-    --success: 152 70% 42%;
+    --success: 160 84% 39%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
@@ -43,22 +50,23 @@
 
     --border: 210 30% 88%;
     --input: 210 30% 88%;
-    --ring: 205 95% 52%;
+    --ring: 221 83% 53%;
 
     --radius: 0.875rem;
 
-    /* Glass effects — soft frosted white with sky tint */
+    /* iOS 26 glass — frosted white with brand tint */
     --glass-bg: 0 0% 100% / 0.55;
     --glass-bg-strong: 0 0% 100% / 0.78;
-    --glass-border: 205 60% 88% / 0.6;
+    --glass-border: 221 60% 88% / 0.6;
     --glass-highlight: 0 0% 100% / 0.55;
-    --glass-shadow: 205 60% 30% / 0.18;
-    --glow-primary: 205 95% 55% / 0.45;
+    --glass-shadow: 221 60% 25% / 0.18;
+    --glow-primary: 221 83% 55% / 0.45;
+    --glow-secondary: 160 84% 45% / 0.40;
 
-    /* Ambient page gradient (iOS 26 wallpaper feel) */
-    --ambient-1: 205 100% 92%;
-    --ambient-2: 195 100% 88%;
-    --ambient-3: 215 100% 95%;
+    /* Ambient page gradient (iOS 26 wallpaper, blue → mint → white) */
+    --ambient-1: 221 100% 92%;
+    --ambient-2: 160 80% 88%;
+    --ambient-3: 213 100% 96%;
 
     /* Sidebar - Dark theme */
     --sidebar-background: 215 35% 12%;
