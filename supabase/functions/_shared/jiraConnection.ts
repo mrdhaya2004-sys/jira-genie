@@ -20,21 +20,26 @@ interface JiraConnectionConfig {
 export async function getAuthenticatedUserAndJiraConnection(authHeader: string) {
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
     throw new Error('Server configuration error');
   }
 
-  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+  const authClient = createClient(supabaseUrl, supabaseAnonKey, {
     global: { headers: { Authorization: authHeader } },
   });
 
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+  const { data: { user }, error: authError } = await authClient.auth.getUser();
   if (authError || !user) {
     return { user: null, jiraConnection: null, error: 'Unauthorized' };
   }
 
-  const { data: jiraConnection, error: connectionError } = await supabaseClient
+  // Use service-role: SELECT on jira_connections (incl. jira_api_token) is
+  // revoked from the authenticated role for security.
+  const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+  const { data: jiraConnection, error: connectionError } = await adminClient
     .from('jira_connections')
     .select('jira_domain, jira_email, jira_api_token, jira_project_key, is_connected')
     .eq('user_id', user.id)
