@@ -290,4 +290,15 @@ const MetricChip: React.FC<MetricChipProps> = ({ icon, label, value, tone }) => 
   );
 };
 
+const InlineChip: React.FC<{ icon: React.ReactNode; label: string; value: string; tone: MetricChipProps['tone'] }> = ({ icon, label, value, tone }) => {
+  const t = toneMap[tone];
+  return (
+    <div className={`relative flex items-center gap-1.5 h-7 px-2 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 ring-1 ${t.ring} shrink-0 transition-all hover:bg-white/10`}>
+      <span className={t.text}>{icon}</span>
+      <span className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground/80">{label}</span>
+      <span className={`text-[11px] font-bold ${t.text}`}>{value}</span>
+    </div>
+  );
+};
+
 export default LogicScenarioCreatorModule;
