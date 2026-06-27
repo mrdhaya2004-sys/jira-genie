@@ -109,116 +109,75 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
         <div className="absolute top-10 left-1/2 h-[260px] w-[260px] rounded-full bg-white/[0.06] blur-3xl" />
       </div>
 
-      {/* Hero Glass Header */}
-      <div className="relative z-10 px-3 sm:px-5 pt-3 sm:pt-4 pb-3">
-        <div className="glass-card relative overflow-hidden rounded-3xl px-4 sm:px-6 py-4 sm:py-5">
-          {/* shine highlight */}
+      {/* Compact Glass Header — single row, max 64px tall */}
+      <div className="relative z-10 px-3 sm:px-5 pt-2 pb-2">
+        <div className="glass-card relative overflow-hidden rounded-2xl px-3 sm:px-4 py-2 flex items-center gap-2 sm:gap-3 min-h-[56px]">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-          <div className="pointer-events-none absolute -top-24 -right-16 h-56 w-56 rounded-full bg-gradient-to-br from-[hsl(217_91%_60%/0.35)] to-[hsl(160_84%_45%/0.25)] blur-3xl" />
+          <div className="pointer-events-none absolute -top-16 -right-10 h-32 w-32 rounded-full bg-gradient-to-br from-[hsl(217_91%_60%/0.3)] to-[hsl(160_84%_45%/0.2)] blur-3xl" />
 
-          <div className="relative flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-              <div className="relative shrink-0">
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[hsl(217_91%_60%/0.5)] to-[hsl(160_84%_45%/0.5)] blur-lg" />
-                <div className="relative h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-white/90 dark:bg-white/10 backdrop-blur-xl ring-1 ring-white/40 flex items-center justify-center p-1.5 shadow-[0_10px_30px_-8px_hsl(217_91%_60%/0.5)]">
-                  <img src={scenarioLogo} alt="Logic Scenario Creator" className="h-full w-full object-contain rounded-xl" />
-                </div>
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-lg sm:text-xl font-semibold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-                    Logic Scenario Creator
-                  </h1>
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 backdrop-blur-md">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    </span>
-                    <span className="text-[10px] font-bold tracking-wider text-emerald-500 uppercase">{aiStatus}</span>
-                  </div>
-                </div>
-                <p className="flex items-center gap-1.5 text-xs sm:text-[13px] text-muted-foreground/90 mt-0.5">
-                  <Sparkles className="h-3 w-3 text-[hsl(217_91%_60%)]" />
-                  Generate enterprise-grade automation logic scenarios using AI.
-                </p>
+          {/* Logo + title */}
+          <div className="relative flex items-center gap-2 min-w-0">
+            <div className="relative shrink-0">
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[hsl(217_91%_60%/0.5)] to-[hsl(160_84%_45%/0.5)] blur-md" />
+              <div className="relative h-8 w-8 rounded-xl bg-white/90 dark:bg-white/10 backdrop-blur-xl ring-1 ring-white/40 flex items-center justify-center p-1">
+                <img src={scenarioLogo} alt="" className="h-full w-full object-contain rounded-lg" />
               </div>
             </div>
+            <h1 className="hidden md:block text-sm font-semibold tracking-tight truncate">Logic Scenario Creator</h1>
+          </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {selectedWorkspace && (
-                <EnvironmentSelector
-                  value={selectedEnvironment}
-                  onChange={setSelectedEnvironment}
-                  size="sm"
-                  showLabel={false}
-                  className="hidden md:flex"
-                />
-              )}
-              <HistoryPanel toolType="scenario" moduleName="logic-scenario-creator" onResumePrompt={handleResumeFromPanel} />
-              <Button
-                onClick={resetFlow}
+          {/* Divider */}
+          <div className="hidden sm:block h-6 w-px bg-white/10 mx-1" />
+
+          {/* Inline metric chips */}
+          <div className="relative flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 shrink-0">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              </span>
+              <span className="text-[10px] font-bold tracking-wider text-emerald-500 uppercase">{aiStatus}</span>
+            </div>
+            <InlineChip icon={<Gauge className="h-3 w-3" />} label="Conf" value={`${stats.confidence}%`} tone="green" />
+            <InlineChip icon={<Activity className="h-3 w-3" />} label="Scen" value={String(stats.scenarioCount)} tone="purple" />
+            <InlineChip icon={<Bot className="h-3 w-3" />} label="Qual" value={`${stats.quality}%`} tone="cyan" />
+            {selectedFramework && (
+              <InlineChip icon={<Layers className="h-3 w-3" />} label="FW" value={getFrameworkBadge()!} tone="blue" />
+            )}
+            {selectedCodeFramework && (
+              <Badge variant="outline" className="text-[10px] h-6 bg-gradient-to-r from-[hsl(217_91%_60%/0.15)] to-[hsl(160_84%_45%/0.15)] backdrop-blur-md border-white/20 shrink-0">
+                {getCodeFrameworkBadge()}
+              </Badge>
+            )}
+            {selectedWorkspace && (
+              <Badge variant="outline" className="text-[10px] h-6 bg-white/5 backdrop-blur-md border-white/15 shrink-0">📁 {selectedWorkspace.name}</Badge>
+            )}
+            {selectedModule && (
+              <Badge variant="outline" className="text-[10px] h-6 bg-white/5 backdrop-blur-md border-white/15 shrink-0">📦 {selectedModule}</Badge>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="relative flex items-center gap-1 shrink-0">
+            {selectedWorkspace && (
+              <EnvironmentSelector
+                value={selectedEnvironment}
+                onChange={setSelectedEnvironment}
                 size="sm"
-                className="h-9 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/15 text-foreground shadow-none px-3"
-              >
-                <RotateCcw className="h-3.5 w-3.5 sm:mr-1.5" />
-                <span className="hidden sm:inline text-xs font-medium">Start Over</span>
-              </Button>
-            </div>
+                showLabel={false}
+                className="hidden lg:flex"
+              />
+            )}
+            <HistoryPanel toolType="scenario" moduleName="logic-scenario-creator" onResumePrompt={handleResumeFromPanel} />
+            <Button
+              onClick={resetFlow}
+              size="sm"
+              className="h-8 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/15 text-foreground shadow-none px-2.5"
+            >
+              <RotateCcw className="h-3.5 w-3.5 sm:mr-1" />
+              <span className="hidden sm:inline text-[11px] font-medium">Reset</span>
+            </Button>
           </div>
-
-          {/* Intelligence chips row */}
-          <div className="relative mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-            <MetricChip
-              icon={<Layers className="h-3.5 w-3.5" />}
-              label="Framework"
-              value={selectedFramework ? getFrameworkBadge()! : '—'}
-              tone="blue"
-            />
-            <MetricChip
-              icon={<Gauge className="h-3.5 w-3.5" />}
-              label="Confidence"
-              value={`${stats.confidence}%`}
-              tone="green"
-            />
-            <MetricChip
-              icon={<Activity className="h-3.5 w-3.5" />}
-              label="Scenarios"
-              value={String(stats.scenarioCount)}
-              tone="purple"
-            />
-            <MetricChip
-              icon={<Bot className="h-3.5 w-3.5" />}
-              label="Quality"
-              value={`${stats.quality}%`}
-              tone="cyan"
-            />
-          </div>
-
-          {(selectedWorkspace || selectedModule || selectedCodeFramework) && (
-            <div className="relative mt-3 flex flex-wrap items-center gap-1.5">
-              {selectedWorkspace && (
-                <Badge variant="outline" className="text-[11px] bg-white/5 backdrop-blur-md border-white/15">
-                  📁 {selectedWorkspace.name}
-                </Badge>
-              )}
-              {selectedModule && (
-                <Badge variant="outline" className="text-[11px] bg-white/5 backdrop-blur-md border-white/15">
-                  📦 {selectedModule}
-                </Badge>
-              )}
-              {selectedCodeFramework && (
-                <Badge variant="outline" className="text-[11px] bg-gradient-to-r from-[hsl(217_91%_60%/0.15)] to-[hsl(160_84%_45%/0.15)] backdrop-blur-md border-white/20">
-                  {getCodeFrameworkBadge()}
-                </Badge>
-              )}
-              {isCodePhase && (
-                <Badge className="text-[11px] bg-gradient-to-r from-[hsl(217_91%_60%)] to-[hsl(160_84%_45%)] text-white border-0">
-                  Code Mode
-                </Badge>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
@@ -327,6 +286,17 @@ const MetricChip: React.FC<MetricChipProps> = ({ icon, label, value, tone }) => 
           {icon}
         </div>
       </div>
+    </div>
+  );
+};
+
+const InlineChip: React.FC<{ icon: React.ReactNode; label: string; value: string; tone: MetricChipProps['tone'] }> = ({ icon, label, value, tone }) => {
+  const t = toneMap[tone];
+  return (
+    <div className={`relative flex items-center gap-1.5 h-7 px-2 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 ring-1 ${t.ring} shrink-0 transition-all hover:bg-white/10`}>
+      <span className={t.text}>{icon}</span>
+      <span className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground/80">{label}</span>
+      <span className={`text-[11px] font-bold ${t.text}`}>{value}</span>
     </div>
   );
 };
