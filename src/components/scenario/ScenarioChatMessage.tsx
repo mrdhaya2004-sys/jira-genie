@@ -68,26 +68,32 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
       )}
 
       <div className={cn(
-        "flex flex-col gap-2 max-w-[85%]",
+        "group flex flex-col gap-1.5 max-w-[70%]",
         !isBot && "items-end"
       )}>
         {/* Don't show card for code_display or scenario types - show editor instead */}
         {message.type !== 'code_display' && message.type !== 'scenario' && (
-          <Card className={cn(
-            "menu-item-shine shadow-sm",
-            isBot ? "glass-shine" : "bg-primary text-primary-foreground"
-          )}>
-            <CardContent className="p-3">
-              <div 
-                className={cn(
-                  "text-sm prose prose-sm max-w-none",
-                  !isBot && "text-primary-foreground prose-invert"
-                )}
-                dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
-                /* Content is sanitized via DOMPurify in formatContent */
-              />
-            </CardContent>
-          </Card>
+          <div
+            className={cn(
+              "relative text-sm leading-relaxed transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 min-h-[48px]",
+              isBot
+                ? "rounded-[24px] px-5 py-4 bg-white/75 dark:bg-white/[0.08] backdrop-blur-2xl border border-white/30 dark:border-white/10 text-[#111827] dark:text-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_14px_36px_rgba(0,0,0,0.12)]"
+                : "rounded-[20px] px-5 py-4 text-white font-semibold border border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.15)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
+            )}
+            style={
+              !isBot
+                ? { background: 'linear-gradient(135deg, #2563EB 0%, #10B981 100%)' }
+                : undefined
+            }
+          >
+            <div
+              className={cn(
+                "prose prose-sm max-w-none [&_strong]:font-semibold",
+                isBot ? "text-[#111827] dark:text-white" : "text-white prose-invert [&_strong]:text-white"
+              )}
+              dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
+            />
+          </div>
         )}
 
         {/* Scenario Display with Monaco Editor */}
@@ -178,8 +184,8 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
           </div>
         )}
 
-        <span className="text-xs text-muted-foreground">
-          {new Date(message.timestamp).toLocaleTimeString()}
+        <span className={cn("text-[12px] text-[#6B7280] dark:text-white/50 px-1", !isBot && "text-right")}>
+          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
       </div>
     </div>
