@@ -184,8 +184,8 @@ const ScenarioChatMessage: React.FC<ScenarioChatMessageProps> = ({
           </div>
         )}
 
-        <span className="text-xs text-muted-foreground">
-          {new Date(message.timestamp).toLocaleTimeString()}
+        <span className={cn("text-[12px] text-[#6B7280] dark:text-white/50 px-1", !isBot && "text-right")}>
+          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
       </div>
     </div>
