@@ -319,64 +319,6 @@ serve(async (req) => {
       platform: analyzerPlatform,
       domSource,
     });
-
-    let catalog;
-    try {
-      catalog = analyzeCatalog(dom, platform);
-    } catch (e) {
-      console.error("xpath-generator: parse failure", e);
-      return errorPayload("INVALID_APP_SOURCE", "The DOM/app source could not be parsed.");
-    }
-
-    if (catalog.totalNodes === 0) {
-      return errorPayload("INVALID_APP_SOURCE", "The DOM parser found no elements.");
-    }
-
-    const filter = parseQuery(query);
-    const candidateNodes = selectCandidates(catalog.nodes, filter, filter.wantsAll ? 24 : 8);
-
-    const appTree = buildAppTree(catalog);
-
-    if (candidateNodes.length === 0) {
-      return json({
-        elements: [],
-        risks: catalog.risks,
-        screens: catalog.screens,
-        totalNodes: catalog.totalNodes,
-        appTree,
-        error_code: "ELEMENT_NOT_FOUND",
-        message: `No "${query}" found in the uploaded App Source. The analyzer scanned ${catalog.totalNodes.toLocaleString()} nodes across ${catalog.screens.length} screen(s) and did not match your query. Try a different keyword, or browse the Application Tree below.`,
-      });
-    }
-
-    const elements = buildElementAnalyses(catalog, candidateNodes);
-
-    // AI ranking is best-effort — never inflates confidence beyond uniqueness math.
-    let ranking = new Map<number, AIRanking>();
-    try {
-      ranking = await rankWithAI(authHeader, query, platform, elements);
-    } catch (e) {
-      console.warn("xpath-generator: ranking skipped", e);
-    }
-
-    const enriched = elements.map((el) => {
-      const r = ranking.get(el.id);
-      // AI may only REFINE reasoning — confidence stays anchored to deterministic uniqueness.
-      return {
-        ...el,
-        reasoning: r?.reasoning || el.reasoning,
-      };
-    }).sort((a, b) => b.confidence - a.confidence);
-
-    return json({
-      elements: enriched,
-      risks: catalog.risks,
-      screens: catalog.screens,
-      totalNodes: catalog.totalNodes,
-      appTree,
-      module: appModule,
-      platform,
-    });
   } catch (error) {
     console.error("xpath-generator error:", error);
     return errorPayload(
