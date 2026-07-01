@@ -381,7 +381,9 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
         platform: payload.platform,
       };
 
-      const summary = `Generated ${analysis.elements.length} ${selectedPlatform === 'android' ? 'Android' : 'iOS'} locator set(s) for "${query}" across ${analysis.screens.length} screen(s) (${analysis.totalNodes.toLocaleString()} nodes analyzed).`;
+      const platformName = selectedPlatform === 'android' ? 'Android' : selectedPlatform === 'ios' ? 'iOS' : 'Web / HTML';
+      const sourceName = payload.domSource ? ` from ${String(payload.domSource).replace('_', ' ')}` : '';
+      const summary = `Generated ${analysis.elements.length} ${platformName} locator set(s)${sourceName} for "${query}" across ${analysis.screens.length} screen(s) (${analysis.totalNodes.toLocaleString()} nodes analyzed).`;
 
       addMessage({
         role: 'assistant',

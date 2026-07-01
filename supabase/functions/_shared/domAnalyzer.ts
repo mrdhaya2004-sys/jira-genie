@@ -49,6 +49,13 @@ export interface LocatorSet {
   absolute_xpath: string;
   css: string | null;
   accessibility_id: string | null;
+  web: {
+    css_selector: string | null;
+    playwright_locator: string | null;
+    testing_library: string | null;
+    aria_locator: string | null;
+    text_locator: string | null;
+  } | null;
   android: {
     uiautomator: string | null;
     resource_id: string | null;
@@ -107,7 +114,7 @@ export interface AnalysisCatalog {
 // ---------------------------------------------------------------------------
 
 const TAG_RE = /<\s*\/?\s*([a-zA-Z_][\w.:-]*)([^>]*?)\/?\s*>/g;
-const ATTR_RE = /([\w.:-]+)\s*=\s*"([^"]*)"/g;
+const ATTR_RE = /([\w.:-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
 
 const SCREEN_TAGS_ANDROID = new Set([
   "android.widget.FrameLayout",
@@ -154,8 +161,10 @@ export function parseDom(dom: string, platform: Platform): DomNode[] {
     ATTR_RE.lastIndex = 0;
     let am: RegExpExecArray | null;
     while ((am = ATTR_RE.exec(rest)) !== null) {
-      attrs[am[1].toLowerCase()] = am[2];
+      if (!am[1] || am[1] === tag) continue;
+      attrs[am[1].toLowerCase()] = am[2] ?? am[3] ?? am[4] ?? "true";
     }
+    normalizeWebAttrs(attrs);
 
     // Detect screen container
     const lower = tag.toLowerCase();
@@ -200,6 +209,14 @@ export function parseDom(dom: string, platform: Platform): DomNode[] {
 
 function sanitizeScreen(name: string): string {
   return name.replace(/[_:./-]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 60) || "Main";
+}
+
+function normalizeWebAttrs(attrs: Record<string, string>): void {
+  if (attrs["classname"] && !attrs["class"]) attrs["class"] = attrs["classname"];
+  if (attrs["data-test-id"] && !attrs["data-testid"]) attrs["data-testid"] = attrs["data-test-id"];
+  if (attrs["testid"] && !attrs["data-testid"]) attrs["data-testid"] = attrs["testid"];
+  if (attrs["arialabel"] && !attrs["aria-label"]) attrs["aria-label"] = attrs["arialabel"];
+  if (attrs["accessibilityid"] && !attrs["accessibilityidentifier"]) attrs["accessibilityidentifier"] = attrs["accessibilityid"];
 }
 
 // ---------------------------------------------------------------------------
@@ -373,21 +390,33 @@ export function buildLocators(node: DomNode, platform: Platform, nodes: DomNode[
   } else {
     if (a["data-testid"]) {
       primary = `//*[@data-testid=${escapeXPath(a["data-testid"])}]`;
-      css = `[data-testid="${a["data-testid"]}"]`;
+      css = `[data-testid=${cssAttr(a["data-testid"])}]`;
     } else if (a["id"] && !isDynamic(a["id"])) {
       primary = `//*[@id=${escapeXPath(a["id"])}]`;
-      css = `#${a["id"]}`;
+      css = `#${cssIdent(a["id"])}`;
     } else if (a["aria-label"]) {
       primary = `//*[@aria-label=${escapeXPath(a["aria-label"])}]`;
-      css = `[aria-label="${a["aria-label"]}"]`;
+      css = `[aria-label=${cssAttr(a["aria-label"])}]`;
+    } else if (a["name"]) {
+      primary = `//${tag}[@name=${escapeXPath(a["name"])}]`;
+      css = `${tag}[name=${cssAttr(a["name"])}]`;
     } else if (node.text) {
       primary = `//${tag}[normalize-space()=${escapeXPath(node.text)}]`;
     } else {
       primary = relativeStructural(node, nodes);
     }
     if (a["class"]) {
-      const firstCls = a["class"].split(/\s+/)[0];
+      const firstCls = a["class"].split(/\s+/).find(Boolean) || "";
       alt = `//${tag}[contains(@class, ${escapeXPath(firstCls)})]`;
+    }
+    if (a["id"]) {
+      dyn = `//*[contains(@id, ${escapeXPath(stableFragment(a["id"]))})]`;
+    } else if (a["data-testid"]) {
+      dyn = `//*[contains(@data-testid, ${escapeXPath(stableFragment(a["data-testid"]))})]`;
+    } else if (a["aria-label"]) {
+      dyn = `//*[contains(@aria-label, ${escapeXPath(a["aria-label"].slice(0, 20))})]`;
+    } else if (node.text) {
+      dyn = `//${tag}[contains(normalize-space(), ${escapeXPath(node.text.slice(0, 20))})]`;
     }
   }
 
@@ -419,6 +448,8 @@ export function buildLocators(node: DomNode, platform: Platform, nodes: DomNode[
     accessibility_identifier: a["accessibilityidentifier"] || a["name"] || null,
   } : null;
 
+  const web = platform === "web" ? buildWebLocators(node, css) : null;
+
   return {
     primary_xpath: primary,
     alternative_xpath: alt,
@@ -426,9 +457,84 @@ export function buildLocators(node: DomNode, platform: Platform, nodes: DomNode[
     absolute_xpath: absolute,
     css,
     accessibility_id,
+    web,
     android,
     ios,
   };
+}
+
+function cssAttr(value: string): string {
+  return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+}
+
+function cssIdent(value: string): string {
+  if (/^-?[_a-zA-Z][_a-zA-Z0-9-]*$/.test(value)) return value;
+  return value.replace(/[^_a-zA-Z0-9-]/g, (ch) => `\\${ch.charCodeAt(0).toString(16)} `);
+}
+
+function stableFragment(value: string): string {
+  const parts = value.split(/[^a-zA-Z0-9_-]+/).filter((p) => p.length >= 3 && !isDynamic(p));
+  return (parts.sort((a, b) => b.length - a.length)[0] || value).slice(0, 24);
+}
+
+function escapeJsString(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+function buildWebLocators(node: DomNode, css: string | null): LocatorSet["web"] {
+  const a = node.attrs;
+  const text = (node.text || a["text"] || a["value"] || "").trim();
+  const role = a["role"] || inferWebRole(node);
+  const accessibleName = a["aria-label"] || a["title"] || text || a["name"] || "";
+  const playwright = a["data-testid"]
+    ? `page.getByTestId('${escapeJsString(a["data-testid"])}')`
+    : role && accessibleName
+    ? `page.getByRole('${role}', { name: '${escapeJsString(accessibleName)}' })`
+    : a["aria-label"]
+    ? `page.getByLabel('${escapeJsString(a["aria-label"])}')`
+    : text
+    ? `page.getByText('${escapeJsString(text)}')`
+    : css
+    ? `page.locator('${escapeJsString(css)}')`
+    : null;
+
+  const testingLibrary = a["data-testid"]
+    ? `screen.getByTestId('${escapeJsString(a["data-testid"])}')`
+    : role && accessibleName
+    ? `screen.getByRole('${role}', { name: /${regexEscape(accessibleName)}/i })`
+    : a["aria-label"]
+    ? `screen.getByLabelText('${escapeJsString(a["aria-label"])}')`
+    : text
+    ? `screen.getByText('${escapeJsString(text)}')`
+    : null;
+
+  return {
+    css_selector: css,
+    playwright_locator: playwright,
+    testing_library: testingLibrary,
+    aria_locator: a["aria-label"] ? `[aria-label=${cssAttr(a["aria-label"])}]` : null,
+    text_locator: text ? `//*[normalize-space()=${escapeXPath(text)}]` : null,
+  };
+}
+
+function inferWebRole(node: DomNode): string | null {
+  const t = node.tag.toLowerCase();
+  const type = (node.attrs["type"] || "").toLowerCase();
+  if (t === "button") return "button";
+  if (t === "a") return "link";
+  if (t === "select") return "combobox";
+  if (t === "textarea") return "textbox";
+  if (t === "input") {
+    if (type === "checkbox") return "checkbox";
+    if (type === "radio") return "radio";
+    if (type === "submit" || type === "button") return "button";
+    return "textbox";
+  }
+  return null;
+}
+
+function regexEscape(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function relativeStructural(node: DomNode, nodes: DomNode[]): string {

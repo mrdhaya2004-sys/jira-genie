@@ -16,7 +16,7 @@ interface XPathChatInputProps {
 const MAX_SCREENSHOTS = 4;
 const MAX_SOURCE_BYTES = 4_000_000;
 const IMAGE_MAX_DIM = 1280;
-const TEXT_EXTS = ['.html', '.htm', '.xml', '.txt', '.json'];
+const TEXT_EXTS = ['.html', '.htm', '.xml', '.txt', '.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.scss', '.vue', '.svelte'];
 
 async function fileToDataUrl(file: File, maxDim = IMAGE_MAX_DIM): Promise<string> {
   try {
@@ -107,7 +107,7 @@ const XPathChatInput: React.FC<XPathChatInputProps> = ({
     for (const f of Array.from(files)) {
       const lower = f.name.toLowerCase();
       if (!TEXT_EXTS.some((e) => lower.endsWith(e))) {
-        toast({ title: 'Unsupported file', description: `${f.name} — upload .html, .xml, .txt or .json`, variant: 'destructive' });
+          toast({ title: 'Unsupported file', description: `${f.name} — upload HTML/XML, text, JSON, or frontend source files.`, variant: 'destructive' });
         continue;
       }
       const text = await f.text();
@@ -196,7 +196,7 @@ const XPathChatInput: React.FC<XPathChatInputProps> = ({
               <Button type="button" size="sm" variant="outline" className="justify-start gap-2" onClick={() => imgInputRef.current?.click()}>
                 <ImageIcon className="h-3.5 w-3.5" /> Upload screenshots
               </Button>
-              <input ref={sourceInputRef} type="file" multiple accept=".html,.htm,.xml,.txt,.json,text/html,text/xml,application/xml,application/json,text/plain" hidden onChange={(e) => { handleSourceFiles(e.target.files); e.target.value = ''; }} />
+               <input ref={sourceInputRef} type="file" multiple accept=".html,.htm,.xml,.txt,.json,.js,.jsx,.ts,.tsx,.css,.scss,.vue,.svelte,text/html,text/xml,application/xml,application/json,text/plain,text/css,text/javascript" hidden onChange={(e) => { handleSourceFiles(e.target.files); e.target.value = ''; }} />
               <input ref={imgInputRef} type="file" multiple accept="image/*" hidden onChange={(e) => { handleScreenshots(e.target.files); e.target.value = ''; }} />
             </div>
 

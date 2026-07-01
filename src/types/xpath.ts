@@ -27,6 +27,13 @@ export interface LocatorSet {
   absolute_xpath: string;
   css: string | null;
   accessibility_id: string | null;
+  web: {
+    css_selector: string | null;
+    playwright_locator: string | null;
+    testing_library: string | null;
+    aria_locator: string | null;
+    text_locator: string | null;
+  } | null;
   android: {
     uiautomator: string | null;
     resource_id: string | null;

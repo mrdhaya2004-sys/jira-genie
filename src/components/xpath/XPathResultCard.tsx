@@ -243,6 +243,7 @@ const XPathResultCard: React.FC<XPathResultCardProps> = ({ element, platform, is
             <TabsTrigger value="universal" className="text-xs h-6 px-2">XPath / CSS</TabsTrigger>
             {platform === 'android' && <TabsTrigger value="android" className="text-xs h-6 px-2">Android</TabsTrigger>}
             {platform === 'ios' && <TabsTrigger value="ios" className="text-xs h-6 px-2">iOS</TabsTrigger>}
+              {platform === 'web' && <TabsTrigger value="web" className="text-xs h-6 px-2">Web</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="universal" className="mt-3 space-y-2">
@@ -279,6 +280,21 @@ const XPathResultCard: React.FC<XPathResultCardProps> = ({ element, platform, is
               )}
             </TabsContent>
           )}
+
+          {platform === 'web' && locators.web && (
+            <TabsContent value="web" className="mt-3 space-y-2">
+              <CopyRow id="web-css" label="CSS Selector" value={locators.web.css_selector} recommended={!!locators.web.css_selector} />
+              <CopyRow id="web-pw" label="Playwright Locator" value={locators.web.playwright_locator} />
+              <CopyRow id="web-tl" label="Testing Library" value={locators.web.testing_library} />
+              <CopyRow id="web-aria" label="ARIA Locator" value={locators.web.aria_locator} />
+              <CopyRow id="web-text" label="Text Locator" value={locators.web.text_locator} />
+              {!locators.web.css_selector && !locators.web.playwright_locator && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <AlertTriangle className="h-3 w-3 text-amber-500" /> No web-specific identifiers — use universal XPath.
+                </p>
+              )}
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 
@@ -299,6 +315,8 @@ const XPathResultCard: React.FC<XPathResultCardProps> = ({ element, platform, is
               locators.accessibility_id ? 'Accessibility ID' :
               locators.android?.resource_id ? 'Resource ID' :
               locators.ios?.accessibility_identifier ? 'Accessibility ID' :
+              locators.web?.playwright_locator ? 'Playwright Locator' :
+              locators.web?.css_selector ? 'CSS Selector' :
               'Relative XPath'
             }</code>
           </span>
