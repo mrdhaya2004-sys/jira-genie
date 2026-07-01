@@ -189,6 +189,7 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
         options: [
           { id: 'android', label: 'Android', value: 'android', icon: '🤖', description: 'Uses resource-id, content-desc, text' },
           { id: 'ios', label: 'iOS', value: 'ios', icon: '🍎', description: 'Uses name, label, value, type' },
+          { id: 'web', label: 'Web / HTML', value: 'web', icon: '🌐', description: 'Uses id, data-testid, aria-label, CSS' },
         ],
       });
     }, 500);
@@ -197,8 +198,8 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
   const handlePlatformSelect = useCallback((platform: Platform) => {
     setSelectedPlatform(platform);
 
-    const platformLabel = platform === 'android' ? '🤖 Android' : '🍎 iOS';
-    
+    const platformLabel = platform === 'android' ? '🤖 Android' : platform === 'ios' ? '🍎 iOS' : '🌐 Web / HTML';
+
     addMessage({
       role: 'user',
       content: `Platform: **${platformLabel}**`,
@@ -207,16 +208,23 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
 
     setTimeout(() => {
       setPhase('ready_for_query');
-      
+
+      const platformCopy = platform === 'android'
+        ? 'Android (resource-id, content-desc, text)'
+        : platform === 'ios'
+        ? 'iOS (name, label, accessibility id)'
+        : 'Web / HTML (id, data-testid, aria, CSS)';
+
       addMessage({
         role: 'assistant',
-        content: `Perfect! I'm ready to generate **${platform === 'android' ? 'Android' : 'iOS'}** XPaths for the **${selectedModule}** module. 🎯\n\n**What element do you need XPaths for?**\n\nYou can ask things like:\n- "Generate XPath for Login button"\n- "Give all possible XPaths for Country dropdown"\n- "Generate relative XPath for password field"\n- "Create XPath for the submit button on login form"`,
+        content: `Perfect! I'm ready to generate **${platformCopy}** locators for the **${selectedModule}** module. 🎯\n\n**Tell me what to locate — and attach source if you have it:**\n\n📎 Use the **paperclip** to paste DOM/HTML, upload page-source files, or drop screenshots.\n\nExamples:\n- \"Generate XPath for Login button\"\n- \"All possible XPaths for Country dropdown\"\n- \"Relative XPath for password field\"\n- \"CSS selector + XPath for the submit button in this HTML\"`,
         type: 'text',
       });
     }, 500);
   }, [selectedModule, addMessage]);
 
-  const handleUserQuery = useCallback(async (query: string) => {
+
+  const handleUserQuery = useCallback(async (query: string, extras?: import('@/types/xpath').XPathChatExtras) => {
     if (!selectedWorkspace || !selectedModule || !selectedPlatform) {
       toast({
         title: 'Missing Selection',
@@ -226,7 +234,10 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
       return;
     }
 
-    if (!selectedEnvironment) {
+    const hasInlineSource = !!(extras?.pastedDom || extras?.sourceFilesText || (extras?.screenshots && extras.screenshots.length > 0));
+
+    // Environment is only required when relying on workspace-scoped DOM/build
+    if (!hasInlineSource && !selectedEnvironment) {
       toast({
         title: 'Select an environment',
         description: 'Choose DEV, UAT, BETA or PROD before generating XPaths.',
@@ -234,16 +245,20 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
       });
       addMessage({
         role: 'assistant',
-        content: '⚠️ **Please select an environment** (DEV / UAT / BETA / PROD) from the header before generating XPaths.',
+        content: '⚠️ **Please select an environment** (DEV / UAT / BETA / PROD) — or attach DOM / source / screenshots directly via the paperclip.',
         type: 'text',
       });
       return;
     }
 
-    // Add user message
+    // User message: include attachment summary chips inline
+    const attachmentSummary: string[] = [];
+    if (extras?.pastedDom) attachmentSummary.push(`📋 Pasted DOM (${extras.pastedDom.length.toLocaleString()} chars)`);
+    if (extras?.sourceFilesText && extras.sourceFileNames?.length) attachmentSummary.push(`📄 ${extras.sourceFileNames.length} source file(s)`);
+    if (extras?.screenshots?.length) attachmentSummary.push(`🖼️ ${extras.screenshots.length} screenshot(s)`);
     addMessage({
       role: 'user',
-      content: query,
+      content: attachmentSummary.length > 0 ? `${query}\n\n${attachmentSummary.join(' · ')}` : query,
       type: 'text',
     });
 
@@ -252,20 +267,22 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
     setPhase('generating');
 
     try {
-      // Validate environment build/dom
-      const envCtx = await loadContext(selectedWorkspace.id, selectedEnvironment, selectedPlatform);
-      const envMeta = getEnvironmentMeta(selectedEnvironment);
-
-      if (!envCtx.hasBuild && !envCtx.domContent) {
-        addMessage({
-          role: 'assistant',
-          content: `❌ **No build available for selected environment** (${envMeta?.label} / ${selectedPlatform === 'android' ? 'Android' : 'iOS'}).\n\nUpload an ${selectedPlatform === 'android' ? 'APK' : 'IPA'} or paste a DOM snapshot in the workspace **Environments** tab to continue.`,
-          type: 'text',
-        });
-        setPhase('ready_for_query');
-        setIsLoading(false);
-        setIsStreaming(false);
-        return;
+      // Only load environment context when we don't have inline source (and platform is a build target)
+      let envCtx: { hasBuild: boolean; domContent?: string; build?: { file_name?: string } } = { hasBuild: false };
+      let envMeta = selectedEnvironment ? getEnvironmentMeta(selectedEnvironment) : undefined;
+      if (!hasInlineSource && selectedEnvironment && (selectedPlatform === 'android' || selectedPlatform === 'ios')) {
+        envCtx = await loadContext(selectedWorkspace.id, selectedEnvironment, selectedPlatform);
+        if (!envCtx.hasBuild && !envCtx.domContent) {
+          addMessage({
+            role: 'assistant',
+            content: `❌ **No build available for selected environment** (${envMeta?.label} / ${selectedPlatform === 'android' ? 'Android' : 'iOS'}).\n\nUpload an ${selectedPlatform === 'android' ? 'APK' : 'IPA'} or paste a DOM snapshot in the workspace **Environments** tab — or attach DOM / source / screenshots directly using the paperclip.`,
+            type: 'text',
+          });
+          setPhase('ready_for_query');
+          setIsLoading(false);
+          setIsStreaming(false);
+          return;
+        }
       }
 
       // Get user's auth token
@@ -307,6 +324,10 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
               environmentLabel: envMeta?.label,
               domSnapshot: envCtx.domContent || null,
               buildName: envCtx.build?.file_name || null,
+              pastedDom: extras?.pastedDom || null,
+              sourceFilesText: extras?.sourceFilesText || null,
+              sourceFileNames: extras?.sourceFileNames || [],
+              screenshots: extras?.screenshots || [],
             },
           }),
         }
@@ -317,6 +338,7 @@ export const useXPathGenerator = ({ workspaces, isLoadingWorkspaces = false }: U
         if (response.status === 429) throw new Error('Rate limit exceeded. Please try again later.');
         if (response.status === 402) throw new Error('AI credits exhausted. Please configure a custom AI provider.');
       }
+
 
       const payload = await response.json().catch(() => null);
       if (!payload) throw new Error('AI provider returned an unparseable response.');

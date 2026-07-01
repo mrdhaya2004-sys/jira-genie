@@ -6,7 +6,14 @@ export type XPathFlowPhase =
   | 'generating'
   | 'xpath_generated';
 
-export type Platform = 'android' | 'ios';
+export type Platform = 'android' | 'ios' | 'web';
+
+export interface XPathChatExtras {
+  pastedDom?: string;
+  sourceFilesText?: string;
+  sourceFileNames?: string[];
+  screenshots?: { name: string; dataUrl: string }[];
+}
 
 export type ElementType =
   | 'button' | 'input' | 'dropdown' | 'checkbox' | 'radio' | 'link'
@@ -146,4 +153,5 @@ export const XPATH_TYPE_LABELS: Record<XPathType, { label: string; description: 
 export const PLATFORM_OPTIONS = [
   { id: 'android', label: 'Android', icon: '🤖', description: 'resource-id, content-desc, text attributes' },
   { id: 'ios', label: 'iOS', icon: '🍎', description: 'name, label, value, type attributes' },
+  { id: 'web', label: 'Web / HTML', icon: '🌐', description: 'id, data-testid, aria-label, CSS selectors' },
 ] as const;
