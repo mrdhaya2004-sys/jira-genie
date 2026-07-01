@@ -35,8 +35,8 @@ function extractAIText(data: any): string {
     "";
 }
 
-function stripFence(text: string, lang = "html"): string {
-  return (text || "").trim().replace(new RegExp(`^\\`\\`\\`(?:${lang})?`, "i"), "").replace(/```$/, "").trim();
+function stripFence(text: string): string {
+  return (text || "").trim().replace(/^```[a-z]*\s*/i, "").replace(/```$/i, "").trim();
 }
 
 async function reconstructDomFromScreenshots(
