@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { resolveCustomConfig, routeAIRequest } from "../_shared/hiveMindRouter.ts";
+import { routeAIRequest } from "../_shared/hiveMindRouter.ts";
 import {
   analyzeCatalog,
   buildAppTree,
@@ -25,6 +25,81 @@ function json(body: unknown, status = 200) {
 
 function errorPayload(code: string, message: string, status = 200) {
   return json({ error_code: code, message }, status);
+}
+
+function extractAIText(data: any): string {
+  return data?.choices?.[0]?.message?.content ||
+    data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text || "").join("") ||
+    data?.content?.map?.((p: any) => p?.text || "").join("") ||
+    data?.text ||
+    "";
+}
+
+function stripFence(text: string, lang = "html"): string {
+  return (text || "").trim().replace(new RegExp(`^\\`\\`\\`(?:${lang})?`, "i"), "").replace(/```$/, "").trim();
+}
+
+async function reconstructDomFromScreenshots(
+  authHeader: string,
+  platform: Platform,
+  appModule: string,
+  query: string,
+  screenshots: { name: string; dataUrl: string }[],
+): Promise<string | null> {
+  const messages = [
+    {
+      role: "system",
+      content:
+        "You are a UI-to-HTML reconstruction engine. Given one or more UI screenshots, output ONLY a plausible semantic HTML skeleton that mirrors the visible interactive elements. " +
+        "Use realistic id/data-testid/aria-label/name attributes derived from visible text. Include every visible button, link, input, dropdown, checkbox, radio, tab, and label. " +
+        "Wrap each screen in <section data-screen=\"<screen name>\">. Output ONLY the raw HTML — no markdown, no commentary, no code fences.",
+    },
+    {
+      role: "user",
+      content: [
+        {
+          type: "text",
+          text: `Target platform: ${platform}. Module: ${appModule}. User query: ${query}. Produce a complete HTML skeleton I can parse to generate locators.`,
+        },
+        ...screenshots.slice(0, 4).map((s) => ({
+          type: "image_url",
+          image_url: { url: s.dataUrl },
+        })),
+      ],
+    },
+  ];
+
+  const routed = await routeAIRequest(authHeader, messages, false, { defaultModel: "google/gemini-3-flash-preview" });
+  if (routed.ok) {
+    const data = await routed.json().catch(() => null);
+    const text = stripFence(extractAIText(data));
+    if (text && text.includes("<")) return text;
+  } else {
+    console.warn("xpath-generator: routed screenshot reconstruction failed", routed.status);
+  }
+
+  const lovableKey = Deno.env.get("LOVABLE_API_KEY");
+  if (!lovableKey) return null;
+
+  const fallback = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": lovableKey,
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages,
+      stream: false,
+    }),
+  });
+  if (!fallback.ok) {
+    console.warn("xpath-generator: Lovable screenshot reconstruction failed", fallback.status);
+    return null;
+  }
+  const data = await fallback.json().catch(() => null);
+  const text = stripFence(extractAIText(data));
+  return text && text.includes("<") ? text : null;
 }
 
 interface AIRanking {
@@ -202,46 +277,10 @@ serve(async (req) => {
     if (!dom && context?.screenshots && context.screenshots.length > 0) {
       console.log("xpath-generator: reconstructing DOM from", context.screenshots.length, "screenshot(s)");
       try {
-        const vision = await routeAIRequest(
-          authHeader,
-          [
-            {
-              role: "system",
-              content:
-                "You are a UI-to-HTML reconstruction engine. Given one or more UI screenshots, output ONLY a plausible semantic HTML skeleton that mirrors the visible interactive elements. " +
-                "Use realistic id/data-testid/aria-label/name attributes derived from visible text. Include every visible button, link, input, dropdown, checkbox, radio, tab, and label. " +
-                "Wrap each screen in <section data-screen=\"<screen name>\">. Output ONLY the raw HTML — no markdown, no commentary, no code fences.",
-            },
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: `Target platform: ${platform}. Module: ${appModule}. User query: ${query}. Produce a complete HTML skeleton I can parse to generate locators.`,
-                },
-                ...context.screenshots.slice(0, 4).map((s) => ({
-                  type: "image_url",
-                  image_url: { url: s.dataUrl },
-                })),
-              ] as unknown as string,
-            },
-          ],
-          false,
-        );
-
-        if (vision.ok) {
-          const data = await vision.json().catch(() => null);
-          let text: string =
-            data?.choices?.[0]?.message?.content ||
-            data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text || "").join("") ||
-            "";
-          text = (text || "").trim().replace(/^```(?:html)?/i, "").replace(/```$/, "").trim();
-          if (text && text.includes("<")) {
-            dom = text;
-            domSource = "screenshots";
-          }
-        } else {
-          console.warn("xpath-generator: vision reconstruction failed", vision.status);
+        const reconstructed = await reconstructDomFromScreenshots(authHeader, platform, appModule, query, context.screenshots);
+        if (reconstructed) {
+          dom = reconstructed;
+          domSource = "screenshots";
         }
       } catch (e) {
         console.warn("xpath-generator: vision reconstruction exception", e);
