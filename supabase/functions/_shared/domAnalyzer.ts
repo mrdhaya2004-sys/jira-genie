@@ -164,6 +164,7 @@ export function parseDom(dom: string, platform: Platform): DomNode[] {
       if (!am[1] || am[1] === tag) continue;
       attrs[am[1].toLowerCase()] = am[2] ?? am[3] ?? am[4] ?? "true";
     }
+    normalizeWebAttrs(attrs);
 
     // Detect screen container
     const lower = tag.toLowerCase();
@@ -208,6 +209,14 @@ export function parseDom(dom: string, platform: Platform): DomNode[] {
 
 function sanitizeScreen(name: string): string {
   return name.replace(/[_:./-]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 60) || "Main";
+}
+
+function normalizeWebAttrs(attrs: Record<string, string>): void {
+  if (attrs["classname"] && !attrs["class"]) attrs["class"] = attrs["classname"];
+  if (attrs["data-test-id"] && !attrs["data-testid"]) attrs["data-testid"] = attrs["data-test-id"];
+  if (attrs["testid"] && !attrs["data-testid"]) attrs["data-testid"] = attrs["testid"];
+  if (attrs["arialabel"] && !attrs["aria-label"]) attrs["aria-label"] = attrs["arialabel"];
+  if (attrs["accessibilityid"] && !attrs["accessibilityidentifier"]) attrs["accessibilityidentifier"] = attrs["accessibilityid"];
 }
 
 // ---------------------------------------------------------------------------
