@@ -58,7 +58,9 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
 
   const getPlatformBadge = () => {
     if (!selectedPlatform) return null;
-    return selectedPlatform === 'android' ? '🤖 Android' : '🍎 iOS';
+    if (selectedPlatform === 'android') return '🤖 Android';
+    if (selectedPlatform === 'ios') return '🍎 iOS';
+    return '🌐 Web';
   };
 
   // Live intelligence metrics
@@ -186,9 +188,9 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
         {(phase === 'ready_for_query' || phase === 'xpath_generated') && (
           <div className="glass-card rounded-3xl p-1.5">
             <XPathChatInput
-              onSend={(msg) => { setPendingPrompt(null); handleUserQuery(msg); }}
+              onSend={(msg, extras) => { setPendingPrompt(null); handleUserQuery(msg, extras); }}
               disabled={isLoading || isStreaming}
-              placeholder={`Describe the element you need ${selectedPlatform === 'android' ? 'Android' : 'iOS'} XPaths for…`}
+              placeholder={`Describe the element you need ${selectedPlatform === 'android' ? 'Android' : selectedPlatform === 'ios' ? 'iOS' : 'web'} locators for…`}
               initialValue={pendingPrompt || undefined}
             />
           </div>
