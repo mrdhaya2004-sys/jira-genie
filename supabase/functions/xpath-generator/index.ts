@@ -163,10 +163,25 @@ serve(async (req) => {
       module: string;
       platform: Platform;
       query: string;
-      context: { domSnapshot?: string | null; environment?: string };
+      context: {
+        domSnapshot?: string | null;
+        environment?: string;
+        pastedDom?: string | null;
+        sourceFilesText?: string | null;
+        sourceFileNames?: string[];
+        screenshots?: { name: string; dataUrl: string }[];
+      };
     } = body;
 
-    console.log("xpath-generator request:", { workspaceId, appModule, platform, env: context?.environment });
+    console.log("xpath-generator request:", {
+      workspaceId,
+      appModule,
+      platform,
+      env: context?.environment,
+      pastedLen: context?.pastedDom?.length || 0,
+      srcLen: context?.sourceFilesText?.length || 0,
+      shots: context?.screenshots?.length || 0,
+    });
 
     const { data: workspace } = await supabase
       .from("workspaces")
@@ -176,16 +191,134 @@ serve(async (req) => {
       .single();
     if (!workspace) return json({ error: "Workspace not found or access denied" }, 403);
 
-    const dom = context?.domSnapshot;
+    // Resolve DOM source in priority order: pasted → uploaded source → env snapshot
+    let dom: string | null = context?.pastedDom?.trim() || context?.sourceFilesText?.trim() || context?.domSnapshot || null;
+    let domSource: "pasted" | "uploaded" | "environment" | "screenshots" | "none" =
+      context?.pastedDom?.trim() ? "pasted" :
+      context?.sourceFilesText?.trim() ? "uploaded" :
+      context?.domSnapshot ? "environment" : "none";
+
+    // Fallback: reconstruct an HTML skeleton from screenshots via multimodal AI
+    if (!dom && context?.screenshots && context.screenshots.length > 0) {
+      console.log("xpath-generator: reconstructing DOM from", context.screenshots.length, "screenshot(s)");
+      try {
+        const vision = await routeAIRequest(
+          authHeader,
+          [
+            {
+              role: "system",
+              content:
+                "You are a UI-to-HTML reconstruction engine. Given one or more UI screenshots, output ONLY a plausible semantic HTML skeleton that mirrors the visible interactive elements. " +
+                "Use realistic id/data-testid/aria-label/name attributes derived from visible text. Include every visible button, link, input, dropdown, checkbox, radio, tab, and label. " +
+                "Wrap each screen in <section data-screen=\"<screen name>\">. Output ONLY the raw HTML — no markdown, no commentary, no code fences.",
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: `Target platform: ${platform}. Module: ${appModule}. User query: ${query}. Produce a complete HTML skeleton I can parse to generate locators.`,
+                },
+                ...context.screenshots.slice(0, 4).map((s) => ({
+                  type: "image_url",
+                  image_url: { url: s.dataUrl },
+                })),
+              ] as unknown as string,
+            },
+          ],
+          false,
+        );
+
+        if (vision.ok) {
+          const data = await vision.json().catch(() => null);
+          let text: string =
+            data?.choices?.[0]?.message?.content ||
+            data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text || "").join("") ||
+            "";
+          text = (text || "").trim().replace(/^```(?:html)?/i, "").replace(/```$/, "").trim();
+          if (text && text.includes("<")) {
+            dom = text;
+            domSource = "screenshots";
+          }
+        } else {
+          console.warn("xpath-generator: vision reconstruction failed", vision.status);
+        }
+      } catch (e) {
+        console.warn("xpath-generator: vision reconstruction exception", e);
+      }
+    }
+
     if (!dom || !dom.trim()) {
       return errorPayload(
         "DOM_NOT_LOADED",
-        "No DOM snapshot is available for the selected environment & platform.",
+        "No DOM is available. Paste HTML/DOM, upload a page-source file, add screenshots, or upload a build in the workspace Environments tab.",
       );
     }
     if (dom.length > 4_000_000) {
       return errorPayload("UNSUPPORTED_FORMAT", "DOM snapshot exceeds 4MB processing limit.");
     }
+
+    // Web platform → analyzer uses HTML rules
+    const analyzerPlatform: Platform = platform === "web" ? "web" : platform;
+
+    let catalog;
+    try {
+      catalog = analyzeCatalog(dom, analyzerPlatform);
+    } catch (e) {
+      console.error("xpath-generator: parse failure", e);
+      return errorPayload("INVALID_APP_SOURCE", "The DOM/app source could not be parsed.");
+    }
+
+    if (catalog.totalNodes === 0) {
+      return errorPayload("INVALID_APP_SOURCE", "The DOM parser found no elements.");
+    }
+
+    const filter = parseQuery(query);
+    const candidateNodes = selectCandidates(catalog.nodes, filter, filter.wantsAll ? 24 : 8);
+
+    const appTree = buildAppTree(catalog);
+
+    if (candidateNodes.length === 0) {
+      return json({
+        elements: [],
+        risks: catalog.risks,
+        screens: catalog.screens,
+        totalNodes: catalog.totalNodes,
+        appTree,
+        domSource,
+        error_code: "ELEMENT_NOT_FOUND",
+        message: `No "${query}" found in the ${domSource === "screenshots" ? "screenshot-reconstructed" : domSource} DOM. Scanned ${catalog.totalNodes.toLocaleString()} nodes across ${catalog.screens.length} screen(s). Try a different keyword, or browse the Application Tree below.`,
+      });
+    }
+
+    const elements = buildElementAnalyses(catalog, candidateNodes);
+
+    // AI ranking is best-effort — never inflates confidence beyond uniqueness math.
+    let ranking = new Map<number, AIRanking>();
+    try {
+      ranking = await rankWithAI(authHeader, query, analyzerPlatform, elements);
+    } catch (e) {
+      console.warn("xpath-generator: ranking skipped", e);
+    }
+
+    const enriched = elements.map((el) => {
+      const r = ranking.get(el.id);
+      return {
+        ...el,
+        reasoning: r?.reasoning || el.reasoning,
+      };
+    }).sort((a, b) => b.confidence - a.confidence);
+
+    return json({
+      elements: enriched,
+      risks: catalog.risks,
+      screens: catalog.screens,
+      totalNodes: catalog.totalNodes,
+      appTree,
+      module: appModule,
+      platform: analyzerPlatform,
+      domSource,
+    });
 
     let catalog;
     try {
