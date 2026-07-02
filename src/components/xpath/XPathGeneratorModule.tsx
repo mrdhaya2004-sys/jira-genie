@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, RotateCcw, Sparkles, Gauge, Activity, Shield, Layers, Bot } from 'lucide-react';
+import { Loader2, RotateCcw, Sparkles, Gauge, Activity, Shield, Layers, Bot, BarChart3 } from 'lucide-react';
+import AIInsightsPanel from './AIInsightsPanel';
 import xpathLogo from '@/assets/xpath-logo.png';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useXPathGenerator } from '@/hooks/useXPathGenerator';
@@ -43,6 +44,7 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
     messageCount: messages.length,
   });
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
+  const [showInsights, setShowInsights] = useState(true);
 
   useEffect(() => {
     if (resumeData && resumeData.module === 'xpath-generator') {
@@ -138,6 +140,15 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
                 className="hidden lg:flex"
               />
             )}
+            <Button
+              onClick={() => setShowInsights((v) => !v)}
+              size="sm"
+              aria-label="Toggle AI insights"
+              className={`h-8 rounded-full backdrop-blur-xl border shadow-none px-2.5 ${showInsights ? 'bg-[hsl(217_91%_60%/0.2)] border-[hsl(217_91%_60%/0.4)] text-[hsl(217_91%_60%)]' : 'bg-white/10 hover:bg-white/20 border-white/15 text-foreground'}`}
+            >
+              <BarChart3 className="h-3.5 w-3.5 sm:mr-1" />
+              <span className="hidden sm:inline text-[11px] font-medium">Insights</span>
+            </Button>
             <HistoryPanel toolType="xpath" moduleName="xpath-generator" onResumePrompt={handleResumeFromPanel} />
             <Button
               onClick={resetFlow}
@@ -150,6 +161,13 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
           </div>
         </div>
       </div>
+
+      {/* AI Insights Panel */}
+      {showInsights && (
+        <div className="relative z-10 px-3 sm:px-5 pb-2">
+          <AIInsightsPanel messages={messages as any} />
+        </div>
+      )}
 
       {/* Chat Area */}
       <div className="relative z-10 flex-1 min-h-0 px-3 sm:px-5">
