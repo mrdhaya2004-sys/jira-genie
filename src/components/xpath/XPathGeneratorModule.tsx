@@ -140,6 +140,15 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
                 className="hidden lg:flex"
               />
             )}
+            <Button
+              onClick={() => setShowInsights((v) => !v)}
+              size="sm"
+              aria-label="Toggle AI insights"
+              className={`h-8 rounded-full backdrop-blur-xl border shadow-none px-2.5 ${showInsights ? 'bg-[hsl(217_91%_60%/0.2)] border-[hsl(217_91%_60%/0.4)] text-[hsl(217_91%_60%)]' : 'bg-white/10 hover:bg-white/20 border-white/15 text-foreground'}`}
+            >
+              <BarChart3 className="h-3.5 w-3.5 sm:mr-1" />
+              <span className="hidden sm:inline text-[11px] font-medium">Insights</span>
+            </Button>
             <HistoryPanel toolType="xpath" moduleName="xpath-generator" onResumePrompt={handleResumeFromPanel} />
             <Button
               onClick={resetFlow}
