@@ -162,6 +162,13 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
         </div>
       </div>
 
+      {/* AI Insights Panel */}
+      {showInsights && (
+        <div className="relative z-10 px-3 sm:px-5 pb-2">
+          <AIInsightsPanel messages={messages as any} />
+        </div>
+      )}
+
       {/* Chat Area */}
       <div className="relative z-10 flex-1 min-h-0 px-3 sm:px-5">
         <div className="glass-card h-full rounded-3xl overflow-hidden flex flex-col">
