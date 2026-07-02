@@ -44,6 +44,7 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
     messageCount: messages.length,
   });
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
+  const [showInsights, setShowInsights] = useState(true);
 
   useEffect(() => {
     if (resumeData && resumeData.module === 'xpath-generator') {
