@@ -164,26 +164,26 @@ const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ messages }) => {
   };
 
   return (
-    <div className="glass-card rounded-3xl p-4 sm:p-5 relative overflow-hidden">
+    <div className="glass-card rounded-3xl p-5 sm:p-6 relative overflow-hidden">
       <div className="pointer-events-none absolute -top-24 -right-16 h-56 w-56 rounded-full bg-gradient-to-br from-[hsl(217_91%_60%/0.25)] to-[hsl(262_83%_65%/0.15)] blur-3xl" />
       <div className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-gradient-to-br from-[hsl(160_84%_45%/0.2)] to-[hsl(189_94%_50%/0.15)] blur-3xl" />
 
-      <div className="relative flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+      <div className="relative flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] blur-md opacity-70" />
-            <div className="relative h-8 w-8 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] flex items-center justify-center">
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] blur-md opacity-70" />
+            <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] flex items-center justify-center">
               <Sparkles className="h-4 w-4 text-white" />
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-semibold tracking-tight">AI Insights</h3>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            <h3 className="text-base font-semibold tracking-tight text-foreground">AI Insights</h3>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-medium mt-0.5">
               {hasData ? `${scored.length} locator${scored.length > 1 ? 's' : ''} analyzed` : 'Waiting for XPath analysis…'}
             </p>
           </div>
         </div>
-        <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30">
           <span className="relative flex h-1.5 w-1.5">
             <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -192,24 +192,38 @@ const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ messages }) => {
         </div>
       </div>
 
-      {/* Metric cards */}
-      <div className="relative grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+      {/* Metric cards — equal-height 5-col grid */}
+      <div className="relative grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5 mb-5 auto-rows-fr">
         {ORDER.map((k) => (
           <MetricCard key={k} theme={M[k]} value={values[k]} hasData={hasData} />
         ))}
       </div>
 
-      {/* Per-locator bars */}
-      <div className="relative rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md p-3">
-        <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="h-3.5 w-3.5 text-[#60A5FA]" />
-          <h4 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">Per-Locator Scores</h4>
+      {/* Per-locator panel */}
+      <div className="relative rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-3.5 w-3.5 text-[#60A5FA]" />
+            <h4 className="text-xs font-semibold tracking-[0.14em] uppercase text-muted-foreground">Per-Locator Scores</h4>
+          </div>
+          {hasData && (
+            <span className="text-[10px] font-medium text-muted-foreground/80">
+              {scored.length} element{scored.length > 1 ? 's' : ''}
+            </span>
+          )}
         </div>
         {hasData ? (
-          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+          <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+            <div className="grid grid-cols-12 items-center gap-2 pb-1.5 border-b border-white/10 text-[9px] uppercase tracking-[0.14em] text-muted-foreground/80 font-semibold">
+              <div className="col-span-4">Element</div>
+              <div className="col-span-2">Stable</div>
+              <div className="col-span-2">Flaky</div>
+              <div className="col-span-2">Perf</div>
+              <div className="col-span-2">Maint</div>
+            </div>
             {scored.slice(0, 8).map((s, i) => (
               <div key={i} className="grid grid-cols-12 items-center gap-2">
-                <div className="col-span-4 truncate text-[11px] font-medium" title={s.el.element_name}>
+                <div className="col-span-4 truncate text-[11px] font-medium text-foreground/90" title={s.el.element_name}>
                   {s.el.element_name || s.el.tag}
                 </div>
                 <div className="col-span-2"><Bar value={s.stability} theme={M.stability} /></div>
@@ -218,18 +232,12 @@ const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ messages }) => {
                 <div className="col-span-2"><Bar value={s.maintain} theme={M.maintain} /></div>
               </div>
             ))}
-            <div className="grid grid-cols-12 items-center gap-2 pt-1 border-t border-white/10 text-[9px] uppercase tracking-wider text-muted-foreground">
-              <div className="col-span-4">Element</div>
-              <div className="col-span-2">Stable</div>
-              <div className="col-span-2">Flaky</div>
-              <div className="col-span-2">Perf</div>
-              <div className="col-span-2">Maint</div>
-            </div>
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground py-3 text-center">Generate a locator to see per-element analytics.</p>
+          <EmptyLocatorState />
         )}
       </div>
+
 
       <style>{`
         @keyframes ih-shimmer {
@@ -372,6 +380,37 @@ const Bar: React.FC<{ value: number; theme: MetricTheme }> = ({ value, theme }) 
       }}
     />
     <span className="absolute -top-4 right-0 text-[9px] font-semibold tabular-nums text-muted-foreground">{value}</span>
+  </div>
+);
+
+// ---------- Empty state ----------
+const EmptyLocatorState: React.FC = () => (
+  <div className="relative flex flex-col items-center justify-center py-8 px-4 text-center">
+    <div className="relative mb-4">
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#3B82F6]/40 to-[#8B5CF6]/40 blur-xl" />
+      <div className="relative h-14 w-14 rounded-2xl bg-gradient-to-br from-[#3B82F6]/15 to-[#8B5CF6]/15 border border-white/15 backdrop-blur-xl flex items-center justify-center">
+        <TrendingUp className="h-6 w-6 text-[#60A5FA]" />
+      </div>
+    </div>
+    <p className="text-sm font-semibold text-foreground/90 mb-1">Generate a locator to see analytics</p>
+    <p className="text-xs text-muted-foreground max-w-sm">
+      Per-element stability, flakiness, performance, and maintainability scores will appear here after your first XPath analysis.
+    </p>
+    {/* Animated placeholder bars */}
+    <div className="mt-5 w-full max-w-md space-y-2">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="grid grid-cols-12 items-center gap-2">
+          <div className="col-span-4 h-2 rounded-full bg-white/8 overflow-hidden relative">
+            <div className="ih-shimmer absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(59,130,246,0.12), rgba(139,92,246,0.12))' }} />
+          </div>
+          {[M.stability, M.flakiness, M.performance, M.maintain].map((t, j) => (
+            <div key={j} className="col-span-2 h-2 rounded-full bg-white/8 overflow-hidden relative">
+              <div className="ih-shimmer absolute inset-0" style={{ background: t.soft }} />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
   </div>
 );
 
