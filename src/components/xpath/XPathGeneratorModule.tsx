@@ -186,6 +186,15 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
                 />
               ))}
 
+              {/* AI-first onboarding: shows until the user asks the first question */}
+              {(phase === 'ready_for_query' || phase === 'xpath_generated') &&
+                !messages.some((m: any) => m.role === 'user') && (
+                  <XPathAssistantIntro
+                    onPickSuggestion={(p) => setPendingPrompt(p)}
+                    platform={selectedPlatform as any}
+                  />
+                )}
+
               {(isLoading || isStreaming) && phase === 'generating' && (
                 <div data-skip-anchor="true" className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl w-fit">
                   <div className="relative">
@@ -199,6 +208,7 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
               )}
             </div>
           </ScrollArea>
+
           <ScrollToBottomButton visible={!isAtBottom} onClick={() => scrollToBottom('smooth')} />
         </div>
       </div>
