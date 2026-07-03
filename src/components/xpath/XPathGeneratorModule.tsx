@@ -87,10 +87,11 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
       </div>
 
       {/* Compact Glass Header */}
-      <div className="relative z-10 px-3 sm:px-5 pt-2 pb-2">
-        <div className="glass-card relative overflow-hidden rounded-2xl px-3 sm:px-4 py-2 flex items-center gap-2 sm:gap-3 min-h-[56px]">
+      <div className="relative z-10 px-4 sm:px-6 lg:px-8 pt-3 pb-2">
+        <div className="glass-card relative overflow-hidden rounded-2xl px-4 sm:px-5 py-3 flex items-center gap-3 min-h-[64px]">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
           <div className="pointer-events-none absolute -top-16 -right-10 h-32 w-32 rounded-full bg-gradient-to-br from-[hsl(217_91%_60%/0.3)] to-[hsl(160_84%_45%/0.2)] blur-3xl" />
+
 
           {/* Logo + title */}
           <div className="relative flex items-center gap-2 min-w-0">
