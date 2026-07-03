@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, RotateCcw, Sparkles, Gauge, Activity, Shield, Layers, Bot, BarChart3 } from 'lucide-react';
 import AIInsightsPanel from './AIInsightsPanel';
+import XPathAssistantIntro from './XPathAssistantIntro';
 import xpathLogo from '@/assets/xpath-logo.png';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useXPathGenerator } from '@/hooks/useXPathGenerator';
