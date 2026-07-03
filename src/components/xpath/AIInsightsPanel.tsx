@@ -383,4 +383,35 @@ const Bar: React.FC<{ value: number; theme: MetricTheme }> = ({ value, theme }) 
   </div>
 );
 
+// ---------- Empty state ----------
+const EmptyLocatorState: React.FC = () => (
+  <div className="relative flex flex-col items-center justify-center py-8 px-4 text-center">
+    <div className="relative mb-4">
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#3B82F6]/40 to-[#8B5CF6]/40 blur-xl" />
+      <div className="relative h-14 w-14 rounded-2xl bg-gradient-to-br from-[#3B82F6]/15 to-[#8B5CF6]/15 border border-white/15 backdrop-blur-xl flex items-center justify-center">
+        <TrendingUp className="h-6 w-6 text-[#60A5FA]" />
+      </div>
+    </div>
+    <p className="text-sm font-semibold text-foreground/90 mb-1">Generate a locator to see analytics</p>
+    <p className="text-xs text-muted-foreground max-w-sm">
+      Per-element stability, flakiness, performance, and maintainability scores will appear here after your first XPath analysis.
+    </p>
+    {/* Animated placeholder bars */}
+    <div className="mt-5 w-full max-w-md space-y-2">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="grid grid-cols-12 items-center gap-2">
+          <div className="col-span-4 h-2 rounded-full bg-white/8 overflow-hidden relative">
+            <div className="ih-shimmer absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(59,130,246,0.12), rgba(139,92,246,0.12))' }} />
+          </div>
+          {[M.stability, M.flakiness, M.performance, M.maintain].map((t, j) => (
+            <div key={j} className="col-span-2 h-2 rounded-full bg-white/8 overflow-hidden relative">
+              <div className="ih-shimmer absolute inset-0" style={{ background: t.soft }} />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 export default AIInsightsPanel;
