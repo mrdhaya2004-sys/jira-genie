@@ -165,16 +165,16 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
 
       {/* AI Insights Panel */}
       {showInsights && (
-        <div className="relative z-10 px-3 sm:px-5 pb-2">
+        <div className="relative z-10 px-4 sm:px-6 lg:px-8 pb-3">
           <AIInsightsPanel messages={messages as any} />
         </div>
       )}
 
       {/* Chat Area */}
-      <div className="relative z-10 flex-1 min-h-0 px-3 sm:px-5">
+      <div className="relative z-10 flex-1 min-h-0 px-4 sm:px-6 lg:px-8">
         <div className="glass-card h-full rounded-3xl overflow-hidden flex flex-col">
           <ScrollArea className="flex-1" ref={scrollRef}>
-            <div className="p-4 sm:p-6 space-y-4 max-w-5xl mx-auto">
+            <div className="p-5 sm:p-7 space-y-4 max-w-5xl mx-auto">
               {messages.map((message) => (
                 <XPathChatMessage
                   key={message.id}
@@ -203,7 +203,8 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
       </div>
 
       {/* Input Area */}
-      <div className="relative z-10 px-3 sm:px-5 pt-3 pb-3 sm:pb-4">
+      <div className="relative z-10 px-4 sm:px-6 lg:px-8 pt-3 pb-4">
+
         {(phase === 'ready_for_query' || phase === 'xpath_generated') && (
           <div className="glass-card rounded-3xl p-1.5">
             <XPathChatInput
