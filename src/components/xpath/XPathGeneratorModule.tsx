@@ -146,10 +146,10 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
               onClick={() => setShowInsights((v) => !v)}
               size="sm"
               aria-label="Toggle AI insights"
-              className={`h-8 rounded-full backdrop-blur-xl border shadow-none px-2.5 ${showInsights ? 'bg-[hsl(217_91%_60%/0.2)] border-[hsl(217_91%_60%/0.4)] text-[hsl(217_91%_60%)]' : 'bg-white/10 hover:bg-white/20 border-white/15 text-foreground'}`}
+              className={`h-8 rounded-full backdrop-blur-xl border shadow-none px-2.5 transition-colors ${showInsights ? 'bg-[hsl(var(--primary)/0.18)] border-[hsl(var(--primary)/0.45)] text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary)/0.25)]' : 'bg-[hsl(var(--muted)/0.55)] hover:bg-[hsl(var(--muted)/0.85)] border-[hsl(var(--border)/0.8)] text-[hsl(var(--muted-foreground))]'}`}
             >
-              <BarChart3 className="h-3.5 w-3.5 sm:mr-1" />
-              <span className="hidden sm:inline text-[11px] font-medium">Insights</span>
+              <BarChart3 className={`h-3.5 w-3.5 sm:mr-1 ${showInsights ? 'text-[hsl(var(--primary))]' : 'text-[hsl(var(--muted-foreground))]'}`} />
+              <span className={`hidden sm:inline text-[11px] font-medium ${showInsights ? 'text-[hsl(var(--primary))]' : 'text-[hsl(var(--muted-foreground))]'}`}>Insights</span>
             </Button>
             <HistoryPanel toolType="xpath" moduleName="xpath-generator" onResumePrompt={handleResumeFromPanel} />
             <Button
