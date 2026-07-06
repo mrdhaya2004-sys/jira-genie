@@ -146,7 +146,7 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
               onClick={() => setShowInsights((v) => !v)}
               size="sm"
               aria-label="Toggle AI insights"
-              className={`h-8 rounded-full backdrop-blur-xl border shadow-none px-2.5 transition-all ${showInsights ? 'bg-[hsl(var(--primary))] dark:bg-[hsl(221_83%_53%)] border-transparent text-[hsl(var(--primary-foreground))] hover:shadow-[0_8px_24px_-6px_hsl(var(--glow-primary))] hover:-translate-y-px' : 'bg-[hsl(var(--muted)/0.75)] hover:bg-[hsl(var(--muted))] border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:shadow-sm'}`}
+              className={`h-8 rounded-full backdrop-blur-xl border shadow-none px-2.5 transition-all ${showInsights ? 'bg-none bg-[hsl(var(--primary))] dark:bg-[hsl(221_83%_53%)] border-transparent text-[hsl(var(--primary-foreground))] hover:shadow-[0_8px_24px_-6px_hsl(var(--glow-primary))] hover:-translate-y-px' : 'bg-none bg-[hsl(var(--muted))] hover:bg-[hsl(var(--muted)/0.85)] border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:shadow-sm'}`}
             >
               <BarChart3 className={`h-3.5 w-3.5 sm:mr-1 ${showInsights ? 'text-[hsl(var(--primary-foreground))]' : 'text-[hsl(var(--foreground))]'}`} />
               <span className={`hidden sm:inline text-[11px] font-medium ${showInsights ? 'text-[hsl(var(--primary-foreground))]' : 'text-[hsl(var(--foreground))]'}`}>Insights</span>
