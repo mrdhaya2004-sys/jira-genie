@@ -282,8 +282,9 @@ const MetricCard: React.FC<{ theme: MetricTheme; value: number; hasData: boolean
     <div
       className="ih-metric-card relative overflow-hidden p-3.5 group"
       style={{
-        // hover glow via box-shadow on hover
         ['--glow' as any]: theme.glow,
+        borderColor: `${theme.solid}40`,
+        boxShadow: `0 10px 30px rgba(0,0,0,0.12), 0 0 0 1px ${theme.solid}22`,
       }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLDivElement).style.boxShadow =
@@ -291,8 +292,8 @@ const MetricCard: React.FC<{ theme: MetricTheme; value: number; hasData: boolean
         (e.currentTarget as HTMLDivElement).style.borderColor = theme.glow;
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = '0 10px 30px rgba(0,0,0,0.15)';
-        (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.12)';
+        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 10px 30px rgba(0,0,0,0.12), 0 0 0 1px ${theme.solid}22`;
+        (e.currentTarget as HTMLDivElement).style.borderColor = `${theme.solid}40`;
       }}
     >
       {/* colored gradient wash */}
