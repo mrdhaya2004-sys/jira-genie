@@ -326,7 +326,14 @@ const MetricCard: React.FC<{ theme: MetricTheme; value: number; hasData: boolean
               {status.label}
             </span>
           ) : (
-            <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white/60 bg-white/5 border border-white/10">
+            <span
+              className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+              style={{
+                color: theme.solid,
+                background: `${theme.solid}1A`,
+                border: `1px solid ${theme.solid}55`,
+              }}
+            >
               Idle
             </span>
           )}
