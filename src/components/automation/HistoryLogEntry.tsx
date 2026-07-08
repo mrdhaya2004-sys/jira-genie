@@ -33,17 +33,17 @@ const HistoryLogEntry: React.FC<Props> = ({ log, onDelete, onView, onResume }) =
   const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div className="group relative flex gap-4 pl-2">
+    <div className="group relative flex gap-3 pl-1.5">
       {/* Timeline rail dot */}
-      <div className="relative flex flex-col items-center pt-5">
+      <div className="relative flex flex-col items-center pt-4">
         <div
-          className={cn('relative h-3 w-3 rounded-full ring-4', accent.ring)}
-          style={{ background: accent.hue, boxShadow: `0 0 18px ${accent.hue}80` }}
+          className={cn('relative h-2.5 w-2.5 rounded-full ring-4', accent.ring)}
+          style={{ background: accent.hue, boxShadow: `0 0 14px ${accent.hue}80` }}
         />
       </div>
 
       {/* Time stamp column */}
-      <div className="hidden sm:flex flex-col items-end pt-4 w-14 shrink-0">
+      <div className="hidden sm:flex flex-col items-end pt-3 w-[52px] shrink-0">
         <span className="text-[11px] font-semibold text-foreground tabular-nums">{time}</span>
         <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
       </div>
@@ -51,7 +51,7 @@ const HistoryLogEntry: React.FC<Props> = ({ log, onDelete, onView, onResume }) =
       {/* Glass card */}
       <div
         className={cn(
-          'relative flex-1 min-w-0 rounded-2xl p-4 mb-3 transition-all duration-300',
+          'relative flex-1 min-w-0 rounded-2xl p-3 mb-2.5 transition-all duration-300',
           'bg-white/55 dark:bg-white/[0.04] backdrop-blur-xl border border-white/40 dark:border-white/[0.06]',
           'hover:-translate-y-0.5 hover:bg-white/70 dark:hover:bg-white/[0.07]',
           accent.glow,
@@ -63,15 +63,15 @@ const HistoryLogEntry: React.FC<Props> = ({ log, onDelete, onView, onResume }) =
           style={{ background: `radial-gradient(120% 100% at 0% 0%, ${accent.hue}1F, transparent 55%)` }}
         />
 
-        <div className="relative flex items-start gap-3">
+        <div className="relative flex items-start gap-2.5">
           <div
-            className={cn('h-10 w-10 rounded-xl flex items-center justify-center text-base shrink-0 border', accent.chip)}
+            className={cn('h-9 w-9 rounded-xl flex items-center justify-center text-base shrink-0 border', accent.chip)}
           >
             <span>{accent.icon}</span>
           </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2 mb-1">
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <div className="flex flex-wrap items-center gap-1.5 mb-1">
               <span
                 className={cn('text-[11px] font-semibold px-2 py-0.5 rounded-full border', accent.chip)}
               >
@@ -84,17 +84,17 @@ const HistoryLogEntry: React.FC<Props> = ({ log, onDelete, onView, onResume }) =
             </div>
 
             {log.input_prompt && (
-              <p className="text-sm font-medium text-foreground mb-0.5 line-clamp-2 leading-snug">
+              <p className="text-sm font-medium text-foreground mb-0.5 line-clamp-2 leading-snug break-words">
                 {log.input_prompt}
               </p>
             )}
             {log.output_summary && (
-              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed break-words">
                 {log.output_summary}
               </p>
             )}
 
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex flex-wrap items-center gap-2 mt-2.5">
               {onView && (
                 <Button
                   variant="outline"
@@ -115,7 +115,6 @@ const HistoryLogEntry: React.FC<Props> = ({ log, onDelete, onView, onResume }) =
                 >
                   <Play className="h-3 w-3" />
                   Continue
-                  <ChevronRight className="h-3 w-3 -ml-0.5" />
                 </Button>
               )}
             </div>
@@ -124,7 +123,7 @@ const HistoryLogEntry: React.FC<Props> = ({ log, onDelete, onView, onResume }) =
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+            className="absolute -top-1.5 -right-1.5 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity bg-white/60 dark:bg-black/40 backdrop-blur-md rounded-full"
             onClick={() => onDelete(log.id)}
           >
             <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
