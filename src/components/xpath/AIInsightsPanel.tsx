@@ -343,7 +343,7 @@ const MetricCard: React.FC<{ theme: MetricTheme; value: number; hasData: boolean
         <div className="flex items-baseline gap-1">
           <span
             className="text-2xl font-bold tabular-nums"
-            style={{ color: hasData ? theme.solid : 'rgba(255,255,255,0.55)' }}
+            style={{ color: theme.solid, opacity: hasData ? 1 : 0.75 }}
           >
             {hasData ? value : '—'}
           </span>
