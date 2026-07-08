@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Eye, Play, Trash2, Clock, ChevronRight } from 'lucide-react';
+import { Eye, Play, Trash2, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { sessionHistoryService } from '@/lib/sessionHistory';
 import type { HistoryLog } from '@/hooks/useHistoryLogs';
