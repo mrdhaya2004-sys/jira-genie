@@ -146,7 +146,7 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
             )}
           </Button>
         </SheetTrigger>
-        <SheetContent className="w-[400px] sm:w-[540px]">
+        <SheetContent className="w-[400px] sm:w-[540px] sm:max-w-none p-4 sm:p-6">
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <History className="h-5 w-5" />
