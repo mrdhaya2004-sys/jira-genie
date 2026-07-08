@@ -155,10 +155,10 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
             <Button
               onClick={resetFlow}
               size="sm"
-              className="h-8 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/15 text-foreground shadow-none px-2.5"
+              className="h-8 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/15 text-white shadow-none px-2.5"
             >
               <RotateCcw className="h-3.5 w-3.5 sm:mr-1" />
-              <span className="hidden sm:inline text-[11px] font-medium">Reset</span>
+              <span className="hidden sm:inline text-[11px] font-medium text-white">Reset</span>
             </Button>
           </div>
         </div>
