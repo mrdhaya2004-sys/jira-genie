@@ -191,7 +191,7 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
               {/* Persistent DB logs rendered with HistoryLogEntry */}
               {filteredLogs.length > 0 ? (
                 <div className="space-y-2">
-                  {filteredLogs.map((log) => (
+                  {visibleLogs.map((log) => (
                     <HistoryLogEntry
                       key={log.id}
                       log={log}
@@ -200,6 +200,21 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
                       onResume={handleResume}
                     />
                   ))}
+                  {hasMoreLogs && (
+                    <div className="flex flex-col items-center gap-1 pt-3 pb-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                        className="w-full"
+                      >
+                        Load more
+                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        Showing {visibleLogs.length} of {filteredLogs.length}
+                      </span>
+                    </div>
+                  )}
                 </div>
               ) : history.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -214,7 +229,7 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
               ) : (
                 // Fallback to local storage entries
                 <div className="space-y-2">
-                  {history.map((entry) => (
+                  {visibleHistory.map((entry) => (
                     <div
                       key={entry.id}
                       className={cn(
@@ -249,6 +264,21 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
                       </div>
                     </div>
                   ))}
+                  {hasMoreHistory && (
+                    <div className="flex flex-col items-center gap-1 pt-3 pb-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                        className="w-full"
+                      >
+                        Load more
+                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        Showing {visibleHistory.length} of {history.length}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </ScrollArea>
