@@ -50,12 +50,24 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [viewingLog, setViewingLog] = useState<HistoryLog | null>(null);
+  const PAGE_SIZE = 10;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { logs, fetchLogs } = useHistoryLogs();
 
   // Filter persistent logs by module name
   const filteredLogs = moduleName 
     ? logs.filter(l => l.module_name === moduleName)
     : logs;
+
+  const visibleLogs = filteredLogs.slice(0, visibleCount);
+  const visibleHistory = history.slice(0, visibleCount);
+  const hasMoreLogs = filteredLogs.length > visibleCount;
+  const hasMoreHistory = history.length > visibleCount;
+
+  // Reset pagination when panel reopens or filter changes
+  useEffect(() => {
+    if (isOpen) setVisibleCount(PAGE_SIZE);
+  }, [isOpen, moduleName, toolType]);
 
   const loadHistory = useCallback(() => {
     try {
