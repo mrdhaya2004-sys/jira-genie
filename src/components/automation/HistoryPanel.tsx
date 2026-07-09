@@ -50,12 +50,24 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [viewingLog, setViewingLog] = useState<HistoryLog | null>(null);
+  const PAGE_SIZE = 10;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { logs, fetchLogs } = useHistoryLogs();
 
   // Filter persistent logs by module name
   const filteredLogs = moduleName 
     ? logs.filter(l => l.module_name === moduleName)
     : logs;
+
+  const visibleLogs = filteredLogs.slice(0, visibleCount);
+  const visibleHistory = history.slice(0, visibleCount);
+  const hasMoreLogs = filteredLogs.length > visibleCount;
+  const hasMoreHistory = history.length > visibleCount;
+
+  // Reset pagination when panel reopens or filter changes
+  useEffect(() => {
+    if (isOpen) setVisibleCount(PAGE_SIZE);
+  }, [isOpen, moduleName, toolType]);
 
   const loadHistory = useCallback(() => {
     try {
@@ -179,7 +191,7 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
               {/* Persistent DB logs rendered with HistoryLogEntry */}
               {filteredLogs.length > 0 ? (
                 <div className="space-y-2">
-                  {filteredLogs.map((log) => (
+                  {visibleLogs.map((log) => (
                     <HistoryLogEntry
                       key={log.id}
                       log={log}
@@ -188,6 +200,21 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
                       onResume={handleResume}
                     />
                   ))}
+                  {hasMoreLogs && (
+                    <div className="flex flex-col items-center gap-1 pt-3 pb-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                        className="w-full"
+                      >
+                        Load more
+                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        Showing {visibleLogs.length} of {filteredLogs.length}
+                      </span>
+                    </div>
+                  )}
                 </div>
               ) : history.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -202,7 +229,7 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
               ) : (
                 // Fallback to local storage entries
                 <div className="space-y-2">
-                  {history.map((entry) => (
+                  {visibleHistory.map((entry) => (
                     <div
                       key={entry.id}
                       className={cn(
@@ -237,6 +264,21 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
                       </div>
                     </div>
                   ))}
+                  {hasMoreHistory && (
+                    <div className="flex flex-col items-center gap-1 pt-3 pb-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                        className="w-full"
+                      >
+                        Load more
+                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        Showing {visibleHistory.length} of {history.length}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </ScrollArea>
