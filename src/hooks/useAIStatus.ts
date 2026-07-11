@@ -23,13 +23,17 @@ export const useAIStatus = (): AIStatusInfo => {
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setConfig(null); return; }
+      // Prefer the hydrated session to avoid a race where getUser() returns null
+      // on first mount before Supabase has read the token from storage.
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (!userId) { setConfig(null); return; }
       const { data } = await (supabase as any)
         .from('ai_provider_configs')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('is_active', true)
+        .order('updated_at', { ascending: false })
         .limit(1)
         .maybeSingle();
       setConfig((data as AIProviderConfig | null) ?? null);
@@ -42,7 +46,16 @@ export const useAIStatus = (): AIStatusInfo => {
     load();
     const onChange = () => load();
     window.addEventListener('ai-config-updated', onChange);
-    return () => window.removeEventListener('ai-config-updated', onChange);
+    // Re-fetch when auth hydrates / user signs in-out so the banner reflects
+    // the correct AI status instead of staying stuck on "not connected".
+    const { data: authSub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) load();
+      else setConfig(null);
+    });
+    return () => {
+      window.removeEventListener('ai-config-updated', onChange);
+      authSub.subscription.unsubscribe();
+    };
   }, [load]);
 
   const status: AIConfigStatus = (config?.status as AIConfigStatus) ?? (config ? 'not_verified' : 'not_verified');
