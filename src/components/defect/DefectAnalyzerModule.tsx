@@ -171,6 +171,15 @@ const DefectAnalyzerModule: React.FC = () => {
         </div>
       </div>
 
+      {/* AI Workflow Timeline */}
+      <div className="relative z-10 mx-2 sm:mx-4 mt-2">
+        <DefectWorkflowTimeline
+          phase={phase}
+          isAnalyzing={isAnalyzing}
+          hasResults={phase === 'results'}
+        />
+      </div>
+
       {/* Framed glass chat surface */}
       <div className="relative z-10 flex-1 overflow-hidden px-2 sm:px-4 pb-2 pt-2 min-h-0">
         <div className="h-full flex flex-col rounded-2xl border border-white/15 bg-white/[0.06] backdrop-blur-[35px] backdrop-saturate-150 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.15)] overflow-hidden">
