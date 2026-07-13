@@ -11,6 +11,7 @@ import DefectChatMessage from './DefectChatMessage';
 import DefectReportUploader from './DefectReportUploader';
 import { useToast } from '@/hooks/use-toast';
 import defectAnalyzerLogo from '@/assets/defect-analyzer-logo.png.asset.json';
+import DefectWorkflowTimeline from './DefectWorkflowTimeline';
 
 // AI Risk Intelligence palette
 // Royal Blue #2563EB · Emerald #10B981 · Crimson #DC2626 · Amber #F59E0B · Violet #7C3AED · Slate #334155
