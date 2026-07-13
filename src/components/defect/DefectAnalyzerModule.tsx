@@ -11,6 +11,7 @@ import DefectChatMessage from './DefectChatMessage';
 import DefectReportUploader from './DefectReportUploader';
 import { useToast } from '@/hooks/use-toast';
 import defectAnalyzerLogo from '@/assets/defect-analyzer-logo.png.asset.json';
+import DefectWorkflowTimeline from './DefectWorkflowTimeline';
 
 // AI Risk Intelligence palette
 // Royal Blue #2563EB · Emerald #10B981 · Crimson #DC2626 · Amber #F59E0B · Violet #7C3AED · Slate #334155
@@ -168,6 +169,15 @@ const DefectAnalyzerModule: React.FC = () => {
             </Tooltip>
           </div>
         </div>
+      </div>
+
+      {/* AI Workflow Timeline */}
+      <div className="relative z-10 mx-2 sm:mx-4 mt-2">
+        <DefectWorkflowTimeline
+          phase={phase}
+          isAnalyzing={isAnalyzing}
+          hasResults={phase === 'results'}
+        />
       </div>
 
       {/* Framed glass chat surface */}
