@@ -241,11 +241,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [fetchProfile]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = true) => {
     const { error } = await supabase.auth.signInWithPassword({
       email: email.toLowerCase().trim(),
       password,
     });
+    if (!error) {
+      markLogin(rememberMe);
+      setLoginAt(Date.now());
+      setLastActive(Date.now());
+      setSessionExpired(false);
+      setExpiredReason(null);
+    }
     return { error: error as Error | null };
   }, []);
 
@@ -300,11 +307,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error: null };
   }, []);
 
-  const signOut = useCallback(async () => {
+  const signOut = useCallback(async (opts?: { silent?: boolean }) => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);
+    clearSessionMeta();
+    if (!opts?.silent) {
+      broadcastLogout();
+    }
+  }, []);
+
+  const expireSessionNow = useCallback(async (reason: 'inactivity' | 'expired' = 'expired') => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setProfile(null);
+    clearSessionMeta();
+    setExpiredReason(reason);
+    setSessionExpired(true);
+    broadcastLogout();
+  }, []);
+
+  const dismissSessionExpired = useCallback(() => {
+    setSessionExpired(false);
+    setExpiredReason(null);
+  }, []);
+
+  const touchActivity = useCallback(() => {
+    markActive();
+    setLastActive(Date.now());
   }, []);
 
   const resetPassword = useCallback(async (email: string) => {
