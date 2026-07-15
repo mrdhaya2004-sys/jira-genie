@@ -115,7 +115,7 @@ const LoginForm: React.FC = () => {
   const handle2FAVerified = async () => {
     // OTP verified — now sign in with stored credentials
     const remember = form.getValues('rememberMe') ?? true;
-    const { error } = await signIn(pendingEmail, pendingPasswordRef.current);
+    const { error } = await signIn(pendingEmail, pendingPasswordRef.current, remember);
     pendingPasswordRef.current = '';
     if (!error) {
       toast.success('🎉 Welcome back!');
