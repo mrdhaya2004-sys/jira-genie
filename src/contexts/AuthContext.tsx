@@ -1,7 +1,23 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { sessionHistoryService } from '@/lib/sessionHistory';
+import {
+  markLogin,
+  markActive,
+  getLastActive,
+  getLoginAt,
+  clearSessionMeta,
+  broadcastLogout,
+  shouldPurgeSessionOnBoot,
+  LOGOUT_STORAGE_KEY,
+  getDeviceId,
+} from '@/lib/sessionMeta';
+
+// Inactivity timeout (30 min) and absolute session lifetime (24 h) when
+// Remember Me is enabled. Both apply on top of Supabase's own token refresh.
+export const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000;
+export const ABSOLUTE_SESSION_MS = 24 * 60 * 60 * 1000;
 
 export interface UserProfile {
   id: string;
@@ -32,6 +48,29 @@ interface AuthContextType {
   refreshProfile: () => Promise<void>;
 }
 
+interface AuthContextType {
+  user: User | null;
+  session: Session | null;
+  profile: UserProfile | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  sessionExpired: boolean;
+  expiredReason: 'inactivity' | 'expired' | null;
+  deviceId: string;
+  loginAt: number;
+  lastActive: number;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: Error | null }>;
+  signUp: (data: SignUpData) => Promise<{ error: Error | null }>;
+  signOut: (opts?: { silent?: boolean }) => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: Error | null }>;
+  signInWithGoogle: () => Promise<{ error: Error | null }>;
+  refreshProfile: () => Promise<void>;
+  dismissSessionExpired: () => void;
+  expireSessionNow: (reason?: 'inactivity' | 'expired') => Promise<void>;
+  touchActivity: () => void;
+}
+
 export interface SignUpData {
   email: string;
   password: string;
@@ -42,13 +81,18 @@ export interface SignUpData {
   avatarUrl?: string;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined); // v2
+const AuthContext = createContext<AuthContextType | undefined>(undefined); // v3
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const [expiredReason, setExpiredReason] = useState<'inactivity' | 'expired' | null>(null);
+  const [loginAt, setLoginAt] = useState<number>(() => getLoginAt());
+  const [lastActive, setLastActive] = useState<number>(() => getLastActive());
+  const deviceIdRef = useRef<string>(getDeviceId());
 
   const fetchProfile = useCallback(async (userId: string) => {
     // Email is no longer readable from profiles by RLS/column grants; pull it from the auth session instead.
