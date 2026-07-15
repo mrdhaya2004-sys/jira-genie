@@ -66,6 +66,7 @@ const LoginForm: React.FC = () => {
     defaultValues: {
       email: '',
       password: '',
+      rememberMe: true,
     },
   });
 
@@ -87,7 +88,7 @@ const LoginForm: React.FC = () => {
       }
 
       // No 2FA — sign in directly
-      const { error } = await signIn(data.email, data.password);
+      const { error } = await signIn(data.email, data.password, data.rememberMe ?? true);
       
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
@@ -113,7 +114,8 @@ const LoginForm: React.FC = () => {
 
   const handle2FAVerified = async () => {
     // OTP verified — now sign in with stored credentials
-    const { error } = await signIn(pendingEmail, pendingPasswordRef.current);
+    const remember = form.getValues('rememberMe') ?? true;
+    const { error } = await signIn(pendingEmail, pendingPasswordRef.current, remember);
     pendingPasswordRef.current = '';
     if (!error) {
       toast.success('🎉 Welcome back!');
@@ -265,6 +267,28 @@ const LoginForm: React.FC = () => {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="rememberMe"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-2 space-y-0">
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        checked={!!field.value}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                        disabled={isFormLoading}
+                        className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                      />
+                    </FormControl>
+                    <FormLabel className="text-sm font-normal cursor-pointer !mt-0">
+                      Remember me for 24 hours
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
+
 
               <Button 
                 type="submit" 

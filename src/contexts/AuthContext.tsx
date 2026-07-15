@@ -1,7 +1,23 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { sessionHistoryService } from '@/lib/sessionHistory';
+import {
+  markLogin,
+  markActive,
+  getLastActive,
+  getLoginAt,
+  clearSessionMeta,
+  broadcastLogout,
+  shouldPurgeSessionOnBoot,
+  LOGOUT_STORAGE_KEY,
+  getDeviceId,
+} from '@/lib/sessionMeta';
+
+// Inactivity timeout (30 min) and absolute session lifetime (24 h) when
+// Remember Me is enabled. Both apply on top of Supabase's own token refresh.
+export const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000;
+export const ABSOLUTE_SESSION_MS = 24 * 60 * 60 * 1000;
 
 export interface UserProfile {
   id: string;
@@ -17,19 +33,28 @@ export interface UserProfile {
   updated_at: string;
 }
 
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  sessionExpired: boolean;
+  expiredReason: 'inactivity' | 'expired' | null;
+  deviceId: string;
+  loginAt: number;
+  lastActive: number;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: Error | null }>;
   signUp: (data: SignUpData) => Promise<{ error: Error | null }>;
-  signOut: () => Promise<void>;
+  signOut: (opts?: { silent?: boolean }) => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   refreshProfile: () => Promise<void>;
+  dismissSessionExpired: () => void;
+  expireSessionNow: (reason?: 'inactivity' | 'expired') => Promise<void>;
+  touchActivity: () => void;
 }
 
 export interface SignUpData {
@@ -42,13 +67,18 @@ export interface SignUpData {
   avatarUrl?: string;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined); // v2
+const AuthContext = createContext<AuthContextType | undefined>(undefined); // v3
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const [expiredReason, setExpiredReason] = useState<'inactivity' | 'expired' | null>(null);
+  const [loginAt, setLoginAt] = useState<number>(() => getLoginAt());
+  const [lastActive, setLastActive] = useState<number>(() => getLastActive());
+  const deviceIdRef = useRef<string>(getDeviceId());
 
   const fetchProfile = useCallback(async (userId: string) => {
     // Email is no longer readable from profiles by RLS/column grants; pull it from the auth session instead.
@@ -121,6 +151,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // THEN check for existing session and refresh if needed
     const initializeAuth = async () => {
       try {
+        // If the previous session was "Remember Me off" and the browser was
+        // closed/reopened, purge it before we hand a stale session to the app.
+        if (shouldPurgeSessionOnBoot()) {
+          await supabase.auth.signOut();
+          clearSessionMeta();
+          setIsLoading(false);
+          return;
+        }
+
         const { data: { session: existingSession }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -137,12 +176,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
+        // Enforce inactivity + absolute-lifetime limits on top of Supabase's own token refresh
+        const now = Date.now();
+        const last = getLastActive();
+        const loggedInAt = getLoginAt();
+        if (last && now - last > INACTIVITY_TIMEOUT_MS) {
+          await supabase.auth.signOut();
+          clearSessionMeta();
+          setExpiredReason('inactivity');
+          setSessionExpired(true);
+          setIsLoading(false);
+          return;
+        }
+        if (loggedInAt && now - loggedInAt > ABSOLUTE_SESSION_MS) {
+          await supabase.auth.signOut();
+          clearSessionMeta();
+          setExpiredReason('expired');
+          setSessionExpired(true);
+          setIsLoading(false);
+          return;
+        }
+
         // Check if token is expired or expiring soon
         const expiresAt = existingSession.expires_at;
-        const now = Math.floor(Date.now() / 1000);
+        const nowSec = Math.floor(Date.now() / 1000);
         
         // If token is already expired, force sign out and re-authenticate
-        if (expiresAt && expiresAt < now) {
+        if (expiresAt && expiresAt < nowSec) {
           console.log('Session expired, signing out...');
           await supabase.auth.signOut();
           setIsLoading(false);
@@ -150,7 +210,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         // If token expires within 5 minutes, try to refresh it proactively
-        if (expiresAt && expiresAt - now < 300) {
+        if (expiresAt && expiresAt - nowSec < 300) {
           console.log('Session expiring soon, refreshing...');
           const { data: { session: refreshedSession }, error: refreshError } = 
             await supabase.auth.refreshSession();
@@ -211,11 +271,85 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [fetchProfile]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
+  // Forward-declared via ref so the activity-monitor effect can call it
+  // even though the function itself is defined further down.
+  const expireSessionNowRef = useRef<(reason?: 'inactivity' | 'expired') => Promise<void>>(async () => {});
+
+  // Activity tracking, inactivity timeout, multi-tab logout sync.
+  useEffect(() => {
+    if (!user) return;
+
+    let lastMark = 0;
+    const throttledMark = () => {
+      const t = Date.now();
+      if (t - lastMark > 15_000) {
+        lastMark = t;
+        markActive();
+        setLastActive(t);
+      }
+    };
+
+    const events: Array<keyof WindowEventMap> = [
+      'mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click',
+    ];
+    events.forEach((ev) => window.addEventListener(ev, throttledMark, { passive: true }));
+
+    // Check inactivity + absolute session lifetime every 30s
+    const idleCheck = setInterval(() => {
+      const last = getLastActive() || Date.now();
+      const loggedInAt = getLoginAt() || Date.now();
+      const now = Date.now();
+      if (now - last > INACTIVITY_TIMEOUT_MS) {
+        expireSessionNowRef.current('inactivity');
+      } else if (loggedInAt && now - loggedInAt > ABSOLUTE_SESSION_MS) {
+        expireSessionNowRef.current('expired');
+      }
+    }, 30_000);
+
+    // Multi-tab logout — react to storage-event ping from broadcastLogout()
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === LOGOUT_STORAGE_KEY && e.newValue) {
+        supabase.auth.signOut().finally(() => {
+          setUser(null);
+          setSession(null);
+          setProfile(null);
+        });
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    // On tab regaining focus, re-verify the session server-side
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        supabase.auth.getSession().then(({ data }) => {
+          if (!data.session) {
+            expireSessionNowRef.current('expired');
+          }
+        });
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      events.forEach((ev) => window.removeEventListener(ev, throttledMark));
+      window.removeEventListener('storage', onStorage);
+      document.removeEventListener('visibilitychange', onVisibility);
+      clearInterval(idleCheck);
+    };
+  }, [user]);
+
+  const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = true) => {
     const { error } = await supabase.auth.signInWithPassword({
       email: email.toLowerCase().trim(),
       password,
     });
+    if (!error) {
+      markLogin(rememberMe);
+      setLoginAt(Date.now());
+      setLastActive(Date.now());
+      setSessionExpired(false);
+      setExpiredReason(null);
+    }
     return { error: error as Error | null };
   }, []);
 
@@ -270,11 +404,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error: null };
   }, []);
 
-  const signOut = useCallback(async () => {
+  const signOut = useCallback(async (opts?: { silent?: boolean }) => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);
+    clearSessionMeta();
+    if (!opts?.silent) {
+      broadcastLogout();
+    }
+  }, []);
+
+  const expireSessionNow = useCallback(async (reason: 'inactivity' | 'expired' = 'expired') => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setProfile(null);
+    clearSessionMeta();
+    setExpiredReason(reason);
+    setSessionExpired(true);
+    broadcastLogout();
+  }, []);
+
+  // Keep the forward-declared ref in sync so the activity monitor can call it.
+  useEffect(() => {
+    expireSessionNowRef.current = expireSessionNow;
+  }, [expireSessionNow]);
+
+  const dismissSessionExpired = useCallback(() => {
+    setSessionExpired(false);
+    setExpiredReason(null);
+  }, []);
+
+  const touchActivity = useCallback(() => {
+    markActive();
+    setLastActive(Date.now());
   }, []);
 
   const resetPassword = useCallback(async (email: string) => {
@@ -318,6 +482,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         profile,
         isAuthenticated: !!user,
         isLoading,
+        sessionExpired,
+        expiredReason,
+        deviceId: deviceIdRef.current,
+        loginAt,
+        lastActive,
         signIn,
         signUp,
         signOut,
@@ -325,6 +494,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updatePassword,
         signInWithGoogle,
         refreshProfile,
+        dismissSessionExpired,
+        expireSessionNow,
+        touchActivity,
       }}
     >
       {children}
