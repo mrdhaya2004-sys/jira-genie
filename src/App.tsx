@@ -10,6 +10,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import HiveAIButton from "./components/hiveai/HiveAIButton";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { NavigationStackProvider } from "@/navigation/NavigationStack";
+import SessionMonitor from "@/components/auth/SessionMonitor";
 import testzoneLogo from "@/assets/testzone-logo.png";
 
 // Lazy-loaded pages
@@ -128,6 +129,9 @@ const App = () => (
               <NavigationStackProvider>
                 <ErrorBoundary label="Routes">
                   <AppRoutes />
+                </ErrorBoundary>
+                <ErrorBoundary label="Session monitor" fallback={null}>
+                  <SessionMonitor />
                 </ErrorBoundary>
                 <ErrorBoundary label="Hive AI button" fallback={null}>
                   <HiveAIButton />
