@@ -268,6 +268,28 @@ const LoginForm: React.FC = () => {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="rememberMe"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-2 space-y-0">
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        checked={!!field.value}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                        disabled={isFormLoading}
+                        className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                      />
+                    </FormControl>
+                    <FormLabel className="text-sm font-normal cursor-pointer !mt-0">
+                      Remember me for 24 hours
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
+
+
               <Button 
                 type="submit" 
                 className="w-full h-11" 
