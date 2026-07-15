@@ -380,6 +380,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         profile,
         isAuthenticated: !!user,
         isLoading,
+        sessionExpired,
+        expiredReason,
+        deviceId: deviceIdRef.current,
+        loginAt,
+        lastActive,
         signIn,
         signUp,
         signOut,
@@ -387,6 +392,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updatePassword,
         signInWithGoogle,
         refreshProfile,
+        dismissSessionExpired,
+        expireSessionNow,
+        touchActivity,
       }}
     >
       {children}
