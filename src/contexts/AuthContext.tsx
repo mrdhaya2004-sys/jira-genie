@@ -199,10 +199,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Check if token is expired or expiring soon
         const expiresAt = existingSession.expires_at;
-        const now = Math.floor(Date.now() / 1000);
+        const nowSec = Math.floor(Date.now() / 1000);
         
         // If token is already expired, force sign out and re-authenticate
-        if (expiresAt && expiresAt < now) {
+        if (expiresAt && expiresAt < nowSec) {
           console.log('Session expired, signing out...');
           await supabase.auth.signOut();
           setIsLoading(false);
@@ -210,7 +210,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         // If token expires within 5 minutes, try to refresh it proactively
-        if (expiresAt && expiresAt - now < 300) {
+        if (expiresAt && expiresAt - nowSec < 300) {
           console.log('Session expiring soon, refreshing...');
           const { data: { session: refreshedSession }, error: refreshError } = 
             await supabase.auth.refreshSession();
