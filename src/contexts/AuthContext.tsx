@@ -271,6 +271,69 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [fetchProfile]);
 
+  // Activity tracking, inactivity timeout, multi-tab logout sync.
+  useEffect(() => {
+    if (!user) return;
+
+    let lastMark = 0;
+    const throttledMark = () => {
+      const t = Date.now();
+      if (t - lastMark > 15_000) {
+        lastMark = t;
+        markActive();
+        setLastActive(t);
+      }
+    };
+
+    const events: Array<keyof WindowEventMap> = [
+      'mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click',
+    ];
+    events.forEach((ev) => window.addEventListener(ev, throttledMark, { passive: true }));
+
+    // Check inactivity + absolute session lifetime every 30s
+    const idleCheck = setInterval(() => {
+      const last = getLastActive() || Date.now();
+      const loggedInAt = getLoginAt() || Date.now();
+      const now = Date.now();
+      if (now - last > INACTIVITY_TIMEOUT_MS) {
+        expireSessionNow('inactivity');
+      } else if (loggedInAt && now - loggedInAt > ABSOLUTE_SESSION_MS) {
+        expireSessionNow('expired');
+      }
+    }, 30_000);
+
+    // Multi-tab logout — react to storage-event ping from broadcastLogout()
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === LOGOUT_STORAGE_KEY && e.newValue) {
+        supabase.auth.signOut().finally(() => {
+          setUser(null);
+          setSession(null);
+          setProfile(null);
+        });
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    // On tab regaining focus, re-verify the session server-side
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        supabase.auth.getSession().then(({ data }) => {
+          if (!data.session) {
+            expireSessionNow('expired');
+          }
+        });
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      events.forEach((ev) => window.removeEventListener(ev, throttledMark));
+      window.removeEventListener('storage', onStorage);
+      document.removeEventListener('visibilitychange', onVisibility);
+      clearInterval(idleCheck);
+    };
+  }, [user, expireSessionNow]);
+
   const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = true) => {
     const { error } = await supabase.auth.signInWithPassword({
       email: email.toLowerCase().trim(),
