@@ -271,6 +271,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [fetchProfile]);
 
+  // Forward-declared via ref so the activity-monitor effect can call it
+  // even though the function itself is defined further down.
+  const expireSessionNowRef = useRef<(reason?: 'inactivity' | 'expired') => Promise<void>>(async () => {});
+
   // Activity tracking, inactivity timeout, multi-tab logout sync.
   useEffect(() => {
     if (!user) return;
