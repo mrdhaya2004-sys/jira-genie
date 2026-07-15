@@ -66,6 +66,7 @@ const LoginForm: React.FC = () => {
     defaultValues: {
       email: '',
       password: '',
+      rememberMe: true,
     },
   });
 
@@ -87,7 +88,7 @@ const LoginForm: React.FC = () => {
       }
 
       // No 2FA — sign in directly
-      const { error } = await signIn(data.email, data.password);
+      const { error } = await signIn(data.email, data.password, data.rememberMe ?? true);
       
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
@@ -113,6 +114,7 @@ const LoginForm: React.FC = () => {
 
   const handle2FAVerified = async () => {
     // OTP verified — now sign in with stored credentials
+    const remember = form.getValues('rememberMe') ?? true;
     const { error } = await signIn(pendingEmail, pendingPasswordRef.current);
     pendingPasswordRef.current = '';
     if (!error) {
