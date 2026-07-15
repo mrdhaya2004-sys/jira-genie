@@ -300,9 +300,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const loggedInAt = getLoginAt() || Date.now();
       const now = Date.now();
       if (now - last > INACTIVITY_TIMEOUT_MS) {
-        expireSessionNow('inactivity');
+        expireSessionNowRef.current('inactivity');
       } else if (loggedInAt && now - loggedInAt > ABSOLUTE_SESSION_MS) {
-        expireSessionNow('expired');
+        expireSessionNowRef.current('expired');
       }
     }, 30_000);
 
@@ -323,7 +323,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (document.visibilityState === 'visible') {
         supabase.auth.getSession().then(({ data }) => {
           if (!data.session) {
-            expireSessionNow('expired');
+            expireSessionNowRef.current('expired');
           }
         });
       }
@@ -336,7 +336,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       document.removeEventListener('visibilitychange', onVisibility);
       clearInterval(idleCheck);
     };
-  }, [user, expireSessionNow]);
+  }, [user]);
 
   const signIn = useCallback(async (email: string, password: string, rememberMe: boolean = true) => {
     const { error } = await supabase.auth.signInWithPassword({
