@@ -426,6 +426,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     broadcastLogout();
   }, []);
 
+  // Keep the forward-declared ref in sync so the activity monitor can call it.
+  useEffect(() => {
+    expireSessionNowRef.current = expireSessionNow;
+  }, [expireSessionNow]);
+
   const dismissSessionExpired = useCallback(() => {
     setSessionExpired(false);
     setExpiredReason(null);
