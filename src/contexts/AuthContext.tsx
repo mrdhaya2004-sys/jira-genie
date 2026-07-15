@@ -151,6 +151,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // THEN check for existing session and refresh if needed
     const initializeAuth = async () => {
       try {
+        // If the previous session was "Remember Me off" and the browser was
+        // closed/reopened, purge it before we hand a stale session to the app.
+        if (shouldPurgeSessionOnBoot()) {
+          await supabase.auth.signOut();
+          clearSessionMeta();
+          setIsLoading(false);
+          return;
+        }
+
         const { data: { session: existingSession }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -163,6 +172,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // If no session exists, we're done
         if (!existingSession) {
+          setIsLoading(false);
+          return;
+        }
+
+        // Enforce inactivity + absolute-lifetime limits on top of Supabase's own token refresh
+        const now = Date.now();
+        const last = getLastActive();
+        const loggedInAt = getLoginAt();
+        if (last && now - last > INACTIVITY_TIMEOUT_MS) {
+          await supabase.auth.signOut();
+          clearSessionMeta();
+          setExpiredReason('inactivity');
+          setSessionExpired(true);
+          setIsLoading(false);
+          return;
+        }
+        if (loggedInAt && now - loggedInAt > ABSOLUTE_SESSION_MS) {
+          await supabase.auth.signOut();
+          clearSessionMeta();
+          setExpiredReason('expired');
+          setSessionExpired(true);
           setIsLoading(false);
           return;
         }
