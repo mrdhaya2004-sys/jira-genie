@@ -11,7 +11,7 @@ import HiveAIButton from "./components/hiveai/HiveAIButton";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { NavigationStackProvider } from "@/navigation/NavigationStack";
 import SessionMonitor from "@/components/auth/SessionMonitor";
-import testzoneLogo from "@/assets/testzone-logo.png";
+import SplashScreen from "@/components/auth/SplashScreen";
 
 // Lazy-loaded pages
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
@@ -25,30 +25,28 @@ const QAMockTestPage = lazy(() => import("./pages/QAMockTestPage"));
 
 const queryClient = new QueryClient();
 
-const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
-    <div className="flex flex-col items-center gap-3">
-      <img src={testzoneLogo} alt="Test Zone" className="h-12 w-12 rounded-xl" />
-      <div className="h-1.5 w-32 overflow-hidden rounded-full bg-muted">
-        <div className="h-full w-1/2 animate-pulse rounded-full bg-primary" />
-      </div>
-      <p className="text-sm text-muted-foreground">Loading Test Zone…</p>
-    </div>
-  </div>
-);
+const PageLoader = () => <SplashScreen />;
 
 // Redirect authenticated users away from auth pages
 const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  
+
   if (isLoading) {
-    return <PageLoader />;
+    return <SplashScreen />;
   }
-  
+
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
-  
+
+  return <>{children}</>;
+};
+
+// Gate the entire router until the initial auth check finishes so we never
+// flash the login page for users with a valid persisted session.
+const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isLoading } = useAuth();
+  if (isLoading) return <SplashScreen />;
   return <>{children}</>;
 };
 
@@ -128,7 +126,9 @@ const App = () => (
             <BrowserRouter>
               <NavigationStackProvider>
                 <ErrorBoundary label="Routes">
-                  <AppRoutes />
+                  <AuthGate>
+                    <AppRoutes />
+                  </AuthGate>
                 </ErrorBoundary>
                 <ErrorBoundary label="Session monitor" fallback={null}>
                   <SessionMonitor />
