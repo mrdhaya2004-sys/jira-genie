@@ -126,7 +126,9 @@ const App = () => (
             <BrowserRouter>
               <NavigationStackProvider>
                 <ErrorBoundary label="Routes">
-                  <AppRoutes />
+                  <AuthGate>
+                    <AppRoutes />
+                  </AuthGate>
                 </ErrorBoundary>
                 <ErrorBoundary label="Session monitor" fallback={null}>
                   <SessionMonitor />
