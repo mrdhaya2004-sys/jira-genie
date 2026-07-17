@@ -191,16 +191,10 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
           </div>
 
           {/* Footer trust strip */}
-          <div className="flex items-center justify-between pt-6 border-t border-white/15 text-xs text-white/60">
+          <div className="pt-6 border-t border-white/15 text-xs text-white/60">
             <span>Trusted by QA engineers building modern software.</span>
-            <div className="flex items-center gap-3">
-              <span>v3.2.0</span>
-              <span className="h-1 w-1 rounded-full bg-white/40" />
-              <span>ap-south-1</span>
-              <span className="h-1 w-1 rounded-full bg-white/40" />
-              <span>build 20260716</span>
-            </div>
           </div>
+
         </div>
       </aside>
 
