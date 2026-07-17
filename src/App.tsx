@@ -25,17 +25,7 @@ const QAMockTestPage = lazy(() => import("./pages/QAMockTestPage"));
 
 const queryClient = new QueryClient();
 
-const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
-    <div className="flex flex-col items-center gap-3">
-      <img src={testzoneLogo} alt="Test Zone" className="h-12 w-12 rounded-xl" />
-      <div className="h-1.5 w-32 overflow-hidden rounded-full bg-muted">
-        <div className="h-full w-1/2 animate-pulse rounded-full bg-primary" />
-      </div>
-      <p className="text-sm text-muted-foreground">Loading Test Zone…</p>
-    </div>
-  </div>
-);
+const PageLoader = () => <SplashScreen />;
 
 // Redirect authenticated users away from auth pages
 const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
