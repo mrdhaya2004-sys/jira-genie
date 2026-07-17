@@ -30,15 +30,23 @@ const PageLoader = () => <SplashScreen />;
 // Redirect authenticated users away from auth pages
 const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  
+
   if (isLoading) {
-    return <PageLoader />;
+    return <SplashScreen />;
   }
-  
+
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
-  
+
+  return <>{children}</>;
+};
+
+// Gate the entire router until the initial auth check finishes so we never
+// flash the login page for users with a valid persisted session.
+const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isLoading } = useAuth();
+  if (isLoading) return <SplashScreen />;
   return <>{children}</>;
 };
 
