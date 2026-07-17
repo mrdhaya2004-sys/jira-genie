@@ -165,14 +165,14 @@ const DefectWorkflowTimeline: React.FC<Props> = ({ phase, isAnalyzing, hasResult
                         style={{ background: '#2563EB', opacity: 0.2 }}
                       />
                     )}
-                    <Icon style={{ width: 20, height: 20 }} className="relative" />
+                    <Icon width={20} height={20} className="relative" />
 
                     {done && (
                       <span
                         className="absolute -top-1 -right-1 flex items-center justify-center rounded-full border border-white/70 animate-scale-in"
                         style={{ width: 16, height: 16, background: '#22C55E', boxShadow: '0 0 8px rgba(34,197,94,0.5)' }}
                       >
-                        <Check style={{ width: 10, height: 10 }} className="text-white" strokeWidth={3} />
+                        <Check width={10} height={10} className="text-white" strokeWidth={3} />
                       </span>
                     )}
                   </div>
