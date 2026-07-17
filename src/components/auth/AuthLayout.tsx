@@ -245,19 +245,34 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
             ))}
           </div>
 
-          {/* Bottom meta */}
-          <div className="mt-6 text-center space-y-1.5">
-            <p className="text-xs text-slate-500">
-              Trusted by QA engineers building modern software.
+          {/* Professional SaaS footer */}
+          <footer className="mt-8 flex flex-col items-center gap-3 text-center">
+            <p className="text-[13px] font-medium text-slate-500">
+              © 2026 TestZone. All rights reserved.
             </p>
-            <div className="flex items-center justify-center gap-3 text-[11px] text-slate-400">
-              <span>v3.2.0</span>
-              <span className="h-1 w-1 rounded-full bg-slate-300" />
-              <span>ap-south-1</span>
-              <span className="h-1 w-1 rounded-full bg-slate-300" />
-              <span>build 20260716</span>
-            </div>
-          </div>
+            <nav aria-label="Legal" className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[13px] font-medium text-slate-500">
+              {[
+                { label: 'Privacy Policy', href: '/legal/privacy' },
+                { label: 'Terms of Service', href: '/legal/terms' },
+                { label: 'Cookie Policy', href: '/legal/cookies' },
+                { label: 'Security', href: '/legal/security' },
+              ].map((item, idx, arr) => (
+                <React.Fragment key={item.label}>
+                  <a
+                    href={item.href}
+                    className="group relative cursor-pointer text-slate-500 transition-colors duration-200 hover:text-blue-600"
+                  >
+                    {item.label}
+                    <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-blue-600 transition-all duration-300 group-hover:w-full" />
+                  </a>
+                  {idx < arr.length - 1 && (
+                    <span aria-hidden className="text-slate-300 select-none">•</span>
+                  )}
+                </React.Fragment>
+              ))}
+            </nav>
+          </footer>
+
         </div>
       </main>
     </div>
