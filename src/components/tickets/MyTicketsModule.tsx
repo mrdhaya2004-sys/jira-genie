@@ -49,24 +49,37 @@ const KpiCard: React.FC<{
   hint?: string;
 }> = ({ icon, label, value, gradient, accent, hint }) => (
   <div
-    className="group relative overflow-hidden rounded-2xl border border-white/60 bg-white/[0.55] backdrop-blur-[35px] p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_60px_-20px_rgba(37,99,235,0.35)]"
+    className="group relative overflow-hidden rounded-3xl border border-white/60 bg-white/[0.55] backdrop-blur-[35px] p-6 transition-all duration-300 hover:-translate-y-[3px] hover:shadow-[0_20px_60px_-20px_rgba(37,99,235,0.35)] flex flex-col justify-between min-h-[150px]"
+    style={{ ['--kpi-accent' as any]: accent }}
   >
     <div
-      className="absolute -top-8 -right-8 h-24 w-24 rounded-full opacity-40 blur-2xl transition-opacity duration-500 group-hover:opacity-70"
+      className="absolute -top-8 -right-8 h-24 w-24 rounded-full opacity-40 blur-2xl transition-opacity duration-500 group-hover:opacity-70 pointer-events-none"
       style={{ background: gradient }}
     />
-    <div className="relative flex items-start justify-between">
-      <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
-        <p className="mt-1.5 text-2xl font-bold tabular-nums text-slate-900">{value}</p>
-        {hint && <p className="mt-0.5 text-[11px] text-slate-500">{hint}</p>}
-      </div>
+    {/* Header: title left, icon right */}
+    <div className="relative flex items-start justify-between gap-4">
+      <p
+        className="flex-1 min-w-0 font-semibold uppercase text-slate-500 break-words"
+        style={{ fontSize: '13px', lineHeight: 1.4, letterSpacing: '0.5px' }}
+      >
+        {label}
+      </p>
       <div
-        className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-lg"
+        className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
         style={{ background: gradient, boxShadow: `0 8px 20px -8px ${accent}` }}
       >
         {icon}
       </div>
+    </div>
+    {/* Metric */}
+    <div className="relative mt-3">
+      <p
+        className="font-bold tabular-nums text-slate-900 leading-none"
+        style={{ fontSize: '34px' }}
+      >
+        {value}
+      </p>
+      {hint && <p className="mt-1.5 text-[13px] text-slate-400">{hint}</p>}
     </div>
   </div>
 );
