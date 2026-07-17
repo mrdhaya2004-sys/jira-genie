@@ -276,6 +276,9 @@ const MyTicketsModule: React.FC = () => {
           ))}
         </div>
 
+        {/* AI Insights */}
+        <AIInsightsPanel tickets={tickets} isLoading={isLoading} onFilter={updateFilters} />
+
         {/* Ticket list */}
         <div className="mt-4">
           <TicketList
