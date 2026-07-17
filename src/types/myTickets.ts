@@ -25,6 +25,8 @@ export interface JiraTicketItem {
   creator: JiraUser | null;
   created: string;
   updated: string;
+  dueDate?: string | null;
+  labels?: string[];
   url: string;
   isAICreated?: boolean;
 }
