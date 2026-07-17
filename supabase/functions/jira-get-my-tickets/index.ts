@@ -174,7 +174,7 @@ serve(async (req) => {
       body: JSON.stringify({
         jql: jql,
         maxResults: maxResults,
-        fields: ['key', 'summary', 'issuetype', 'status', 'priority', 'assignee', 'reporter', 'created', 'updated', 'creator'],
+        fields: ['key', 'summary', 'issuetype', 'status', 'priority', 'assignee', 'reporter', 'created', 'updated', 'creator', 'duedate', 'labels'],
       }),
     });
 
