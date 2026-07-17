@@ -232,6 +232,8 @@ serve(async (req) => {
         } : null,
         created: fields.created,
         updated: fields.updated,
+        dueDate: (fields.duedate as string | null) || null,
+        labels: (fields.labels as string[] | null) || [],
         url: `https://${jiraDomain}/browse/${issue.key}`,
       };
     }) || [];
