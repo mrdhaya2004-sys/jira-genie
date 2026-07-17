@@ -13,7 +13,7 @@ interface Props {
 interface Stage {
   key: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   color: string;
   glow: string;
 }
