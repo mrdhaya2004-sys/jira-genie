@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useMyTickets } from '@/hooks/useMyTickets';
 import TicketList from './TicketList';
+import AIInsightsPanel from './AIInsightsPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
