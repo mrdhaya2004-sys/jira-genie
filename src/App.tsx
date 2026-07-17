@@ -11,7 +11,7 @@ import HiveAIButton from "./components/hiveai/HiveAIButton";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { NavigationStackProvider } from "@/navigation/NavigationStack";
 import SessionMonitor from "@/components/auth/SessionMonitor";
-import testzoneLogo from "@/assets/testzone-logo.png";
+import SplashScreen from "@/components/auth/SplashScreen";
 
 // Lazy-loaded pages
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
