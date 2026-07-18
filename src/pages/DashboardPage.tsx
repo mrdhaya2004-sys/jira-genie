@@ -155,6 +155,7 @@ const DashboardPage: React.FC = () => {
                   {activeModule === 'account-settings' && <AccountSettingsModule />}
                   {activeModule === 'about' && <AboutUsModule onOpenFounder={() => setActiveModule('founder')} />}
                   {activeModule === 'founder' && <FounderPage onBack={() => setActiveModule('about')} />}
+                  {activeModule === 'help-support' && <HelpSupportModule />}
                 </Suspense>
               </div>
             </div>
