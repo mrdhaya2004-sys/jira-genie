@@ -167,8 +167,10 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           AI Configuration
         </button>
         <button
-          onClick={() => setHelpChatOpen(true)}
-          className="menu-item"
+          onClick={() => navigate("help-support" as ActiveModule)}
+          onMouseEnter={() => preloadModule('help-support' as ActiveModule)}
+          onFocus={() => preloadModule('help-support' as ActiveModule)}
+          className={cn("menu-item", activeModule === ('help-support' as ActiveModule) && "is-active")}
         >
           <HelpCircle className="h-4 w-4" />
           Help & Support
