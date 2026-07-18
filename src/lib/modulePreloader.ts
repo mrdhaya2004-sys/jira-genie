@@ -24,6 +24,7 @@ export const moduleLoaders = {
   'account-settings': () => import('@/components/settings/AccountSettingsModule'),
   'about': () => import('@/components/about/AboutUsModule'),
   'founder': () => import('@/components/about/FounderPage'),
+  'help-support': () => import('@/components/help/HelpSupportModule'),
 } satisfies Partial<Record<ActiveModule, Loader>>;
 
 const started = new Set<string>();
