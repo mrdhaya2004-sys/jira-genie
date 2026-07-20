@@ -576,8 +576,8 @@ const HelpSupportModule: React.FC = () => {
           <SectionTitle icon={BookOpen} title="Documentation" subtitle="Browse guides by product area" />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {DOC_CATEGORIES.map((d) => (
-              <GlassTile key={d.label}>
-                <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br', d.grad)}>
+              <GlassTile key={d.label} ariaLabel={`${d.label} documentation — ${d.count} documents`}>
+                <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br', d.grad)} aria-hidden="true">
                   <d.icon className="h-5 w-5" />
                 </div>
                 <div className="mt-4">
@@ -585,7 +585,7 @@ const HelpSupportModule: React.FC = () => {
                   <div className="text-[12px] text-muted-foreground mt-1">{d.count} documents</div>
                 </div>
                 <div className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-blue-600 dark:text-blue-400">
-                  <Search className="h-3.5 w-3.5" /> Search inside
+                  <Search className="h-3.5 w-3.5" aria-hidden="true" /> Search inside
                 </div>
               </GlassTile>
             ))}
@@ -593,12 +593,12 @@ const HelpSupportModule: React.FC = () => {
         </section>
 
         {/* ================= VIDEO LEARNING ================= */}
-        <section>
+        <section aria-label="Video learning tracks">
           <SectionTitle icon={Video} title="Video Learning" subtitle="Curated tracks from Beginner to Advanced" />
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="list">
             {VIDEO_TRACKS.map((v) => (
-              <div key={v.title} className="glass-card p-0 overflow-hidden min-w-[280px] snap-start hover:-translate-y-1 transition">
-                <div className={cn('h-32 w-full bg-gradient-to-br relative flex items-center justify-center', v.grad)}>
+              <div key={v.title} role="listitem" className="glass-card p-0 overflow-hidden min-w-[280px] snap-start hover:-translate-y-1 transition">
+                <div className={cn('h-32 w-full bg-gradient-to-br relative flex items-center justify-center', v.grad)} aria-hidden="true">
                   <PlayCircle className="h-12 w-12 text-white/90 drop-shadow" />
                   <span className="absolute top-2 left-2 text-[11px] font-semibold text-white px-2 py-0.5 rounded-full bg-black/30 backdrop-blur">
                     {v.level}
@@ -609,14 +609,15 @@ const HelpSupportModule: React.FC = () => {
                 </div>
                 <div className="p-4">
                   <div className="text-[15px] font-semibold text-foreground">{v.title}</div>
-                  <Button size="sm" variant="outline" className="mt-3 rounded-full gap-1.5">
-                    <PlayCircle className="h-4 w-4" /> Watch
+                  <Button size="sm" variant="outline" aria-label={`Watch ${v.title} (${v.level}, ${v.duration})`} className="mt-3 rounded-full gap-1.5 focus-visible:ring-2 focus-visible:ring-blue-500">
+                    <PlayCircle className="h-4 w-4" aria-hidden="true" /> Watch
                   </Button>
                 </div>
               </div>
             ))}
           </div>
         </section>
+
 
         {/* ================= SUPPORT TICKETS + SYSTEM STATUS ================= */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
