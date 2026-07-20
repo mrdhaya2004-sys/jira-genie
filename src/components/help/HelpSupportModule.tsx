@@ -377,35 +377,42 @@ const HelpSupportModule: React.FC = () => {
 
           {/* ============ GLOBAL SEARCH ============ */}
           <div className="mt-8">
+            <label htmlFor="help-global-search" className="sr-only">Search TestZone help</label>
             <div className="relative group">
               <div className="absolute -inset-[2px] rounded-[28px] bg-gradient-to-r from-blue-500 via-cyan-400 to-violet-500 opacity-40 group-focus-within:opacity-80 blur-md transition" />
               <div className="relative glass-panel rounded-[26px] flex items-center gap-3 pl-5 pr-3 py-3">
-                <Search className="h-5 w-5 text-muted-foreground shrink-0" />
+                <Search className="h-5 w-5 text-muted-foreground shrink-0" aria-hidden="true" />
                 <Input
+                  id="help-global-search"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && searchValue.trim()) sendMessage(searchValue); }}
                   placeholder={`Ask anything about TestZone... e.g. "${SEARCH_EXAMPLES[placeholderIdx]}"`}
+                  aria-label="Ask anything about TestZone"
                   className="flex-1 h-11 bg-transparent border-0 shadow-none text-[15px] focus-visible:ring-0 placeholder:text-muted-foreground/70"
                 />
-                <Button variant="ghost" size="sm" className="gap-1.5 rounded-full hidden md:inline-flex">
-                  <Mic className="h-4 w-4" /> Voice
+                <Button variant="ghost" size="sm" aria-label="Search by voice" className="gap-1.5 rounded-full hidden md:inline-flex focus-visible:ring-2 focus-visible:ring-blue-500">
+                  <Mic className="h-4 w-4" aria-hidden="true" /> <span>Voice</span>
                 </Button>
                 <Button
                   size="sm"
                   onClick={() => searchValue.trim() && sendMessage(searchValue)}
-                  className="gap-1.5 rounded-full bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/30 hover:brightness-110"
+                  aria-label="Ask AI assistant"
+                  className="gap-1.5 rounded-full bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/30 hover:brightness-110 focus-visible:ring-2 focus-visible:ring-white/60"
                 >
-                  <Sparkles className="h-4 w-4" /> AI Search
+                  <Sparkles className="h-4 w-4" aria-hidden="true" /> <span>AI Search</span>
                 </Button>
               </div>
             </div>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="mt-3 flex flex-wrap items-center gap-2" role="group" aria-label="Recent searches">
               <span className="text-xs font-medium text-muted-foreground mr-1">Recent:</span>
               {RECENT_SEARCHES.map((r) => (
                 <button
                   key={r}
+                  type="button"
                   onClick={() => setSearchValue(r)}
-                  className="text-xs px-2.5 py-1 rounded-full glass-panel hover:border-blue-500/40 transition"
+                  aria-label={`Use recent search: ${r}`}
+                  className="text-xs px-2.5 py-1 rounded-full glass-panel hover:border-blue-500/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
                   {r}
                 </button>
@@ -413,6 +420,8 @@ const HelpSupportModule: React.FC = () => {
             </div>
           </div>
         </section>
+
+
 
         {/* ================= QUICK ACTIONS ================= */}
         <section>
