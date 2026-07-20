@@ -186,17 +186,20 @@ const SectionTitle: React.FC<{ icon: React.ElementType; title: string; subtitle?
   </div>
 );
 
-const GlassTile: React.FC<React.PropsWithChildren<{ className?: string; onClick?: () => void }>> = ({ children, className, onClick }) => (
-  <div
+const GlassTile: React.FC<React.PropsWithChildren<{ className?: string; onClick?: () => void; ariaLabel?: string }>> = ({ children, className, onClick, ariaLabel }) => (
+  <button
+    type="button"
     onClick={onClick}
+    aria-label={ariaLabel}
     className={cn(
-      'glass-card p-5 transition-all duration-300 cursor-pointer',
+      'glass-card p-5 transition-all duration-300 text-left w-full',
       'hover:-translate-y-1',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
       className,
     )}
   >
     {children}
-  </div>
+  </button>
 );
 
 /* ------------------------------------------------------------------ */
