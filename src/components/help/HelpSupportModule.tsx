@@ -726,9 +726,9 @@ const HelpSupportModule: React.FC = () => {
           <SectionTitle icon={LifeBuoy} title="Contact Support" subtitle="Reach us through the channel that suits you" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {CONTACT_CHANNELS.map((c) => (
-              <GlassTile key={c.label}>
+              <GlassTile key={c.label} ariaLabel={`${c.label}: ${c.desc}`}>
                 <div className="flex items-start gap-4">
-                  <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br', c.grad)}>
+                  <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br', c.grad)} aria-hidden="true">
                     <c.icon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
@@ -746,8 +746,8 @@ const HelpSupportModule: React.FC = () => {
           <SectionTitle icon={Globe} title="Community" subtitle="Join the TestZone practitioner network" />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {COMMUNITY_LINKS.map((c) => (
-              <GlassTile key={c.label} className="text-center">
-                <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br mx-auto', c.grad)}>
+              <GlassTile key={c.label} className="text-center" ariaLabel={`${c.label}: ${c.desc}`}>
+                <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br mx-auto', c.grad)} aria-hidden="true">
                   <c.icon className="h-5 w-5" />
                 </div>
                 <div className="mt-3 text-[14px] font-semibold">{c.label}</div>
@@ -756,6 +756,7 @@ const HelpSupportModule: React.FC = () => {
             ))}
           </div>
         </section>
+
 
         {/* ================= FEEDBACK + RECENT ACTIVITY ================= */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
