@@ -764,13 +764,16 @@ const HelpSupportModule: React.FC = () => {
           <div className="lg:col-span-2">
             <SectionTitle icon={MessageSquareText} title="Share Feedback" subtitle="Help us make TestZone even better" />
             <div className="glass-card p-5 space-y-4">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Feedback category">
                 {FEEDBACK_TYPES.map((t) => (
                   <button
                     key={t}
+                    type="button"
+                    role="radio"
+                    aria-checked={feedbackType === t}
                     onClick={() => setFeedbackType(t)}
                     className={cn(
-                      'text-xs font-semibold px-3 py-1.5 rounded-full border transition',
+                      'text-xs font-semibold px-3 py-1.5 rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
                       feedbackType === t
                         ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white border-transparent shadow-md shadow-blue-500/30'
                         : 'bg-white/50 dark:bg-white/5 border-white/40 dark:border-white/10 text-foreground hover:border-blue-500/40',
@@ -781,40 +784,49 @@ const HelpSupportModule: React.FC = () => {
                 ))}
               </div>
               <div>
-                <div className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">How was your experience?</div>
-                <div className="flex gap-2">
+                <div id="rating-label" className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">How was your experience?</div>
+                <div className="flex gap-2" role="radiogroup" aria-labelledby="rating-label">
                   {EMOJI_RATINGS.map((emoji, idx) => (
                     <button
                       key={emoji}
+                      type="button"
+                      role="radio"
+                      aria-checked={rating === idx}
+                      aria-label={`Rate ${idx + 1} out of ${EMOJI_RATINGS.length}`}
                       onClick={() => setRating(idx)}
                       className={cn(
-                        'h-12 w-12 rounded-2xl text-2xl grid place-items-center border transition',
+                        'h-12 w-12 rounded-2xl text-2xl grid place-items-center border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
                         rating === idx
                           ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white border-transparent scale-110 shadow-lg shadow-amber-500/30'
                           : 'bg-white/50 dark:bg-white/5 border-white/40 dark:border-white/10 hover:scale-105',
                       )}
                     >
-                      {emoji}
+                      <span aria-hidden="true">{emoji}</span>
                     </button>
                   ))}
                 </div>
               </div>
+              <label htmlFor="feedback-text" className="sr-only">Feedback details</label>
               <Textarea
+                id="feedback-text"
                 value={feedbackText}
                 onChange={(e) => setFeedbackText(e.target.value)}
                 placeholder="Tell us more..."
+                aria-label="Feedback details"
                 rows={4}
                 className="bg-white/60 dark:bg-white/5 border-white/50 dark:border-white/10"
               />
               <div className="flex justify-end">
                 <Button
                   onClick={submitFeedback}
-                  className="rounded-full bg-gradient-to-r from-blue-500 to-violet-500 text-white gap-1.5"
+                  aria-label="Submit feedback"
+                  className="rounded-full bg-gradient-to-r from-blue-500 to-violet-500 text-white gap-1.5 focus-visible:ring-2 focus-visible:ring-white/60"
                 >
-                  <Send className="h-4 w-4" /> Submit Feedback
+                  <Send className="h-4 w-4" aria-hidden="true" /> Submit Feedback
                 </Button>
               </div>
             </div>
+
           </div>
 
           {/* Recent Activity */}
