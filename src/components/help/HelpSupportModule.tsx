@@ -428,21 +428,22 @@ const HelpSupportModule: React.FC = () => {
           <SectionTitle icon={Rocket} title="Quick Actions" subtitle="Jump into the most common workflows" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
             {QUICK_ACTIONS.map((a) => (
-              <GlassTile key={a.label}>
+              <GlassTile key={a.label} ariaLabel={`${a.label}: ${a.desc}`}>
                 <div className="flex items-start gap-4">
-                  <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br', a.grad)}>
+                  <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br', a.grad)} aria-hidden="true">
                     <a.icon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
                     <div className="text-[16px] font-semibold text-foreground">{a.label}</div>
                     <div className="text-[13px] text-muted-foreground mt-0.5">{a.desc}</div>
                   </div>
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0" />
+                  <ArrowUpRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0" aria-hidden="true" />
                 </div>
               </GlassTile>
             ))}
           </div>
         </section>
+
 
         {/* ================= AI ASSISTANT ================= */}
         <section>
