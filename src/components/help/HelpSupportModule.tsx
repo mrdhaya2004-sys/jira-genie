@@ -186,17 +186,20 @@ const SectionTitle: React.FC<{ icon: React.ElementType; title: string; subtitle?
   </div>
 );
 
-const GlassTile: React.FC<React.PropsWithChildren<{ className?: string; onClick?: () => void }>> = ({ children, className, onClick }) => (
-  <div
+const GlassTile: React.FC<React.PropsWithChildren<{ className?: string; onClick?: () => void; ariaLabel?: string }>> = ({ children, className, onClick, ariaLabel }) => (
+  <button
+    type="button"
     onClick={onClick}
+    aria-label={ariaLabel}
     className={cn(
-      'glass-card p-5 transition-all duration-300 cursor-pointer',
+      'glass-card p-5 transition-all duration-300 text-left w-full',
       'hover:-translate-y-1',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
       className,
     )}
   >
     {children}
-  </div>
+  </button>
 );
 
 /* ------------------------------------------------------------------ */
@@ -374,35 +377,42 @@ const HelpSupportModule: React.FC = () => {
 
           {/* ============ GLOBAL SEARCH ============ */}
           <div className="mt-8">
+            <label htmlFor="help-global-search" className="sr-only">Search TestZone help</label>
             <div className="relative group">
               <div className="absolute -inset-[2px] rounded-[28px] bg-gradient-to-r from-blue-500 via-cyan-400 to-violet-500 opacity-40 group-focus-within:opacity-80 blur-md transition" />
               <div className="relative glass-panel rounded-[26px] flex items-center gap-3 pl-5 pr-3 py-3">
-                <Search className="h-5 w-5 text-muted-foreground shrink-0" />
+                <Search className="h-5 w-5 text-muted-foreground shrink-0" aria-hidden="true" />
                 <Input
+                  id="help-global-search"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && searchValue.trim()) sendMessage(searchValue); }}
                   placeholder={`Ask anything about TestZone... e.g. "${SEARCH_EXAMPLES[placeholderIdx]}"`}
+                  aria-label="Ask anything about TestZone"
                   className="flex-1 h-11 bg-transparent border-0 shadow-none text-[15px] focus-visible:ring-0 placeholder:text-muted-foreground/70"
                 />
-                <Button variant="ghost" size="sm" className="gap-1.5 rounded-full hidden md:inline-flex">
-                  <Mic className="h-4 w-4" /> Voice
+                <Button variant="ghost" size="sm" aria-label="Search by voice" className="gap-1.5 rounded-full hidden md:inline-flex focus-visible:ring-2 focus-visible:ring-blue-500">
+                  <Mic className="h-4 w-4" aria-hidden="true" /> <span>Voice</span>
                 </Button>
                 <Button
                   size="sm"
                   onClick={() => searchValue.trim() && sendMessage(searchValue)}
-                  className="gap-1.5 rounded-full bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/30 hover:brightness-110"
+                  aria-label="Ask AI assistant"
+                  className="gap-1.5 rounded-full bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/30 hover:brightness-110 focus-visible:ring-2 focus-visible:ring-white/60"
                 >
-                  <Sparkles className="h-4 w-4" /> AI Search
+                  <Sparkles className="h-4 w-4" aria-hidden="true" /> <span>AI Search</span>
                 </Button>
               </div>
             </div>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="mt-3 flex flex-wrap items-center gap-2" role="group" aria-label="Recent searches">
               <span className="text-xs font-medium text-muted-foreground mr-1">Recent:</span>
               {RECENT_SEARCHES.map((r) => (
                 <button
                   key={r}
+                  type="button"
                   onClick={() => setSearchValue(r)}
-                  className="text-xs px-2.5 py-1 rounded-full glass-panel hover:border-blue-500/40 transition"
+                  aria-label={`Use recent search: ${r}`}
+                  className="text-xs px-2.5 py-1 rounded-full glass-panel hover:border-blue-500/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
                   {r}
                 </button>
@@ -411,26 +421,29 @@ const HelpSupportModule: React.FC = () => {
           </div>
         </section>
 
+
+
         {/* ================= QUICK ACTIONS ================= */}
         <section>
           <SectionTitle icon={Rocket} title="Quick Actions" subtitle="Jump into the most common workflows" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
             {QUICK_ACTIONS.map((a) => (
-              <GlassTile key={a.label}>
+              <GlassTile key={a.label} ariaLabel={`${a.label}: ${a.desc}`}>
                 <div className="flex items-start gap-4">
-                  <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br', a.grad)}>
+                  <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br', a.grad)} aria-hidden="true">
                     <a.icon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
                     <div className="text-[16px] font-semibold text-foreground">{a.label}</div>
                     <div className="text-[13px] text-muted-foreground mt-0.5">{a.desc}</div>
                   </div>
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0" />
+                  <ArrowUpRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0" aria-hidden="true" />
                 </div>
               </GlassTile>
             ))}
           </div>
         </section>
+
 
         {/* ================= AI ASSISTANT ================= */}
         <section>
@@ -446,27 +459,29 @@ const HelpSupportModule: React.FC = () => {
           />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Quick prompt buttons */}
-            <div className="glass-card p-5 lg:col-span-1 space-y-2.5">
-              <div className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Try</div>
+            <div className="glass-card p-5 lg:col-span-1 space-y-2.5" role="group" aria-label="Suggested prompts">
+              <div className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground mb-1" id="try-prompts-label">Try</div>
               {AI_ASSISTANT_ACTIONS.map((a) => (
                 <button
                   key={a.label}
+                  type="button"
                   onClick={() => sendMessage(a.prompt)}
-                  className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium bg-white/40 dark:bg-white/5 hover:bg-white/70 dark:hover:bg-white/10 border border-white/40 dark:border-white/10 transition"
+                  aria-label={`Send prompt: ${a.prompt}`}
+                  className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium bg-white/40 dark:bg-white/5 hover:bg-white/70 dark:hover:bg-white/10 border border-white/40 dark:border-white/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
-                  <span className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 text-white grid place-items-center">
+                  <span className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 text-white grid place-items-center" aria-hidden="true">
                     <a.icon className="h-4 w-4" />
                   </span>
                   <span className="flex-1">{a.label}</span>
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                  <ArrowUpRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 </button>
               ))}
             </div>
 
             {/* Chat surface */}
-            <div className="glass-card p-0 lg:col-span-2 flex flex-col overflow-hidden min-h-[460px]">
+            <section aria-label="Hive AI Assistant chat" className="glass-card p-0 lg:col-span-2 flex flex-col overflow-hidden min-h-[460px]">
               <div className="flex items-center gap-3 px-5 py-3 border-b border-white/40 dark:border-white/10">
-                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 grid place-items-center text-white shadow-lg shadow-blue-500/20">
+                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 grid place-items-center text-white shadow-lg shadow-blue-500/20" aria-hidden="true">
                   <Bot className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
@@ -475,15 +490,22 @@ const HelpSupportModule: React.FC = () => {
                 </div>
               </div>
 
-              <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-5 space-y-4">
+              <div
+                ref={chatScrollRef}
+                className="flex-1 overflow-y-auto p-5 space-y-4"
+                role="log"
+                aria-live="polite"
+                aria-atomic="false"
+                aria-label="Chat conversation"
+              >
                 {messages.map((m, i) => (
-                  <div key={i} className={cn('flex gap-3', m.role === 'user' && 'flex-row-reverse')}>
+                  <article key={i} className={cn('flex gap-3', m.role === 'user' && 'flex-row-reverse')} aria-label={`${m.role === 'assistant' ? 'Assistant' : 'You'} said`}>
                     <div className={cn(
                       'h-8 w-8 rounded-xl grid place-items-center shrink-0',
                       m.role === 'assistant'
                         ? 'bg-gradient-to-br from-blue-500 to-violet-500 text-white'
                         : 'bg-muted text-muted-foreground',
-                    )}>
+                    )} aria-hidden="true">
                       {m.role === 'assistant' ? <Bot className="h-4 w-4" /> : <UserIcon className="h-4 w-4" />}
                     </div>
                     <div className={cn(
@@ -500,14 +522,14 @@ const HelpSupportModule: React.FC = () => {
                         <p className="whitespace-pre-wrap">{m.content}</p>
                       )}
                     </div>
-                  </div>
+                  </article>
                 ))}
                 {isStreaming && messages[messages.length - 1]?.role !== 'assistant' && (
-                  <div className="flex gap-3">
-                    <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-white grid place-items-center">
+                  <div className="flex gap-3" role="status" aria-label="Assistant is typing">
+                    <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-white grid place-items-center" aria-hidden="true">
                       <Bot className="h-4 w-4" />
                     </div>
-                    <div className="px-4 py-3 rounded-2xl bg-muted flex items-center gap-1.5">
+                    <div className="px-4 py-3 rounded-2xl bg-muted flex items-center gap-1.5" aria-hidden="true">
                       <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce" />
                       <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:120ms]" />
                       <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:240ms]" />
@@ -517,7 +539,9 @@ const HelpSupportModule: React.FC = () => {
               </div>
 
               <div className="border-t border-white/40 dark:border-white/10 p-3 flex items-end gap-2">
+                <label htmlFor="help-chat-input" className="sr-only">Ask the Hive AI Assistant</label>
                 <Textarea
+                  id="help-chat-input"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
@@ -527,6 +551,7 @@ const HelpSupportModule: React.FC = () => {
                     }
                   }}
                   placeholder="Ask me anything about TestZone..."
+                  aria-label="Ask the Hive AI Assistant"
                   rows={1}
                   className="flex-1 min-h-[44px] max-h-32 resize-none py-3 bg-white/60 dark:bg-white/5 border-white/50 dark:border-white/10"
                   disabled={isStreaming}
@@ -535,22 +560,24 @@ const HelpSupportModule: React.FC = () => {
                   size="icon"
                   disabled={isStreaming || !input.trim()}
                   onClick={() => sendMessage(input)}
-                  className="rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/30"
+                  aria-label="Send message"
+                  className="rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/30 focus-visible:ring-2 focus-visible:ring-white/60"
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
-            </div>
+            </section>
           </div>
         </section>
+
 
         {/* ================= DOCUMENTATION ================= */}
         <section>
           <SectionTitle icon={BookOpen} title="Documentation" subtitle="Browse guides by product area" />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {DOC_CATEGORIES.map((d) => (
-              <GlassTile key={d.label}>
-                <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br', d.grad)}>
+              <GlassTile key={d.label} ariaLabel={`${d.label} documentation — ${d.count} documents`}>
+                <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br', d.grad)} aria-hidden="true">
                   <d.icon className="h-5 w-5" />
                 </div>
                 <div className="mt-4">
@@ -558,7 +585,7 @@ const HelpSupportModule: React.FC = () => {
                   <div className="text-[12px] text-muted-foreground mt-1">{d.count} documents</div>
                 </div>
                 <div className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-blue-600 dark:text-blue-400">
-                  <Search className="h-3.5 w-3.5" /> Search inside
+                  <Search className="h-3.5 w-3.5" aria-hidden="true" /> Search inside
                 </div>
               </GlassTile>
             ))}
@@ -566,12 +593,12 @@ const HelpSupportModule: React.FC = () => {
         </section>
 
         {/* ================= VIDEO LEARNING ================= */}
-        <section>
+        <section aria-label="Video learning tracks">
           <SectionTitle icon={Video} title="Video Learning" subtitle="Curated tracks from Beginner to Advanced" />
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="list">
             {VIDEO_TRACKS.map((v) => (
-              <div key={v.title} className="glass-card p-0 overflow-hidden min-w-[280px] snap-start hover:-translate-y-1 transition">
-                <div className={cn('h-32 w-full bg-gradient-to-br relative flex items-center justify-center', v.grad)}>
+              <div key={v.title} role="listitem" className="glass-card p-0 overflow-hidden min-w-[280px] snap-start hover:-translate-y-1 transition">
+                <div className={cn('h-32 w-full bg-gradient-to-br relative flex items-center justify-center', v.grad)} aria-hidden="true">
                   <PlayCircle className="h-12 w-12 text-white/90 drop-shadow" />
                   <span className="absolute top-2 left-2 text-[11px] font-semibold text-white px-2 py-0.5 rounded-full bg-black/30 backdrop-blur">
                     {v.level}
@@ -582,14 +609,15 @@ const HelpSupportModule: React.FC = () => {
                 </div>
                 <div className="p-4">
                   <div className="text-[15px] font-semibold text-foreground">{v.title}</div>
-                  <Button size="sm" variant="outline" className="mt-3 rounded-full gap-1.5">
-                    <PlayCircle className="h-4 w-4" /> Watch
+                  <Button size="sm" variant="outline" aria-label={`Watch ${v.title} (${v.level}, ${v.duration})`} className="mt-3 rounded-full gap-1.5 focus-visible:ring-2 focus-visible:ring-blue-500">
+                    <PlayCircle className="h-4 w-4" aria-hidden="true" /> Watch
                   </Button>
                 </div>
               </div>
             ))}
           </div>
         </section>
+
 
         {/* ================= SUPPORT TICKETS + SYSTEM STATUS ================= */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -642,27 +670,28 @@ const HelpSupportModule: React.FC = () => {
                 </div>
               }
             />
-            <div className="glass-card p-2">
+            <ul className="glass-card p-2" aria-label="Service status list">
               {SYSTEM_SERVICES.map((s, i) => (
-                <div key={s.label} className={cn(
+                <li key={s.label} className={cn(
                   'flex items-center justify-between px-3 py-3',
                   i < SYSTEM_SERVICES.length - 1 && 'border-b border-white/40 dark:border-white/5',
                 )}>
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 grid place-items-center">
+                    <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 grid place-items-center" aria-hidden="true">
                       <CheckCircle2 className="h-4 w-4" />
                     </div>
                     <span className="text-[14px] font-medium">{s.label}</span>
                   </div>
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full bg-emerald-500/10">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Operational
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full bg-emerald-500/10" aria-label={`${s.label}: operational`}>
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" /> Operational
                   </span>
-                </div>
+                </li>
               ))}
-            </div>
-            <div className="mt-2 text-[11px] text-muted-foreground text-center">
+            </ul>
+            <div className="mt-2 text-[11px] text-muted-foreground text-center" aria-live="polite">
               Auto-refreshing every 30 seconds
             </div>
+
           </div>
         </section>
 
@@ -697,9 +726,9 @@ const HelpSupportModule: React.FC = () => {
           <SectionTitle icon={LifeBuoy} title="Contact Support" subtitle="Reach us through the channel that suits you" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {CONTACT_CHANNELS.map((c) => (
-              <GlassTile key={c.label}>
+              <GlassTile key={c.label} ariaLabel={`${c.label}: ${c.desc}`}>
                 <div className="flex items-start gap-4">
-                  <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br', c.grad)}>
+                  <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br', c.grad)} aria-hidden="true">
                     <c.icon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
@@ -717,8 +746,8 @@ const HelpSupportModule: React.FC = () => {
           <SectionTitle icon={Globe} title="Community" subtitle="Join the TestZone practitioner network" />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {COMMUNITY_LINKS.map((c) => (
-              <GlassTile key={c.label} className="text-center">
-                <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br mx-auto', c.grad)}>
+              <GlassTile key={c.label} className="text-center" ariaLabel={`${c.label}: ${c.desc}`}>
+                <div className={cn('h-11 w-11 rounded-xl grid place-items-center text-white shadow-lg bg-gradient-to-br mx-auto', c.grad)} aria-hidden="true">
                   <c.icon className="h-5 w-5" />
                 </div>
                 <div className="mt-3 text-[14px] font-semibold">{c.label}</div>
@@ -728,19 +757,23 @@ const HelpSupportModule: React.FC = () => {
           </div>
         </section>
 
+
         {/* ================= FEEDBACK + RECENT ACTIVITY ================= */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Feedback */}
           <div className="lg:col-span-2">
             <SectionTitle icon={MessageSquareText} title="Share Feedback" subtitle="Help us make TestZone even better" />
             <div className="glass-card p-5 space-y-4">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Feedback category">
                 {FEEDBACK_TYPES.map((t) => (
                   <button
                     key={t}
+                    type="button"
+                    role="radio"
+                    aria-checked={feedbackType === t}
                     onClick={() => setFeedbackType(t)}
                     className={cn(
-                      'text-xs font-semibold px-3 py-1.5 rounded-full border transition',
+                      'text-xs font-semibold px-3 py-1.5 rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
                       feedbackType === t
                         ? 'bg-gradient-to-r from-blue-500 to-violet-500 text-white border-transparent shadow-md shadow-blue-500/30'
                         : 'bg-white/50 dark:bg-white/5 border-white/40 dark:border-white/10 text-foreground hover:border-blue-500/40',
@@ -751,40 +784,49 @@ const HelpSupportModule: React.FC = () => {
                 ))}
               </div>
               <div>
-                <div className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">How was your experience?</div>
-                <div className="flex gap-2">
+                <div id="rating-label" className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">How was your experience?</div>
+                <div className="flex gap-2" role="radiogroup" aria-labelledby="rating-label">
                   {EMOJI_RATINGS.map((emoji, idx) => (
                     <button
                       key={emoji}
+                      type="button"
+                      role="radio"
+                      aria-checked={rating === idx}
+                      aria-label={`Rate ${idx + 1} out of ${EMOJI_RATINGS.length}`}
                       onClick={() => setRating(idx)}
                       className={cn(
-                        'h-12 w-12 rounded-2xl text-2xl grid place-items-center border transition',
+                        'h-12 w-12 rounded-2xl text-2xl grid place-items-center border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
                         rating === idx
                           ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white border-transparent scale-110 shadow-lg shadow-amber-500/30'
                           : 'bg-white/50 dark:bg-white/5 border-white/40 dark:border-white/10 hover:scale-105',
                       )}
                     >
-                      {emoji}
+                      <span aria-hidden="true">{emoji}</span>
                     </button>
                   ))}
                 </div>
               </div>
+              <label htmlFor="feedback-text" className="sr-only">Feedback details</label>
               <Textarea
+                id="feedback-text"
                 value={feedbackText}
                 onChange={(e) => setFeedbackText(e.target.value)}
                 placeholder="Tell us more..."
+                aria-label="Feedback details"
                 rows={4}
                 className="bg-white/60 dark:bg-white/5 border-white/50 dark:border-white/10"
               />
               <div className="flex justify-end">
                 <Button
                   onClick={submitFeedback}
-                  className="rounded-full bg-gradient-to-r from-blue-500 to-violet-500 text-white gap-1.5"
+                  aria-label="Submit feedback"
+                  className="rounded-full bg-gradient-to-r from-blue-500 to-violet-500 text-white gap-1.5 focus-visible:ring-2 focus-visible:ring-white/60"
                 >
-                  <Send className="h-4 w-4" /> Submit Feedback
+                  <Send className="h-4 w-4" aria-hidden="true" /> Submit Feedback
                 </Button>
               </div>
             </div>
+
           </div>
 
           {/* Recent Activity */}
@@ -799,14 +841,20 @@ const HelpSupportModule: React.FC = () => {
               ].map((group) => (
                 <div key={group.title} className="glass-card p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <group.icon className="h-4 w-4 text-blue-500" />
-                    <span className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">{group.title}</span>
+                    <group.icon className="h-4 w-4 text-blue-500" aria-hidden="true" />
+                    <span className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground" id={`recent-${group.title.replace(/\s+/g,'-')}`}>{group.title}</span>
                   </div>
-                  <ul className="space-y-1.5">
+                  <ul className="space-y-1.5" aria-labelledby={`recent-${group.title.replace(/\s+/g,'-')}`}>
                     {group.items.map((it) => (
-                      <li key={it} className="flex items-center gap-2 text-[13px] text-foreground hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">
-                        <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-blue-500 to-violet-500" />
-                        <span className="truncate">{it}</span>
+                      <li key={it}>
+                        <button
+                          type="button"
+                          onClick={() => setSearchValue(it)}
+                          className="w-full flex items-center gap-2 text-[13px] text-foreground hover:text-blue-600 dark:hover:text-blue-400 text-left rounded-md px-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-blue-500 to-violet-500 shrink-0" aria-hidden="true" />
+                          <span className="truncate">{it}</span>
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -816,9 +864,10 @@ const HelpSupportModule: React.FC = () => {
           </div>
         </section>
 
-        <div className="h-4" />
+        <div className="h-4" aria-hidden="true" />
       </div>
     </div>
+
   );
 };
 
