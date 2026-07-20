@@ -841,14 +841,20 @@ const HelpSupportModule: React.FC = () => {
               ].map((group) => (
                 <div key={group.title} className="glass-card p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <group.icon className="h-4 w-4 text-blue-500" />
-                    <span className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">{group.title}</span>
+                    <group.icon className="h-4 w-4 text-blue-500" aria-hidden="true" />
+                    <span className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground" id={`recent-${group.title.replace(/\s+/g,'-')}`}>{group.title}</span>
                   </div>
-                  <ul className="space-y-1.5">
+                  <ul className="space-y-1.5" aria-labelledby={`recent-${group.title.replace(/\s+/g,'-')}`}>
                     {group.items.map((it) => (
-                      <li key={it} className="flex items-center gap-2 text-[13px] text-foreground hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">
-                        <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-blue-500 to-violet-500" />
-                        <span className="truncate">{it}</span>
+                      <li key={it}>
+                        <button
+                          type="button"
+                          onClick={() => setSearchValue(it)}
+                          className="w-full flex items-center gap-2 text-[13px] text-foreground hover:text-blue-600 dark:hover:text-blue-400 text-left rounded-md px-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-blue-500 to-violet-500 shrink-0" aria-hidden="true" />
+                          <span className="truncate">{it}</span>
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -858,9 +864,10 @@ const HelpSupportModule: React.FC = () => {
           </div>
         </section>
 
-        <div className="h-4" />
+        <div className="h-4" aria-hidden="true" />
       </div>
     </div>
+
   );
 };
 
