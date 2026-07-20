@@ -459,27 +459,29 @@ const HelpSupportModule: React.FC = () => {
           />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Quick prompt buttons */}
-            <div className="glass-card p-5 lg:col-span-1 space-y-2.5">
-              <div className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Try</div>
+            <div className="glass-card p-5 lg:col-span-1 space-y-2.5" role="group" aria-label="Suggested prompts">
+              <div className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground mb-1" id="try-prompts-label">Try</div>
               {AI_ASSISTANT_ACTIONS.map((a) => (
                 <button
                   key={a.label}
+                  type="button"
                   onClick={() => sendMessage(a.prompt)}
-                  className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium bg-white/40 dark:bg-white/5 hover:bg-white/70 dark:hover:bg-white/10 border border-white/40 dark:border-white/10 transition"
+                  aria-label={`Send prompt: ${a.prompt}`}
+                  className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium bg-white/40 dark:bg-white/5 hover:bg-white/70 dark:hover:bg-white/10 border border-white/40 dark:border-white/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
-                  <span className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 text-white grid place-items-center">
+                  <span className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 text-white grid place-items-center" aria-hidden="true">
                     <a.icon className="h-4 w-4" />
                   </span>
                   <span className="flex-1">{a.label}</span>
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                  <ArrowUpRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 </button>
               ))}
             </div>
 
             {/* Chat surface */}
-            <div className="glass-card p-0 lg:col-span-2 flex flex-col overflow-hidden min-h-[460px]">
+            <section aria-label="Hive AI Assistant chat" className="glass-card p-0 lg:col-span-2 flex flex-col overflow-hidden min-h-[460px]">
               <div className="flex items-center gap-3 px-5 py-3 border-b border-white/40 dark:border-white/10">
-                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 grid place-items-center text-white shadow-lg shadow-blue-500/20">
+                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 grid place-items-center text-white shadow-lg shadow-blue-500/20" aria-hidden="true">
                   <Bot className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
@@ -488,15 +490,22 @@ const HelpSupportModule: React.FC = () => {
                 </div>
               </div>
 
-              <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-5 space-y-4">
+              <div
+                ref={chatScrollRef}
+                className="flex-1 overflow-y-auto p-5 space-y-4"
+                role="log"
+                aria-live="polite"
+                aria-atomic="false"
+                aria-label="Chat conversation"
+              >
                 {messages.map((m, i) => (
-                  <div key={i} className={cn('flex gap-3', m.role === 'user' && 'flex-row-reverse')}>
+                  <article key={i} className={cn('flex gap-3', m.role === 'user' && 'flex-row-reverse')} aria-label={`${m.role === 'assistant' ? 'Assistant' : 'You'} said`}>
                     <div className={cn(
                       'h-8 w-8 rounded-xl grid place-items-center shrink-0',
                       m.role === 'assistant'
                         ? 'bg-gradient-to-br from-blue-500 to-violet-500 text-white'
                         : 'bg-muted text-muted-foreground',
-                    )}>
+                    )} aria-hidden="true">
                       {m.role === 'assistant' ? <Bot className="h-4 w-4" /> : <UserIcon className="h-4 w-4" />}
                     </div>
                     <div className={cn(
@@ -513,14 +522,14 @@ const HelpSupportModule: React.FC = () => {
                         <p className="whitespace-pre-wrap">{m.content}</p>
                       )}
                     </div>
-                  </div>
+                  </article>
                 ))}
                 {isStreaming && messages[messages.length - 1]?.role !== 'assistant' && (
-                  <div className="flex gap-3">
-                    <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-white grid place-items-center">
+                  <div className="flex gap-3" role="status" aria-label="Assistant is typing">
+                    <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-white grid place-items-center" aria-hidden="true">
                       <Bot className="h-4 w-4" />
                     </div>
-                    <div className="px-4 py-3 rounded-2xl bg-muted flex items-center gap-1.5">
+                    <div className="px-4 py-3 rounded-2xl bg-muted flex items-center gap-1.5" aria-hidden="true">
                       <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce" />
                       <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:120ms]" />
                       <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:240ms]" />
@@ -530,7 +539,9 @@ const HelpSupportModule: React.FC = () => {
               </div>
 
               <div className="border-t border-white/40 dark:border-white/10 p-3 flex items-end gap-2">
+                <label htmlFor="help-chat-input" className="sr-only">Ask the Hive AI Assistant</label>
                 <Textarea
+                  id="help-chat-input"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
@@ -540,6 +551,7 @@ const HelpSupportModule: React.FC = () => {
                     }
                   }}
                   placeholder="Ask me anything about TestZone..."
+                  aria-label="Ask the Hive AI Assistant"
                   rows={1}
                   className="flex-1 min-h-[44px] max-h-32 resize-none py-3 bg-white/60 dark:bg-white/5 border-white/50 dark:border-white/10"
                   disabled={isStreaming}
@@ -548,14 +560,16 @@ const HelpSupportModule: React.FC = () => {
                   size="icon"
                   disabled={isStreaming || !input.trim()}
                   onClick={() => sendMessage(input)}
-                  className="rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/30"
+                  aria-label="Send message"
+                  className="rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/30 focus-visible:ring-2 focus-visible:ring-white/60"
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
-            </div>
+            </section>
           </div>
         </section>
+
 
         {/* ================= DOCUMENTATION ================= */}
         <section>
