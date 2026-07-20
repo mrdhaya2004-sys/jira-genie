@@ -670,27 +670,28 @@ const HelpSupportModule: React.FC = () => {
                 </div>
               }
             />
-            <div className="glass-card p-2">
+            <ul className="glass-card p-2" aria-label="Service status list">
               {SYSTEM_SERVICES.map((s, i) => (
-                <div key={s.label} className={cn(
+                <li key={s.label} className={cn(
                   'flex items-center justify-between px-3 py-3',
                   i < SYSTEM_SERVICES.length - 1 && 'border-b border-white/40 dark:border-white/5',
                 )}>
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 grid place-items-center">
+                    <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 grid place-items-center" aria-hidden="true">
                       <CheckCircle2 className="h-4 w-4" />
                     </div>
                     <span className="text-[14px] font-medium">{s.label}</span>
                   </div>
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full bg-emerald-500/10">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Operational
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full bg-emerald-500/10" aria-label={`${s.label}: operational`}>
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" /> Operational
                   </span>
-                </div>
+                </li>
               ))}
-            </div>
-            <div className="mt-2 text-[11px] text-muted-foreground text-center">
+            </ul>
+            <div className="mt-2 text-[11px] text-muted-foreground text-center" aria-live="polite">
               Auto-refreshing every 30 seconds
             </div>
+
           </div>
         </section>
 
