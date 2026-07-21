@@ -171,6 +171,13 @@ const AIConfigurationModule: React.FC = () => {
   const [detectedModels, setDetectedModels] = useState<string[] | null>(null);
   const [revealKey, setRevealKey] = useState(false);
   const [testStage, setTestStage] = useState<string | null>(null);
+  const [smartSettings, setSmartSettings] = useState<Record<string, number>>(() =>
+    Object.fromEntries(SMART_AI_SETTINGS.map(s => [s.key, s.default]))
+  );
+  const [strictMode, setStrictMode] = useState(false);
+  const [hallucinationGuard, setHallucinationGuard] = useState(true);
+  const [deterministic, setDeterministic] = useState(false);
+
 
   const selectedProvider = AI_PROVIDERS.find((p) => p.value === provider);
   const availableModels = detectedModels ?? selectedProvider?.defaultModels ?? [];
