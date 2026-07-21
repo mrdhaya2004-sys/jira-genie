@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import HiveAIDisableDialog from '@/components/hiveai/HiveAIDisableDialog';
 import { useAIConfig } from '@/hooks/useAIConfig';
 import { useHiveAISettings } from '@/hooks/useHiveAISettings';
@@ -17,6 +18,28 @@ import {
   Bot, GitBranch, FileSearch, Ticket, ClipboardList, Code2, MousePointer2,
   Lock, HardDrive, Server, Radio,
 } from 'lucide-react';
+
+// ─────────────────────────────── AI provider gallery ───────────────────────────────
+const AI_MODEL_GALLERY: { key: string; label: string; emoji: string; gradient: string; version: string }[] = [
+  { key: 'openai', label: 'OpenAI GPT', emoji: '🤖', gradient: 'from-emerald-500 to-teal-500', version: 'gpt-4o' },
+  { key: 'anthropic', label: 'Anthropic Claude', emoji: '🧠', gradient: 'from-amber-500 to-orange-500', version: 'claude-sonnet-4' },
+  { key: 'google_gemini', label: 'Google Gemini', emoji: '✨', gradient: 'from-blue-500 to-indigo-500', version: 'gemini-2.5-pro' },
+  { key: 'deepseek', label: 'DeepSeek', emoji: '🐋', gradient: 'from-sky-500 to-cyan-500', version: 'deepseek-v3' },
+  { key: 'mistral', label: 'Mistral', emoji: '🌪', gradient: 'from-orange-500 to-rose-500', version: 'mistral-large' },
+  { key: 'openrouter', label: 'OpenRouter', emoji: '🛰', gradient: 'from-violet-500 to-purple-500', version: 'multi-model' },
+  { key: 'azure_openai', label: 'Azure OpenAI', emoji: '☁️', gradient: 'from-blue-600 to-sky-500', version: 'gpt-4o' },
+];
+
+// Smart AI slider defaults
+type SmartAISetting = { key: string; label: string; min: number; max: number; step: number; default: number; suffix?: string; gradient: string };
+const SMART_AI_SETTINGS: SmartAISetting[] = [
+  { key: 'temperature', label: 'Temperature', min: 0, max: 2, step: 0.1, default: 0.7, gradient: 'from-blue-500 to-teal-500' },
+  { key: 'topP', label: 'Top P', min: 0, max: 1, step: 0.05, default: 0.95, gradient: 'from-teal-500 to-emerald-500' },
+  { key: 'maxTokens', label: 'Max Tokens', min: 256, max: 32000, step: 256, default: 4096, gradient: 'from-indigo-500 to-blue-500' },
+  { key: 'reasoning', label: 'Reasoning Level', min: 1, max: 5, step: 1, default: 3, gradient: 'from-violet-500 to-indigo-500' },
+  { key: 'creativity', label: 'Creativity', min: 0, max: 100, step: 5, default: 65, suffix: '%', gradient: 'from-emerald-500 to-teal-500' },
+  { key: 'context', label: 'Context Length', min: 4, max: 200, step: 4, default: 128, suffix: 'K', gradient: 'from-sky-500 to-blue-500' },
+];
 
 // ─────────────────────────────── Shared bits ───────────────────────────────
 const glassCard =
