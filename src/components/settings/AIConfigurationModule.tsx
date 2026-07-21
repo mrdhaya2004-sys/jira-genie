@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import HiveAIDisableDialog from '@/components/hiveai/HiveAIDisableDialog';
 import { useAIConfig } from '@/hooks/useAIConfig';
 import { useHiveAISettings } from '@/hooks/useHiveAISettings';
@@ -17,6 +18,28 @@ import {
   Bot, GitBranch, FileSearch, Ticket, ClipboardList, Code2, MousePointer2,
   Lock, HardDrive, Server, Radio,
 } from 'lucide-react';
+
+// ─────────────────────────────── AI provider gallery ───────────────────────────────
+const AI_MODEL_GALLERY: { key: string; label: string; emoji: string; gradient: string; version: string }[] = [
+  { key: 'openai', label: 'OpenAI GPT', emoji: '🤖', gradient: 'from-emerald-500 to-teal-500', version: 'gpt-4o' },
+  { key: 'anthropic', label: 'Anthropic Claude', emoji: '🧠', gradient: 'from-amber-500 to-orange-500', version: 'claude-sonnet-4' },
+  { key: 'google_gemini', label: 'Google Gemini', emoji: '✨', gradient: 'from-blue-500 to-indigo-500', version: 'gemini-2.5-pro' },
+  { key: 'deepseek', label: 'DeepSeek', emoji: '🐋', gradient: 'from-sky-500 to-cyan-500', version: 'deepseek-v3' },
+  { key: 'mistral', label: 'Mistral', emoji: '🌪', gradient: 'from-orange-500 to-rose-500', version: 'mistral-large' },
+  { key: 'openrouter', label: 'OpenRouter', emoji: '🛰', gradient: 'from-violet-500 to-purple-500', version: 'multi-model' },
+  { key: 'azure_openai', label: 'Azure OpenAI', emoji: '☁️', gradient: 'from-blue-600 to-sky-500', version: 'gpt-4o' },
+];
+
+// Smart AI slider defaults
+type SmartAISetting = { key: string; label: string; min: number; max: number; step: number; default: number; suffix?: string; gradient: string };
+const SMART_AI_SETTINGS: SmartAISetting[] = [
+  { key: 'temperature', label: 'Temperature', min: 0, max: 2, step: 0.1, default: 0.7, gradient: 'from-blue-500 to-teal-500' },
+  { key: 'topP', label: 'Top P', min: 0, max: 1, step: 0.05, default: 0.95, gradient: 'from-teal-500 to-emerald-500' },
+  { key: 'maxTokens', label: 'Max Tokens', min: 256, max: 32000, step: 256, default: 4096, gradient: 'from-indigo-500 to-blue-500' },
+  { key: 'reasoning', label: 'Reasoning Level', min: 1, max: 5, step: 1, default: 3, gradient: 'from-violet-500 to-indigo-500' },
+  { key: 'creativity', label: 'Creativity', min: 0, max: 100, step: 5, default: 65, suffix: '%', gradient: 'from-emerald-500 to-teal-500' },
+  { key: 'context', label: 'Context Length', min: 4, max: 200, step: 4, default: 128, suffix: 'K', gradient: 'from-sky-500 to-blue-500' },
+];
 
 // ─────────────────────────────── Shared bits ───────────────────────────────
 const glassCard =
@@ -148,6 +171,13 @@ const AIConfigurationModule: React.FC = () => {
   const [detectedModels, setDetectedModels] = useState<string[] | null>(null);
   const [revealKey, setRevealKey] = useState(false);
   const [testStage, setTestStage] = useState<string | null>(null);
+  const [smartSettings, setSmartSettings] = useState<Record<string, number>>(() =>
+    Object.fromEntries(SMART_AI_SETTINGS.map(s => [s.key, s.default]))
+  );
+  const [strictMode, setStrictMode] = useState(false);
+  const [hallucinationGuard, setHallucinationGuard] = useState(true);
+  const [deterministic, setDeterministic] = useState(false);
+
 
   const selectedProvider = AI_PROVIDERS.find((p) => p.value === provider);
   const availableModels = detectedModels ?? selectedProvider?.defaultModels ?? [];
@@ -402,6 +432,9 @@ const AIConfigurationModule: React.FC = () => {
                     {revealKey ? 'Hide' : 'Reveal'}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={copyKey}><Copy className="h-4 w-4 mr-1" />Copy</Button>
+                  <Button size="sm" variant="ghost" onClick={() => toast.info('Contact your provider to rotate this key', { description: 'Paste the new key above and save to rotate.' })}>
+                    <RotateCcw className="h-4 w-4 mr-1" />Rotate
+                  </Button>
                 </div>
               </div>
             </div>
@@ -508,6 +541,110 @@ const AIConfigurationModule: React.FC = () => {
             </Button>
           </div>
         </div>
+
+        {/* ═════════ AI Models Gallery ═════════ */}
+        <div className={`${glassCard} p-6`}>
+          <div className="mb-5 flex items-center gap-3 flex-wrap">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 via-indigo-500 to-teal-500 text-white shadow-lg">
+              <Cpu className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-[18px] font-semibold text-foreground">AI Models</h3>
+              <p className="text-[13px] text-muted-foreground">Supported enterprise providers · switch models on demand</p>
+            </div>
+            <Chip icon={<Radio className="h-3 w-3" />} label={`${AI_MODEL_GALLERY.length} Providers`} tone="blue" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {AI_MODEL_GALLERY.map((m) => {
+              const isActive = config?.provider === m.key;
+              return (
+                <div key={m.key} className="group relative overflow-hidden rounded-2xl border border-white/15 bg-white/50 dark:bg-white/[0.03] p-4 backdrop-blur-xl transition-all duration-[220ms] hover:-translate-y-[3px] hover:shadow-[0_20px_60px_-25px_rgba(37,99,235,0.4)]">
+                  <div className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${m.gradient}`} />
+                  <div className="flex items-start justify-between gap-2">
+                    <div className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${m.gradient} text-white text-xl shadow-md`}>
+                      {m.emoji}
+                    </div>
+                    <Chip icon={<Activity className="h-3 w-3" />} label={isActive ? 'Connected' : 'Ready'} tone={isActive ? 'emerald' : 'muted'} pulse={isActive} />
+                  </div>
+                  <div className="mt-3">
+                    <div className="text-[15px] font-semibold text-foreground">{m.label}</div>
+                    <div className="mt-0.5 text-xs text-muted-foreground truncate">{m.version}</div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+                    <div className="rounded-lg border border-white/15 bg-white/40 dark:bg-white/[0.03] px-2 py-1.5">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Health</div>
+                      <div className="font-semibold text-foreground">{isActive ? '100%' : '—'}</div>
+                    </div>
+                    <div className="rounded-lg border border-white/15 bg-white/40 dark:bg-white/[0.03] px-2 py-1.5">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Latency</div>
+                      <div className="font-semibold text-foreground">{isActive && typeof lastResponseMs === 'number' ? `${lastResponseMs}ms` : '—'}</div>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm" variant="outline"
+                    className="mt-3 w-full h-8 text-xs"
+                    onClick={() => {
+                      const p = AI_PROVIDERS.find(pp => pp.value === m.key);
+                      if (p) { setProvider(p.value); setModel(p.defaultModels[0] ?? ''); setDetectedModels(null); }
+                      else toast.info(`${m.label} routes through OpenRouter · configure a compatible provider above`);
+                    }}
+                  >
+                    {isActive ? 'Manage Model' : 'Switch Model'}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ═════════ Smart AI Settings – sliders ═════════ */}
+        <div className={`${glassCard} p-6`}>
+          <div className="mb-5 flex items-center gap-3 flex-wrap">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-emerald-500 text-white shadow-lg">
+              <Gauge className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-[18px] font-semibold text-foreground">Smart AI Settings</h3>
+              <p className="text-[13px] text-muted-foreground">Fine-tune model behavior · temperature, reasoning, and guardrails</p>
+            </div>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            {SMART_AI_SETTINGS.map((s) => (
+              <div key={s.key} className="rounded-2xl border border-white/15 bg-white/40 dark:bg-white/[0.03] p-4 backdrop-blur-md">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-[13px] font-semibold text-foreground">{s.label}</Label>
+                  <span className={`rounded-full bg-gradient-to-r ${s.gradient} px-2.5 py-0.5 text-[11px] font-bold text-white tabular-nums shadow-sm`}>
+                    {smartSettings[s.key]}{s.suffix ?? ''}
+                  </span>
+                </div>
+                <Slider
+                  value={[smartSettings[s.key]]}
+                  min={s.min} max={s.max} step={s.step}
+                  onValueChange={(v) => setSmartSettings(prev => ({ ...prev, [s.key]: v[0] }))}
+                />
+                <div className="mt-1.5 flex justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <span>{s.min}{s.suffix ?? ''}</span><span>{s.max}{s.suffix ?? ''}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            {[
+              ['Strict Mode', strictMode, setStrictMode, 'from-indigo-500 to-blue-500'],
+              ['Hallucination Guard', hallucinationGuard, setHallucinationGuard, 'from-emerald-500 to-teal-500'],
+              ['Deterministic Mode', deterministic, setDeterministic, 'from-violet-500 to-indigo-500'],
+            ].map(([label, val, setter, grad]) => (
+              <div key={label as string} className="flex items-center justify-between rounded-2xl border border-white/15 bg-white/40 dark:bg-white/[0.03] px-4 py-3 backdrop-blur-md">
+                <div className="flex items-center gap-2">
+                  <span className={`h-2 w-2 rounded-full bg-gradient-to-r ${grad as string} shadow-md`} />
+                  <span className="text-[13px] font-semibold text-foreground">{label as string}</span>
+                </div>
+                <Switch checked={val as boolean} onCheckedChange={setter as (v: boolean) => void} />
+              </div>
+            ))}
+          </div>
+        </div>
+
 
         {/* ═════════ Workspace Settings – informational glass cards ═════════ */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
