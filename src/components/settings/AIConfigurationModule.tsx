@@ -432,6 +432,9 @@ const AIConfigurationModule: React.FC = () => {
                     {revealKey ? 'Hide' : 'Reveal'}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={copyKey}><Copy className="h-4 w-4 mr-1" />Copy</Button>
+                  <Button size="sm" variant="ghost" onClick={() => toast.info('Contact your provider to rotate this key', { description: 'Paste the new key above and save to rotate.' })}>
+                    <RotateCcw className="h-4 w-4 mr-1" />Rotate
+                  </Button>
                 </div>
               </div>
             </div>
