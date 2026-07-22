@@ -11,6 +11,7 @@ import { Slider } from '@/components/ui/slider';
 import HiveAIDisableDialog from '@/components/hiveai/HiveAIDisableDialog';
 import { useAIConfig } from '@/hooks/useAIConfig';
 import { useHiveAISettings } from '@/hooks/useHiveAISettings';
+import AIHealthHistoryChart from './AIHealthHistoryChart';
 import { AI_PROVIDERS, type AIProvider } from '@/types/aiConfig';
 import {
   Brain, Key, Plug, Shield, Loader2, CheckCircle2, XCircle, Trash2, Zap, Network,
