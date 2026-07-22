@@ -350,6 +350,9 @@ const AIConfigurationModule: React.FC = () => {
           )}
         </div>
 
+        {/* ═════════ AI Health Live Telemetry ═════════ */}
+        <AIHealthHistoryChart connected={connected} lastResponseMs={lastResponseMs} modelName={config?.model_name} />
+
         {/* ═════════ Hive Mind Pipeline ═════════ */}
         <HiveMindPipeline />
 
