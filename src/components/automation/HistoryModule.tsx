@@ -155,30 +155,34 @@ const HistoryModule: React.FC<HistoryModuleProps> = ({ onResumeAction }) => {
       <ScrollArea className="flex-1">
         <div className="px-4 sm:px-6 py-5 max-w-6xl mx-auto space-y-6">
 
-          {/* ============ HERO ============ */}
-          <div className="relative overflow-hidden rounded-3xl border border-white/30 dark:border-white/[0.08] bg-white/40 dark:bg-white/[0.03] backdrop-blur-2xl p-6 sm:p-8 shadow-[0_30px_60px_-30px_rgba(99,102,241,0.45)]">
-            {/* Animated gradient orb */}
-            <div className="pointer-events-none absolute inset-0 opacity-90">
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.12), rgba(168,85,247,0.10) 45%, rgba(6,182,212,0.12))' }} />
-              <div className="absolute -top-16 -right-10 h-72 w-72 rounded-full blur-3xl animate-pulse" style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.45), transparent 60%)', animationDuration: '6s' }} />
-              <div className="absolute -bottom-20 -left-10 h-72 w-72 rounded-full blur-3xl animate-pulse" style={{ background: 'radial-gradient(circle, rgba(6,182,212,0.45), transparent 60%)', animationDuration: '7s' }} />
+          {/* ============ COMPACT HEADER ============ */}
+          <div
+            className="relative overflow-hidden rounded-3xl border border-white/30 dark:border-white/[0.08] bg-white/50 dark:bg-white/[0.03] backdrop-blur-2xl shadow-[0_20px_50px_-30px_rgba(99,102,241,0.4)]"
+            style={{ padding: '20px 28px' }}
+          >
+            {/* Soft mesh gradient (5% opacity, 40px blur) */}
+            <div className="pointer-events-none absolute inset-0 opacity-[0.05]">
+              <div className="absolute -top-10 -right-6 h-56 w-56 rounded-full" style={{ background: 'radial-gradient(circle, #8B5CF6, transparent 60%)', filter: 'blur(40px)' }} />
+              <div className="absolute -bottom-10 -left-6 h-56 w-56 rounded-full" style={{ background: 'radial-gradient(circle, #06B6D4, transparent 60%)', filter: 'blur(40px)' }} />
+              <div className="absolute top-0 left-1/3 h-40 w-40 rounded-full" style={{ background: 'radial-gradient(circle, #3B82F6, transparent 60%)', filter: 'blur(40px)' }} />
             </div>
 
-            <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className="h-14 w-14 rounded-2xl flex items-center justify-center text-white shadow-[0_10px_30px_-8px_rgba(99,102,241,0.55)]"
-                  style={{ background: 'linear-gradient(135deg, #3B82F6, #8B5CF6 55%, #06B6D4)' }}>
-                  <History className="h-7 w-7" />
+            <div className="relative flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center" style={{ gap: '18px' }}>
+                <div
+                  className="rounded-2xl flex items-center justify-center text-white shrink-0 shadow-[0_10px_30px_-8px_rgba(99,102,241,0.55)] border border-white/30"
+                  style={{ height: 60, width: 60, background: 'linear-gradient(135deg, #3B82F6, #8B5CF6 55%, #06B6D4)' }}
+                >
+                  <History style={{ height: 28, width: 28 }} />
                 </div>
-                <div>
-                  <div className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-foreground/60 font-semibold mb-1.5">
-                    <Sparkles className="h-3 w-3" /> AI Activity Timeline
-                  </div>
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-clip-text text-transparent"
-                    style={{ backgroundImage: 'linear-gradient(135deg, #3B82F6, #8B5CF6 55%, #06B6D4)' }}>
+                <div className="min-w-0" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <h1
+                    className="bg-clip-text text-transparent leading-tight tracking-tight"
+                    style={{ fontSize: 30, fontWeight: 700, backgroundImage: 'linear-gradient(135deg, #3B82F6, #8B5CF6 55%, #06B6D4)' }}
+                  >
                     Persistent History
                   </h1>
-                  <p className="text-sm text-foreground/70 mt-1 max-w-xl">
+                  <p className="line-clamp-2" style={{ fontSize: 15, fontWeight: 500, color: '#64748B' }}>
                     Your complete AI activity timeline and productivity journey.
                   </p>
                 </div>
@@ -187,16 +191,29 @@ const HistoryModule: React.FC<HistoryModuleProps> = ({ onResumeAction }) => {
               <div className="flex flex-wrap items-center gap-2">
                 {filteredLogs.length > 0 && (
                   <>
-                    <Button variant="outline" size="sm" onClick={exportAsCSV} className="h-9 bg-white/50 dark:bg-white/[0.05] backdrop-blur-md border-white/40 dark:border-white/10">
+                    <Button
+                      variant="outline"
+                      onClick={exportAsCSV}
+                      className="bg-white/60 dark:bg-white/[0.05] backdrop-blur-md border-white/40 dark:border-white/10 hover:shadow-[0_8px_24px_-10px_rgba(59,130,246,0.6)] transition-all"
+                      style={{ height: 42, borderRadius: 18 }}
+                    >
                       <Download className="h-4 w-4 mr-1.5" /> Export
                     </Button>
-                    <Button variant="outline" size="sm" onClick={clearAllLogs} className="h-9 bg-white/50 dark:bg-white/[0.05] backdrop-blur-md border-white/40 dark:border-white/10 text-muted-foreground hover:text-destructive">
+                    <Button
+                      variant="outline"
+                      onClick={clearAllLogs}
+                      className="bg-white/60 dark:bg-white/[0.05] backdrop-blur-md border-white/40 dark:border-white/10 text-muted-foreground hover:text-destructive hover:shadow-[0_8px_24px_-10px_rgba(239,68,68,0.5)] transition-all"
+                      style={{ height: 42, borderRadius: 18 }}
+                    >
                       <Trash2 className="h-4 w-4 mr-1.5" /> Clear
                     </Button>
                   </>
                 )}
-                <Button size="sm" onClick={fetchLogs} className="h-9 text-white border-0 shadow-[0_8px_20px_-8px_rgba(99,102,241,0.6)]"
-                  style={{ background: 'linear-gradient(135deg, #3B82F6, #8B5CF6)' }}>
+                <Button
+                  onClick={fetchLogs}
+                  className="text-white border-0 shadow-[0_8px_20px_-8px_rgba(99,102,241,0.6)] hover:shadow-[0_12px_28px_-8px_rgba(99,102,241,0.75)] transition-all"
+                  style={{ height: 42, borderRadius: 18, background: 'linear-gradient(135deg, #3B82F6, #8B5CF6)' }}
+                >
                   <RotateCcw className="h-4 w-4 mr-1.5" /> Refresh
                 </Button>
               </div>
