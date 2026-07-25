@@ -9,6 +9,7 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import AIActivationBanner from '@/components/ai/AIActivationBanner';
 import { moduleLoaders, preloadFrequentModules } from '@/lib/modulePreloader';
 import { trackEvent } from '@/lib/eventTracker';
+import { ModuleNavigationProvider, useModuleNavigation } from '@/navigation/ModuleNavigationContext';
 
 // Lazy-load every module — only the active one is fetched/parsed.
 // Loader factories are shared with the preloader so hover/focus preloads dedupe.
@@ -77,8 +78,9 @@ const ModuleCrashFallback: React.FC<{ onRecover: () => void }> = ({ onRecover })
   </div>
 );
 
-const DashboardPage: React.FC = () => {
-  const [activeModule, setActiveModule] = useState<ActiveModule>('intelligence-hub');
+const DashboardInner: React.FC = () => {
+  const { activeModule, goTo, goBack } = useModuleNavigation();
+  const setActiveModule = goTo;
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
 
   const handleResumeAction = useCallback((module: string, prompt: string, historyLogId?: string) => {
@@ -88,7 +90,7 @@ const DashboardPage: React.FC = () => {
       setActiveModule(targetModule);
       setTimeout(() => setResumeData(null), 500);
     }
-  }, []);
+  }, [setActiveModule]);
 
   // Idle-preload the most frequently used modules so first click feels instant.
   useEffect(() => {
@@ -142,7 +144,7 @@ const DashboardPage: React.FC = () => {
                   {activeModule === 'tickets' && <MyTicketsModule />}
                   {activeModule === 'history' && <HistoryModule onResumeAction={handleResumeAction} />}
                   {activeModule === 'agentic-ai' && <AgenticAIModule />}
-                  {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule onNavigateBack={() => setActiveModule('mentions')} />}
+                  {activeModule === 'jira-ticket-raiser' && <JiraTicketRaiserModule onNavigateBack={goBack} />}
                   {activeModule === 'logic-scenario-creator' && <LogicScenarioCreatorModule resumeData={resumeData} />}
                   {activeModule === 'test-case-generator' && <TestCaseGeneratorModule resumeData={resumeData} />}
                   {activeModule === 'test-data-generator' && <TestDataGeneratorModule />}
@@ -154,7 +156,7 @@ const DashboardPage: React.FC = () => {
                   {activeModule === 'profile' && <ProfileModule />}
                   {activeModule === 'account-settings' && <AccountSettingsModule />}
                   {activeModule === 'about' && <AboutUsModule onOpenFounder={() => setActiveModule('founder')} />}
-                  {activeModule === 'founder' && <FounderPage onBack={() => setActiveModule('about')} />}
+                  {activeModule === 'founder' && <FounderPage onBack={goBack} />}
                   {activeModule === 'help-support' && <HelpSupportModule />}
                 </Suspense>
               </div>
@@ -170,5 +172,11 @@ const DashboardPage: React.FC = () => {
     </div>
   );
 };
+
+const DashboardPage: React.FC = () => (
+  <ModuleNavigationProvider initialModule="intelligence-hub">
+    <DashboardInner />
+  </ModuleNavigationProvider>
+);
 
 export default DashboardPage;

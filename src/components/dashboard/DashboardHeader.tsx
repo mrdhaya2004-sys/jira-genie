@@ -37,6 +37,7 @@ import NotificationPanel from '@/components/notifications/NotificationPanel';
 import ChangePasswordDialog from '@/components/profile/ChangePasswordDialog';
 import HelpChatDialog from '@/components/help/HelpChatDialog';
 import LogoutConfirmDialog from '@/components/auth/LogoutConfirmDialog';
+import SmartBackButton from '@/components/common/SmartBackButton';
 
 const MODULE_LABELS: Record<ActiveModule, string> = {
   'intelligence-hub': 'TestZone Intelligence Hub',
@@ -148,8 +149,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeModule, onModul
           </Sheet>
         </div>
 
-        {/* Logo & Breadcrumb */}
+        {/* Smart Back + Logo & Breadcrumb */}
         <div className="flex items-center gap-2">
+          <SmartBackButton className="mr-1" />
           <img src={testzoneLogo} alt="Test Zone" className="h-7 w-7 rounded-md object-contain lg:hidden" />
           <span className="text-muted-foreground/60 hidden lg:inline">
             <ChevronRight className="h-3.5 w-3.5" />
