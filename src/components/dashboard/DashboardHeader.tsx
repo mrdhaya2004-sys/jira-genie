@@ -37,6 +37,7 @@ import NotificationPanel from '@/components/notifications/NotificationPanel';
 import ChangePasswordDialog from '@/components/profile/ChangePasswordDialog';
 import HelpChatDialog from '@/components/help/HelpChatDialog';
 import LogoutConfirmDialog from '@/components/auth/LogoutConfirmDialog';
+import SmartBackButton from '@/components/common/SmartBackButton';
 
 const MODULE_LABELS: Record<ActiveModule, string> = {
   'intelligence-hub': 'TestZone Intelligence Hub',
