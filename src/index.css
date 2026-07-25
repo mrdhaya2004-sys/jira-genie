@@ -1599,3 +1599,9 @@
   }
   .ih-count { animation: ih-count-pop .6s ease-out both; }
 }
+
+@layer utilities {
+  @keyframes sbb-ripple {
+    to { transform: scale(2.4); opacity: 0; }
+  }
+}
