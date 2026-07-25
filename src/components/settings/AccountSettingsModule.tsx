@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import SmartBackButton from '@/components/common/SmartBackButton';
 // Section navigation items
 const SECTIONS = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -116,6 +117,7 @@ const AccountSettingsModule: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+              <SmartBackButton className="mr-1 shrink-0" showBreadcrumb={false} />
             <div className="flex items-center gap-3">
               <Key className="h-4 w-4 text-muted-foreground" />
               <div>
