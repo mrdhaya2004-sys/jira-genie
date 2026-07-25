@@ -16,6 +16,7 @@ import HistoryPanel from '@/components/automation/HistoryPanel';
 import EnvironmentSelector from '@/components/workspace/EnvironmentSelector';
 import type { ResumeData } from '@/pages/DashboardPage';
 
+import SmartBackButton from '@/components/common/SmartBackButton';
 interface XPathGeneratorModuleProps {
   resumeData?: ResumeData | null;
 }
@@ -94,6 +95,7 @@ const XPathGeneratorModule: React.FC<XPathGeneratorModuleProps> = ({ resumeData 
           <div className="pointer-events-none absolute -top-16 -right-10 h-32 w-32 rounded-full bg-gradient-to-br from-[hsl(217_91%_60%/0.3)] to-[hsl(160_84%_45%/0.2)] blur-3xl" />
 
 
+          <SmartBackButton className="mr-1 shrink-0" showBreadcrumb={false} />
           {/* Logo + title */}
           <div className="relative flex items-center gap-2 min-w-0">
             <div className="relative shrink-0">

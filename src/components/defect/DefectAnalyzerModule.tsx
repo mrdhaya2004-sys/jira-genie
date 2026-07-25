@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import defectAnalyzerLogo from '@/assets/defect-analyzer-logo.png.asset.json';
 import DefectWorkflowTimeline from './DefectWorkflowTimeline';
 
+import SmartBackButton from '@/components/common/SmartBackButton';
 // AI Risk Intelligence palette
 // Royal Blue #2563EB · Emerald #10B981 · Crimson #DC2626 · Amber #F59E0B · Violet #7C3AED · Slate #334155
 
@@ -95,6 +96,7 @@ const DefectAnalyzerModule: React.FC = () => {
         <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-[#10B981]/50 to-transparent" />
 
         <div className="flex items-center justify-between gap-2 px-3 sm:px-5 py-3">
+            <SmartBackButton className="mr-1 shrink-0" showBreadcrumb={false} />
           <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
             <div className="relative shrink-0">
               <div className="absolute -inset-1 rounded-2xl opacity-70 blur-lg"

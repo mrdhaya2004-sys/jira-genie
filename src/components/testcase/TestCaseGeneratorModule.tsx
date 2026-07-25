@@ -14,6 +14,7 @@ import HistoryPanel from '@/components/automation/HistoryPanel';
 import type { ResumeData } from '@/pages/DashboardPage';
 import testCaseLogo from '@/assets/test-case-generator-logo.webp';
 
+import SmartBackButton from '@/components/common/SmartBackButton';
 interface TestCaseGeneratorModuleProps {
   resumeData?: ResumeData | null;
 }
@@ -82,6 +83,7 @@ const TestCaseGeneratorModule: React.FC<TestCaseGeneratorModuleProps> = ({ resum
         <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[hsl(var(--chart-2))]/10 blur-3xl pointer-events-none animate-pulse" />
 
+          <SmartBackButton className="mr-1 shrink-0" showBreadcrumb={false} />
         <div className="relative flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           <img
             src={testCaseLogo}

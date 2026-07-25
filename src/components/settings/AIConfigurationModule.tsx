@@ -13,6 +13,7 @@ import { useAIConfig } from '@/hooks/useAIConfig';
 import { useHiveAISettings } from '@/hooks/useHiveAISettings';
 import AIHealthHistoryChart from './AIHealthHistoryChart';
 import { AI_PROVIDERS, type AIProvider } from '@/types/aiConfig';
+import SmartBackButton from '@/components/common/SmartBackButton';
 import {
   Brain, Key, Plug, Shield, Loader2, CheckCircle2, XCircle, Trash2, Zap, Network,
   Activity, Cloud, Cpu, Gauge, Database, Sparkles, Eye, EyeOff, Copy, RotateCcw,
@@ -360,6 +361,7 @@ const AIConfigurationModule: React.FC = () => {
         {/* ═════════ Hive AI Chat Toggle ═════════ */}
         <div className={`${glassCard} p-6`}>
           <div className="flex items-center justify-between gap-4 flex-wrap">
+              <SmartBackButton className="mr-1 shrink-0" showBreadcrumb={false} />
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-2xl shadow-lg">🐝</div>
               <div>

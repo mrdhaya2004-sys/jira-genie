@@ -20,6 +20,7 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
+import SmartBackButton from '@/components/common/SmartBackButton';
 import {
   useTestDataGenerator, type TDCategory, type TDField, type TDInputField, type TDResult,
 } from "@/hooks/useTestDataGenerator";
@@ -138,6 +139,7 @@ const TestDataGeneratorModule: React.FC = () => {
 
       {/* Header */}
       <div className="relative overflow-hidden px-3 sm:px-5 py-3 sm:py-4 border-b border-white/10 backdrop-blur-2xl bg-gradient-to-r from-indigo-500/10 via-fuchsia-500/10 to-cyan-500/10">
+          <SmartBackButton className="mr-1 shrink-0" showBreadcrumb={false} />
         <div className="relative flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-cyan-500 shadow-lg shadow-fuchsia-500/30 flex items-center justify-center shrink-0">
