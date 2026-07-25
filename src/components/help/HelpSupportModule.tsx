@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import helpSupportLogo from '@/assets/help-support-logo.png';
 
+import SmartBackButton from '@/components/common/SmartBackButton';
 /* ------------------------------------------------------------------ */
 /* Types + constants                                                  */
 /* ------------------------------------------------------------------ */
@@ -354,6 +355,7 @@ const HelpSupportModule: React.FC = () => {
         {/* ================= HERO HEADER ================= */}
         <section className="glass-card p-6 lg:p-8">
           <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+              <SmartBackButton className="mr-1 shrink-0" showBreadcrumb={false} />
             <div className="flex items-center gap-5">
               <div className="relative">
                 <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-500 via-cyan-400 to-violet-500 blur-2xl opacity-40" />

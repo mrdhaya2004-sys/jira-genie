@@ -10,6 +10,7 @@ import testzoneLogo from '@/assets/testzone-logo.png';
 import founderPhoto from '@/assets/founder.png';
 import { KolamMandala, TempleSilhouette, DiyaFlame, Embers } from './HeritageDecor';
 
+import SmartBackButton from '@/components/common/SmartBackButton';
 interface AboutUsModuleProps {
   onOpenFounder?: () => void;
 }
@@ -49,6 +50,7 @@ const AboutUsModule: React.FC<AboutUsModuleProps> = ({ onOpenFounder }) => {
             </Badge>
           </div>
 
+            <SmartBackButton className="mr-1 shrink-0" showBreadcrumb={false} />
           <div className="flex items-start gap-4 sm:gap-5 mb-6">
             <img
               src={testzoneLogo}

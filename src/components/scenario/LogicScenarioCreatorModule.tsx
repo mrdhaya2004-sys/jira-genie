@@ -15,6 +15,7 @@ import type { AutomationFramework, CodeFramework } from '@/types/scenario';
 import type { ResumeData } from '@/pages/DashboardPage';
 import scenarioLogo from '@/assets/xpath-generator-logo.webp';
 
+import SmartBackButton from '@/components/common/SmartBackButton';
 interface LogicScenarioCreatorModuleProps {
   resumeData?: ResumeData | null;
 }
@@ -115,6 +116,7 @@ const LogicScenarioCreatorModule: React.FC<LogicScenarioCreatorModuleProps> = ({
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
           <div className="pointer-events-none absolute -top-16 -right-10 h-32 w-32 rounded-full bg-gradient-to-br from-[hsl(217_91%_60%/0.3)] to-[hsl(160_84%_45%/0.2)] blur-3xl" />
 
+          <SmartBackButton className="mr-1 shrink-0" showBreadcrumb={false} />
           {/* Logo + title */}
           <div className="relative flex items-center gap-2 min-w-0">
             <div className="relative shrink-0">

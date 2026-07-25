@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+import SmartBackButton from '@/components/common/SmartBackButton';
 const GlassChip: React.FC<{
   icon: React.ReactNode;
   label: string;
@@ -180,6 +181,7 @@ const MyTicketsModule: React.FC = () => {
       <div className="relative z-10 mx-2 sm:mx-4 mt-2 sm:mt-3 rounded-2xl border border-white/60 bg-white/[0.55] backdrop-blur-[35px] backdrop-saturate-150 shadow-[0_20px_60px_-20px_rgba(37,99,235,0.25)]">
         <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-[#4F46E5]/50 to-transparent" />
         <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3">
+            <SmartBackButton className="mr-1 shrink-0" showBreadcrumb={false} />
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div className="relative shrink-0">
               <div

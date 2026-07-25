@@ -24,6 +24,7 @@ import HistoryLogEntry from './HistoryLogEntry';
 import HistoryViewDialog from './HistoryViewDialog';
 import SessionHistoryBar from './SessionHistoryBar';
 
+import SmartBackButton from '@/components/common/SmartBackButton';
 const MODULE_OPTIONS = [
   { value: 'all', label: 'All' },
   { value: 'test-case-generator', label: 'Test Cases' },
@@ -168,6 +169,7 @@ const HistoryModule: React.FC<HistoryModuleProps> = ({ onResumeAction }) => {
             </div>
 
             <div className="relative flex flex-wrap items-center justify-between gap-4">
+                <SmartBackButton className="mr-1 shrink-0" showBreadcrumb={false} />
               <div className="flex items-center" style={{ gap: '18px' }}>
                 <div
                   className="rounded-2xl flex items-center justify-center text-white shrink-0 shadow-[0_10px_30px_-8px_rgba(99,102,241,0.55)] border border-white/30"

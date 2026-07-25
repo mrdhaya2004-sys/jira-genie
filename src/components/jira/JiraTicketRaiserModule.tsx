@@ -9,6 +9,7 @@ import JiraConnectionGate from '@/components/jira/JiraConnectionGate';
 import { useJiraConnection } from '@/hooks/useJiraConnection';
 import jiraLogo from '@/assets/jira-logo.png';
 
+import SmartBackButton from '@/components/common/SmartBackButton';
 const ConnectedProjectBanner: React.FC = () => {
   const { jiraMetadata } = useChat();
   if (!jiraMetadata?.projectKey) return null;
@@ -97,6 +98,7 @@ const JiraTicketRaiserModule: React.FC<JiraTicketRaiserModuleProps> = ({ onNavig
           <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-[#4F46E5]/50 to-transparent" />
 
           <div className="flex items-center justify-between gap-2 px-3 sm:px-5 py-3">
+              <SmartBackButton className="mr-1 shrink-0" showBreadcrumb={false} />
             <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
               <div className="relative shrink-0">
                 {/* Multi-color halo */}
