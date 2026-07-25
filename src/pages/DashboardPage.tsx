@@ -9,6 +9,7 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import AIActivationBanner from '@/components/ai/AIActivationBanner';
 import { moduleLoaders, preloadFrequentModules } from '@/lib/modulePreloader';
 import { trackEvent } from '@/lib/eventTracker';
+import { ModuleNavigationProvider, useModuleNavigation } from '@/navigation/ModuleNavigationContext';
 
 // Lazy-load every module — only the active one is fetched/parsed.
 // Loader factories are shared with the preloader so hover/focus preloads dedupe.
