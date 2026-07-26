@@ -1,5 +1,6 @@
 import { useTheme } from "next-themes";
-import { Toaster as Sonner, toast } from "sonner";
+import { Toaster as Sonner, toast as sonnerToast } from "sonner";
+import { haptic } from "@/lib/haptics";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
@@ -23,5 +24,23 @@ const Toaster = ({ ...props }: ToasterProps) => {
     />
   );
 };
+
+// Wrap toast so success/error/warning trigger light haptic feedback.
+// Preserves the original toast() call signature and all other methods.
+type ToastFn = typeof sonnerToast;
+const toast: ToastFn = ((...args: Parameters<ToastFn>) => sonnerToast(...args)) as ToastFn;
+Object.assign(toast, sonnerToast);
+toast.success = ((...args: Parameters<typeof sonnerToast.success>) => {
+  haptic("success");
+  return sonnerToast.success(...args);
+}) as typeof sonnerToast.success;
+toast.error = ((...args: Parameters<typeof sonnerToast.error>) => {
+  haptic("error");
+  return sonnerToast.error(...args);
+}) as typeof sonnerToast.error;
+toast.warning = ((...args: Parameters<typeof sonnerToast.warning>) => {
+  haptic("warning");
+  return sonnerToast.warning(...args);
+}) as typeof sonnerToast.warning;
 
 export { Toaster, toast };
