@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.97]",
+  "tz-ripple relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-[transform,box-shadow,background-color,border-color,color,filter] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.97] hover:-translate-y-px will-change-transform",
   {
     variants: {
       variant: {
@@ -38,13 +38,13 @@ const buttonVariants = cva(
           "bg-gradient-to-b from-primary/90 to-[hsl(var(--primary-glow)/0.85)] text-primary-foreground border border-[hsl(var(--primary)/0.4)] backdrop-blur-md shadow-[inset_0_1px_0_hsl(var(--glass-highlight)),0_10px_30px_-10px_hsl(var(--glow-primary))] hover:-translate-y-px hover:shadow-[inset_0_1px_0_hsl(var(--glass-highlight)),0_16px_40px_-10px_hsl(var(--glow-primary))] hover:brightness-110",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-lg px-3",
-        lg: "h-11 rounded-xl px-8 text-base",
-        xl: "h-12 rounded-2xl px-10 text-base",
-        icon: "h-10 w-10",
-        "icon-sm": "h-8 w-8 rounded-lg",
-        "icon-lg": "h-12 w-12 rounded-2xl",
+        default: "h-11 px-4 py-2",
+        sm: "h-9 rounded-lg px-3 text-xs",
+        lg: "h-[52px] rounded-2xl px-8 text-base",
+        xl: "h-14 rounded-2xl px-10 text-base",
+        icon: "h-11 w-11",
+        "icon-sm": "h-9 w-9 rounded-lg",
+        "icon-lg": "h-[52px] w-[52px] rounded-2xl",
       },
     },
     defaultVariants: {
@@ -61,9 +61,26 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, onPointerDown, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+    const handlePointerDown = React.useCallback(
+      (e: React.PointerEvent<HTMLButtonElement>) => {
+        const el = e.currentTarget as HTMLElement;
+        const rect = el.getBoundingClientRect();
+        el.style.setProperty("--tz-rx", `${((e.clientX - rect.left) / rect.width) * 100}%`);
+        el.style.setProperty("--tz-ry", `${((e.clientY - rect.top) / rect.height) * 100}%`);
+        onPointerDown?.(e);
+      },
+      [onPointerDown]
+    );
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        onPointerDown={handlePointerDown as never}
+        {...props}
+      />
+    );
   },
 );
 Button.displayName = "Button";

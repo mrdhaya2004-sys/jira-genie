@@ -1605,3 +1605,291 @@
     to { transform: scale(2.4); opacity: 0; }
   }
 }
+
+/* =========================================================================
+   TZ · Global Interaction & Touch Experience System
+   Applies to every interactive element across TestZone.
+   Springs, hover-lift, focus rings, cursor, ripples, scroll polish.
+   ========================================================================= */
+@layer base {
+  html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+  html, body { text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+
+  /* Prefer pointer cursor on every truly-clickable element */
+  a[href], button:not(:disabled), [role="button"]:not([aria-disabled="true"]),
+  [role="tab"], [role="menuitem"], [role="option"], summary,
+  label[for], select, input[type="checkbox"], input[type="radio"],
+  input[type="submit"], input[type="button"], input[type="reset"] {
+    cursor: pointer;
+  }
+  button:disabled, [aria-disabled="true"] { cursor: not-allowed; }
+
+  /* Focus-visible: consistent premium ring, never for mouse */
+  :where(a, button, [role="button"], [role="tab"], [role="menuitem"],
+         [role="option"], input, textarea, select, summary):focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px hsl(var(--background)),
+      0 0 0 4px hsl(var(--ring) / 0.55),
+      0 8px 24px -12px hsl(var(--glow-primary));
+    border-radius: inherit;
+    transition: box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Custom scrollbar — auto-hiding, thin, smooth */
+  * { scrollbar-width: thin; scrollbar-color: hsl(var(--muted-foreground) / 0.25) transparent; }
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.22);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background 200ms ease;
+  }
+  *::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); background-clip: padding-box; }
+}
+
+@layer utilities {
+  /* ---------- Springs & timing tokens ---------- */
+  :root {
+    --tz-spring: cubic-bezier(0.22, 1, 0.36, 1);
+    --tz-snap:   cubic-bezier(0.34, 1.56, 0.64, 1);
+    --tz-ease:   cubic-bezier(0.4, 0, 0.2, 1);
+    --tz-fast:   160ms;
+    --tz-med:    200ms;
+    --tz-slow:   260ms;
+  }
+
+  /* ---------- Interactive primitive: use on any clickable element ---------- */
+  .tz-interactive {
+    transition:
+      transform var(--tz-med) var(--tz-spring),
+      box-shadow var(--tz-med) var(--tz-spring),
+      background-color var(--tz-med) var(--tz-ease),
+      border-color var(--tz-med) var(--tz-ease),
+      color var(--tz-med) var(--tz-ease),
+      filter var(--tz-med) var(--tz-ease);
+    will-change: transform;
+    transform: translateZ(0);
+  }
+  .tz-interactive:hover  { transform: translateY(-2px) scale(1.02); }
+  .tz-interactive:active { transform: translateY(0) scale(0.98); transition-duration: 90ms; }
+
+  /* Card lift */
+  .tz-card-hover {
+    transition: transform var(--tz-med) var(--tz-spring),
+                box-shadow var(--tz-med) var(--tz-spring),
+                border-color var(--tz-med) var(--tz-ease);
+  }
+  .tz-card-hover:hover {
+    transform: translateY(-3px) scale(1.005);
+    box-shadow:
+      0 20px 48px -18px hsl(var(--glass-shadow)),
+      0 0 0 1px hsl(var(--primary) / 0.18),
+      inset 0 1px 0 hsl(var(--glass-highlight));
+  }
+  .tz-card-hover:active { transform: translateY(-1px) scale(0.998); transition-duration: 100ms; }
+
+  /* Row hover (tables, lists, timelines) */
+  .tz-row-hover {
+    transition: background-color var(--tz-med) var(--tz-ease),
+                transform var(--tz-med) var(--tz-spring),
+                box-shadow var(--tz-med) var(--tz-ease);
+  }
+  .tz-row-hover:hover {
+    background-color: hsl(var(--primary) / 0.06);
+    transform: translateX(2px);
+  }
+  .tz-row-hover[data-state="selected"],
+  .tz-row-hover[aria-selected="true"] {
+    background-color: hsl(var(--primary) / 0.10);
+    box-shadow: inset 3px 0 0 0 hsl(var(--primary));
+  }
+
+  /* Chip / tag */
+  .tz-chip {
+    transition: transform var(--tz-med) var(--tz-spring),
+                background-color var(--tz-med) var(--tz-ease),
+                box-shadow var(--tz-med) var(--tz-ease);
+  }
+  .tz-chip:hover  { transform: translateY(-1px); box-shadow: 0 8px 20px -12px hsl(var(--glow-primary)); }
+  .tz-chip:active { transform: translateY(0) scale(0.97); }
+
+  /* Ripple — pair with .tz-ripple + JS-free via ::after on :active */
+  .tz-ripple { position: relative; overflow: hidden; isolation: isolate; }
+  .tz-ripple::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at var(--tz-rx, 50%) var(--tz-ry, 50%),
+                hsl(var(--primary-foreground) / 0.35) 0%,
+                hsl(var(--primary-foreground) / 0) 45%);
+    opacity: 0; transform: scale(0.4);
+    transition: opacity 500ms var(--tz-ease), transform 500ms var(--tz-spring);
+    pointer-events: none;
+  }
+  .tz-ripple:active::after { opacity: 1; transform: scale(1); transition-duration: 0ms, 0ms; }
+
+  /* Global button polish — applied automatically to all <button> */
+  button {
+    transition:
+      transform var(--tz-med) var(--tz-spring),
+      box-shadow var(--tz-med) var(--tz-spring),
+      background-color var(--tz-med) var(--tz-ease),
+      border-color var(--tz-med) var(--tz-ease),
+      color var(--tz-med) var(--tz-ease),
+      filter var(--tz-med) var(--tz-ease);
+  }
+  button:not(:disabled):active { transition-duration: 90ms; }
+
+  /* Inputs: focus glow */
+  :where(input, textarea, select):not([type="checkbox"]):not([type="radio"]) {
+    transition: box-shadow var(--tz-med) var(--tz-ease),
+                border-color var(--tz-med) var(--tz-ease),
+                background-color var(--tz-med) var(--tz-ease);
+  }
+  :where(input, textarea, select):focus-visible:not([type="checkbox"]):not([type="radio"]) {
+    box-shadow:
+      0 0 0 3px hsl(var(--ring) / 0.18),
+      0 6px 24px -12px hsl(var(--glow-primary));
+  }
+  input[aria-invalid="true"], textarea[aria-invalid="true"] {
+    border-color: hsl(var(--destructive) / 0.7) !important;
+    box-shadow: 0 0 0 3px hsl(var(--destructive) / 0.15) !important;
+  }
+
+  /* Radix popovers, dropdowns, menus, dialogs — motion polish */
+  [data-radix-popper-content-wrapper] > * {
+    transform-origin: var(--radix-popper-transform-origin);
+  }
+  [data-state="open"][data-radix-menu-content],
+  [data-state="open"][data-radix-dropdown-menu-content],
+  [data-state="open"][data-radix-popover-content],
+  [data-state="open"][data-radix-select-content],
+  [data-state="open"][data-radix-hover-card-content] {
+    animation: tz-pop-in 180ms var(--tz-spring);
+  }
+  [data-state="closed"][data-radix-menu-content],
+  [data-state="closed"][data-radix-dropdown-menu-content],
+  [data-state="closed"][data-radix-popover-content],
+  [data-state="closed"][data-radix-select-content],
+  [data-state="closed"][data-radix-hover-card-content] {
+    animation: tz-pop-out 140ms var(--tz-ease);
+  }
+  [data-radix-menu-item], [role="menuitem"], [role="option"] {
+    transition: background-color 140ms var(--tz-ease), color 140ms var(--tz-ease);
+  }
+
+  /* Tooltip */
+  [data-radix-tooltip-content],
+  [data-radix-hover-card-content] {
+    border-radius: 12px;
+  }
+
+  /* Modal / dialog */
+  [role="dialog"][data-state="open"] { animation: tz-dialog-in 220ms var(--tz-spring); }
+  [role="dialog"][data-state="closed"] { animation: tz-dialog-out 160ms var(--tz-ease); }
+
+  /* Skeleton shimmer */
+  .tz-skeleton {
+    position: relative; overflow: hidden;
+    background: hsl(var(--muted) / 0.6);
+    border-radius: 10px;
+  }
+  .tz-skeleton::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      hsl(var(--glass-highlight)) 50%,
+      transparent 100%);
+    animation: tz-shimmer 1.4s infinite;
+    transform: translateX(-100%);
+  }
+
+  /* Toast slide */
+  .tz-toast-in  { animation: tz-toast-in 260ms var(--tz-spring) both; }
+  .tz-toast-out { animation: tz-toast-out 180ms var(--tz-ease) both; }
+
+  /* Page transition wrapper */
+  .tz-page-enter { animation: tz-page-in 220ms var(--tz-spring) both; }
+
+  /* Sidebar item active indicator */
+  .tz-side-item {
+    position: relative;
+    transition: background-color var(--tz-med) var(--tz-ease),
+                color var(--tz-med) var(--tz-ease);
+  }
+  .tz-side-item::before {
+    content: ""; position: absolute; left: 0; top: 12%; bottom: 12%;
+    width: 3px; border-radius: 3px;
+    background: linear-gradient(180deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    transform: scaleY(0); transform-origin: center;
+    transition: transform 260ms var(--tz-spring), opacity var(--tz-med) var(--tz-ease);
+    opacity: 0;
+  }
+  .tz-side-item[data-active="true"]::before,
+  .tz-side-item[aria-current="page"]::before {
+    transform: scaleY(1); opacity: 1;
+  }
+  .tz-side-item[data-active="true"],
+  .tz-side-item[aria-current="page"] {
+    background: linear-gradient(90deg, hsl(var(--primary) / 0.14), transparent 80%);
+  }
+
+  /* iOS switch polish (works alongside shadcn Switch) */
+  [role="switch"][data-state="checked"] {
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.4),
+                0 6px 18px -6px hsl(var(--glow-primary));
+  }
+  [role="switch"] > span { transition: transform 220ms var(--tz-snap); }
+
+  /* Guarantee minimum touch target on mobile */
+  @media (pointer: coarse) {
+    button, [role="button"], a[href], input[type="submit"], input[type="button"] {
+      min-height: 44px;
+    }
+  }
+
+  /* ---------- Keyframes ---------- */
+  @keyframes tz-pop-in {
+    from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  @keyframes tz-pop-out {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0; transform: scale(0.97); }
+  }
+  @keyframes tz-dialog-in {
+    from { opacity: 0; transform: scale(0.95) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  @keyframes tz-dialog-out {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0; transform: scale(0.97); }
+  }
+  @keyframes tz-shimmer {
+    100% { transform: translateX(100%); }
+  }
+  @keyframes tz-toast-in {
+    from { opacity: 0; transform: translate3d(20px, -8px, 0) scale(0.98); }
+    to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  }
+  @keyframes tz-toast-out {
+    from { opacity: 1; transform: translate3d(0, 0, 0); }
+    to   { opacity: 0; transform: translate3d(20px, 0, 0); }
+  }
+  @keyframes tz-page-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+}
