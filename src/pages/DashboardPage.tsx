@@ -33,8 +33,9 @@ const AboutUsModule = lazy(moduleLoaders['about'] as () => Promise<AnyComp>);
 const FounderPage = lazy(moduleLoaders['founder'] as () => Promise<AnyComp>);
 const IntelligenceHubModule = lazy(moduleLoaders['intelligence-hub'] as () => Promise<AnyComp>);
 const HelpSupportModule = lazy(moduleLoaders['help-support'] as () => Promise<AnyComp>);
+const StudioModule = lazy(moduleLoaders['studio'] as () => Promise<AnyComp>);
 
-export type ActiveModule = 'intelligence-hub' | 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'test-data-generator' | 'xpath-generator' | 'defect-analyzer' | 'gitlab-execution' | 'code-analyzer' | 'ai-settings' | 'profile' | 'account-settings' | 'about' | 'founder' | 'help-support';
+export type ActiveModule = 'intelligence-hub' | 'mentions' | 'chat' | 'tickets' | 'history' | 'agentic-ai' | 'jira-ticket-raiser' | 'logic-scenario-creator' | 'test-case-generator' | 'test-data-generator' | 'xpath-generator' | 'defect-analyzer' | 'gitlab-execution' | 'code-analyzer' | 'ai-settings' | 'profile' | 'account-settings' | 'about' | 'founder' | 'help-support' | 'studio';
 
 const MODULE_MAP: Record<string, ActiveModule> = {
   'test-case-generator': 'test-case-generator',
@@ -158,6 +159,7 @@ const DashboardInner: React.FC = () => {
                   {activeModule === 'about' && <AboutUsModule onOpenFounder={() => setActiveModule('founder')} />}
                   {activeModule === 'founder' && <FounderPage onBack={goBack} />}
                   {activeModule === 'help-support' && <HelpSupportModule />}
+                  {activeModule === 'studio' && <StudioModule />}
                 </Suspense>
               </div>
             </div>
