@@ -20,7 +20,8 @@ import {
   ShieldAlert,
   GitBranch,
   ScanLine,
-  Sparkles } from
+  Sparkles,
+  Layers } from
 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ActiveModule } from '@/pages/DashboardPage';
@@ -87,7 +88,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   { icon: ShieldAlert, label: 'AI Defect Analyzer', module: 'defect-analyzer' as ActiveModule },
   { icon: Ticket, label: 'Jira Ticket Raiser', module: 'jira-ticket-raiser' as ActiveModule },
   { icon: GitBranch, label: 'GitLab AI', module: 'gitlab-execution' as ActiveModule },
-  { icon: ScanLine, label: 'Hive Code Analyzer', module: 'code-analyzer' as ActiveModule }];
+  { icon: ScanLine, label: 'Hive Code Analyzer', module: 'code-analyzer' as ActiveModule },
+  { icon: Layers, label: 'TestZone Studio', module: 'studio' as ActiveModule }];
+
 
 
   return (

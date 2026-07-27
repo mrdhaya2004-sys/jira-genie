@@ -25,6 +25,7 @@ export const moduleLoaders = {
   'about': () => import('@/components/about/AboutUsModule'),
   'founder': () => import('@/components/about/FounderPage'),
   'help-support': () => import('@/components/help/HelpSupportModule'),
+  'studio': () => import('@/components/studio/StudioModule'),
 } satisfies Partial<Record<ActiveModule, Loader>>;
 
 const started = new Set<string>();
