@@ -22,6 +22,7 @@ const MODULE_LABELS: Record<ActiveModule, string> = {
   'about': 'About Us',
   'founder': 'Founder',
   'help-support': 'Help & Support',
+  'studio': 'TestZone Studio',
 };
 
 export const getModuleLabel = (m: ActiveModule) => MODULE_LABELS[m] ?? m;
