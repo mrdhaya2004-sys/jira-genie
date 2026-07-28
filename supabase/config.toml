@@ -87,6 +87,10 @@ verify_jwt = false
 [functions.test-data-generator]
 verify_jwt = false
 
+[functions.studio-git-fetch]
+verify_jwt = false
+
+
 
 
 
