@@ -1,11 +1,19 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { ChevronRight, ChevronDown, File as FileIcon, Folder, FolderOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { FileNode } from './sampleProjects';
 
-const iconFor = (name: string) => {
+const iconFor = (name: string, dark: boolean) => {
   const ext = name.split('.').pop()?.toLowerCase();
-  const colors: Record<string, string> = {
+  const light: Record<string, string> = {
+    java: 'text-orange-500', kt: 'text-purple-600',
+    ts: 'text-sky-600', tsx: 'text-sky-600', js: 'text-amber-500', jsx: 'text-amber-500',
+    json: 'text-yellow-500', xml: 'text-purple-600', yaml: 'text-emerald-600', yml: 'text-emerald-600',
+    feature: 'text-green-600', md: 'text-slate-500',
+    gradle: 'text-emerald-600', groovy: 'text-emerald-600',
+    properties: 'text-blue-600', csv: 'text-teal-600',
+  };
+  const darkMap: Record<string, string> = {
     java: 'text-orange-400', kt: 'text-purple-400',
     ts: 'text-sky-400', tsx: 'text-sky-400', js: 'text-yellow-400', jsx: 'text-yellow-400',
     json: 'text-amber-400', xml: 'text-emerald-400', yaml: 'text-emerald-400', yml: 'text-emerald-400',
@@ -13,7 +21,8 @@ const iconFor = (name: string) => {
     gradle: 'text-emerald-500', groovy: 'text-emerald-500',
     properties: 'text-blue-400', csv: 'text-teal-400',
   };
-  return colors[ext || ''] || 'text-muted-foreground';
+  const map = dark ? darkMap : light;
+  return map[ext || ''] || (dark ? 'text-muted-foreground' : 'text-slate-500');
 };
 
 interface TreeProps {
@@ -21,14 +30,24 @@ interface TreeProps {
   activePath: string;
   onOpen: (path: string) => void;
   depth?: number;
+  dark?: boolean;
 }
 
-const Tree: React.FC<TreeProps> = ({ nodes, activePath, onOpen, depth = 0 }) => {
+const Tree: React.FC<TreeProps> = ({ nodes, activePath, onOpen, depth = 0, dark = false }) => {
   const [open, setOpen] = useState<Record<string, boolean>>(() => {
     const s: Record<string, boolean> = {};
     nodes.forEach(n => { if (n.type === 'dir' && depth < 2) s[n.path] = true; });
     return s;
   });
+
+  const hoverBg = dark ? 'hover:bg-white/5' : 'hover:bg-blue-50/70';
+  const chev = dark ? 'text-muted-foreground' : 'text-slate-400';
+  const folder = dark ? 'text-sky-400' : 'text-[#2563EB]';
+  const folderDim = dark ? 'text-sky-400/80' : 'text-[#2563EB]/80';
+  const activeCls = dark
+    ? 'bg-primary/15 text-primary-foreground'
+    : 'bg-[#DBEAFE]/70 text-[#1D4ED8] font-medium border-l-2 border-[#2563EB]';
+
   return (
     <ul className="text-[13px]">
       {nodes.map(n => (
@@ -38,26 +57,27 @@ const Tree: React.FC<TreeProps> = ({ nodes, activePath, onOpen, depth = 0 }) => 
               <button
                 type="button"
                 onClick={() => setOpen(s => ({ ...s, [n.path]: !s[n.path] }))}
-                className="w-full flex items-center gap-1 px-2 py-1 rounded hover:bg-white/5 text-left"
+                className={cn('w-full flex items-center gap-1 px-2 py-1 rounded text-left transition-colors', hoverBg)}
                 style={{ paddingLeft: 8 + depth * 12 }}
               >
-                {open[n.path] ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
-                {open[n.path] ? <FolderOpen className="h-4 w-4 text-sky-400" /> : <Folder className="h-4 w-4 text-sky-400/80" />}
+                {open[n.path] ? <ChevronDown className={cn('h-3.5 w-3.5', chev)} /> : <ChevronRight className={cn('h-3.5 w-3.5', chev)} />}
+                {open[n.path] ? <FolderOpen className={cn('h-4 w-4', folder)} /> : <Folder className={cn('h-4 w-4', folderDim)} />}
                 <span className="truncate">{n.name}</span>
               </button>
-              {open[n.path] && <Tree nodes={n.children} activePath={activePath} onOpen={onOpen} depth={depth + 1} />}
+              {open[n.path] && <Tree nodes={n.children} activePath={activePath} onOpen={onOpen} depth={depth + 1} dark={dark} />}
             </>
           ) : (
             <button
               type="button"
               onClick={() => onOpen(n.path)}
               className={cn(
-                'w-full flex items-center gap-2 px-2 py-1 rounded text-left hover:bg-white/5',
-                activePath === n.path && 'bg-primary/15 text-primary-foreground'
+                'w-full flex items-center gap-2 px-2 py-1 rounded text-left transition-colors',
+                hoverBg,
+                activePath === n.path && activeCls
               )}
               style={{ paddingLeft: 22 + depth * 12 }}
             >
-              <FileIcon className={cn('h-3.5 w-3.5', iconFor(n.name))} />
+              <FileIcon className={cn('h-3.5 w-3.5', iconFor(n.name, dark))} />
               <span className="truncate">{n.name}</span>
             </button>
           )}
