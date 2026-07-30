@@ -12,8 +12,10 @@ import {
   FolderOpen, Play, Bug, Package, Terminal as TermIcon, Sparkles, X,
   CheckCircle2, XCircle, MinusCircle, Clock, Boxes, Cpu, Layers,
   Wrench, Rocket, ChevronRight, ScanSearch, Server, Palette, Check,
+  PanelRightClose, PanelRightOpen,
 } from 'lucide-react';
 import SmartBackButton from '@/components/common/SmartBackButton';
+import { Splitter, usePersistedSize, usePersistedFlag } from '@/components/common/SplitPane';
 import Tree from './StudioFileTree';
 import StudioConsole, { type ConsoleLine, type LogTab, type LogLevel } from './StudioConsole';
 import StudioImportDialog from './StudioImportDialog';
@@ -21,6 +23,7 @@ import StudioInstallerDialog from './StudioInstallerDialog';
 import StudioAIPanel, { type FailureAnalysis } from './StudioAIPanel';
 import { SAMPLE_PROJECTS, flattenFiles, type DetectedProject, type FileNode } from './sampleProjects';
 import { cn } from '@/lib/utils';
+
 
 const monacoLang = (lang: string) => ({
   java: 'java', kotlin: 'kotlin', kt: 'kotlin',
@@ -351,6 +354,47 @@ const StudioModule: React.FC = () => {
     duration: results.reduce((a, r) => a + r.durationMs, 0),
   }), [results]);
 
+  /* ---------------- Resizable split-pane layout ---------------- */
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [breakpoint, setBreakpoint] = useState<'lg' | 'md' | 'sm'>('lg');
+  const [dragging, setDragging] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const tree = usePersistedSize('tz-studio-tree-w', 240, 180, 380);
+  const ai = usePersistedSize('tz-studio-ai-w', 360, 280, 500);
+  const consolePane = usePersistedSize('tz-studio-console-h', 260, 140, 560);
+  const [aiCollapsed, setAiCollapsed] = usePersistedFlag('tz-studio-ai-collapsed', false);
+
+  useEffect(() => {
+    const measure = () => {
+      const w = window.innerWidth;
+      setBreakpoint(w < 900 ? 'sm' : w < 1280 ? 'md' : 'lg');
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
+
+  const isSmall = breakpoint === 'sm';
+  const showDockedAi = !isSmall && !aiCollapsed;
+
+  // Editor must keep >= 55% (AI panel <= 45%) and <= 85% (AI panel >= 15%) of the split area
+  const clampAi = useCallback((w: number) => {
+    const total = bodyRef.current?.clientWidth ?? 1280;
+    const area = Math.max(480, total - tree.size - 12);
+    const lo = Math.max(280, Math.round(area * 0.15));
+    const hi = Math.max(lo, Math.min(500, Math.round(area * 0.45)));
+    return Math.min(hi, Math.max(lo, w));
+  }, [tree.size]);
+
+  const aiWidth = clampAi(ai.size);
+
+  const toggleAi = useCallback(() => {
+    if (isSmall) { setDrawerOpen(o => !o); return; }
+    setAiCollapsed(c => !c);
+  }, [isSmall, setAiCollapsed]);
+
+
   // Root palette per theme
   const rootBg = dark
     ? 'bg-gradient-to-br from-[#0a0e1a] via-[#0b1226] to-[#0a0e1a]'
@@ -439,13 +483,33 @@ const StudioModule: React.FC = () => {
             {running ? <><Clock className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Running…</> : <><Play className="h-3.5 w-3.5 mr-1.5" /> Run</>}
           </Button>
           <Button size="sm" variant="outline" disabled={!project || running}><Bug className="h-3.5 w-3.5 mr-1.5" /> Debug</Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={toggleAi}
+            aria-label={(isSmall ? drawerOpen : !aiCollapsed) ? 'Hide AI Insights panel' : 'Show AI Insights panel'}
+            title="Toggle AI Insights panel"
+          >
+            {(isSmall ? drawerOpen : !aiCollapsed)
+              ? <PanelRightClose className="h-3.5 w-3.5" />
+              : <PanelRightOpen className="h-3.5 w-3.5" />}
+          </Button>
+
         </div>
       </header>
 
-      {/* Body: File tree | Editor+Console | AI panel */}
-      <div className="relative z-10 flex-1 min-h-0 grid grid-cols-[240px_1fr_360px] gap-0">
+      {/* Body: File tree | Editor+Console | AI panel — fully resizable split panes */}
+      <div ref={bodyRef} className="relative z-10 flex-1 min-h-0 flex overflow-hidden">
         {/* File tree */}
-        <aside className={cn('border-r flex flex-col min-h-0', borderSubtle, glassPanel)}>
+        <aside
+          style={{ width: tree.size }}
+          className={cn(
+            'border-r flex flex-col min-h-0 shrink-0',
+            !dragging && 'transition-[width] duration-[220ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+            borderSubtle, glassPanel,
+          )}
+        >
+
           <div className={cn('h-9 px-3 flex items-center border-b text-[11px] font-semibold uppercase tracking-widest', borderSubtle, textMuted)}>
             <Boxes className="h-3.5 w-3.5 mr-1.5" /> Project
           </div>
@@ -475,8 +539,19 @@ const StudioModule: React.FC = () => {
           )}
         </aside>
 
+        {/* File tree ↔ Editor splitter */}
+        <Splitter
+          orientation="vertical"
+          dark={dark}
+          label="Resize project explorer"
+          onDragStateChange={setDragging}
+          onDelta={tree.nudge}
+          onReset={tree.reset}
+        />
+
         {/* Editor + Console (stacked) */}
-        <section className="flex flex-col min-h-0 min-w-0">
+        <section className="flex flex-col min-h-0 min-w-0 flex-1">
+
           {/* Editor tabs */}
           <div className={cn('flex items-center border-b h-9 overflow-x-auto', borderSubtle, dark ? 'bg-black/30' : 'bg-white/60 backdrop-blur-xl')}>
             {openTabs.length === 0 ? (
@@ -542,15 +617,50 @@ const StudioModule: React.FC = () => {
               <EmptyEditor project={project} onImport={() => setImportOpen(true)} dark={dark} />
             )}
           </div>
+          {/* Editor ↔ Console splitter */}
+          <Splitter
+            orientation="horizontal"
+            dark={dark}
+            label="Resize console"
+            onDragStateChange={setDragging}
+            onDelta={(d) => consolePane.nudge(-d)}
+            onReset={consolePane.reset}
+          />
 
           {/* Console */}
-          <div className="h-[38%] min-h-[220px]">
+          <div
+            className={cn('shrink-0 min-h-0', !dragging && 'transition-[height] duration-[220ms] ease-[cubic-bezier(0.22,1,0.36,1)]')}
+            style={{ height: consolePane.size }}
+          >
             <StudioConsole lines={lines} onClear={clearTab} onTerminal={handleTerminal} dark={dark} />
           </div>
         </section>
 
+        {/* Editor ↔ AI Insights splitter */}
+        {showDockedAi && (
+          <Splitter
+            orientation="vertical"
+            dark={dark}
+            label="Resize AI Insights panel"
+            onDragStateChange={setDragging}
+            onDelta={(d) => ai.setSize(clampAi(aiWidth - d))}
+            onReset={() => ai.setSize(clampAi(360))}
+          />
+        )}
+
         {/* Right AI + Results */}
-        <aside className={cn('border-l flex flex-col min-h-0', borderSubtle, glassPanel)}>
+        {(showDockedAi || (isSmall && drawerOpen)) && (
+        <aside
+          style={isSmall ? undefined : { width: aiWidth }}
+          className={cn(
+            'border-l flex flex-col min-h-0 shrink-0 overflow-hidden',
+            isSmall
+              ? 'absolute right-0 top-0 bottom-0 z-30 w-[min(88vw,380px)] shadow-2xl animate-in slide-in-from-right duration-[220ms]'
+              : !dragging && 'transition-[width] duration-[220ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+            borderSubtle, glassPanel,
+          )}
+        >
+
           <Tabs value={rightTab} onValueChange={(v) => setRightTab(v as typeof rightTab)} className="flex flex-col h-full">
             <TabsList className={cn('w-full rounded-none bg-transparent border-b h-9', borderSubtle)}>
               <TabsTrigger value="ai" className={cn('flex-1 h-9 text-xs rounded-none', dark ? 'data-[state=active]:bg-white/5' : 'data-[state=active]:bg-blue-50/70 data-[state=active]:text-[#1D4ED8]')}>
@@ -560,7 +670,18 @@ const StudioModule: React.FC = () => {
                 <Rocket className="h-3.5 w-3.5 mr-1.5" /> Results
                 {results.length > 0 && <Badge variant="secondary" className="ml-1.5 text-[10px] h-4">{results.length}</Badge>}
               </TabsTrigger>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 mr-1 shrink-0"
+                onClick={() => (isSmall ? setDrawerOpen(false) : setAiCollapsed(true))}
+                aria-label="Collapse AI Insights panel"
+                title="Collapse panel"
+              >
+                <PanelRightClose className="h-4 w-4" />
+              </Button>
             </TabsList>
+
             <TabsContent value="ai" className="flex-1 m-0 min-h-0">
               <StudioAIPanel
                 project={project}
@@ -619,7 +740,40 @@ const StudioModule: React.FC = () => {
             </TabsContent>
           </Tabs>
         </aside>
+        )}
+
+        {/* Collapsed AI rail (48px) */}
+        {!isSmall && aiCollapsed && (
+          <aside
+            className={cn('w-12 shrink-0 border-l flex flex-col items-center gap-2 py-2 transition-[width] duration-[220ms] ease-[cubic-bezier(0.22,1,0.36,1)]', borderSubtle, glassPanel)}
+          >
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={toggleAi}
+              aria-label="Expand AI Insights panel"
+              title="Expand AI Insights"
+            >
+              <PanelRightOpen className="h-4 w-4 text-[#2563EB]" />
+            </Button>
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#2563EB] via-[#06B6D4] to-[#8B5CF6] flex items-center justify-center shadow-md shadow-[#2563EB]/25">
+              <Sparkles className="h-4 w-4 text-white" />
+            </div>
+            <span className={cn('text-[10px] tracking-widest [writing-mode:vertical-rl] rotate-180 mt-1', textMuted)}>AI INSIGHTS</span>
+          </aside>
+        )}
+
+        {/* Mobile drawer backdrop */}
+        {isSmall && drawerOpen && (
+          <div
+            className="absolute inset-0 z-20 bg-slate-900/30 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setDrawerOpen(false)}
+            aria-hidden
+          />
+        )}
       </div>
+
 
       {/* Dialogs */}
       <StudioImportDialog open={importOpen} onOpenChange={setImportOpen} onImport={handleImport} />
