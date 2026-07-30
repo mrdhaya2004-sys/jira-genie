@@ -639,7 +639,18 @@ const StudioModule: React.FC = () => {
                 <Rocket className="h-3.5 w-3.5 mr-1.5" /> Results
                 {results.length > 0 && <Badge variant="secondary" className="ml-1.5 text-[10px] h-4">{results.length}</Badge>}
               </TabsTrigger>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 mr-1 shrink-0"
+                onClick={() => (isSmall ? setDrawerOpen(false) : setAiCollapsed(true))}
+                aria-label="Collapse AI Insights panel"
+                title="Collapse panel"
+              >
+                <PanelRightClose className="h-4 w-4" />
+              </Button>
             </TabsList>
+
             <TabsContent value="ai" className="flex-1 m-0 min-h-0">
               <StudioAIPanel
                 project={project}
