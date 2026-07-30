@@ -663,7 +663,40 @@ const StudioModule: React.FC = () => {
             </TabsContent>
           </Tabs>
         </aside>
+        )}
+
+        {/* Collapsed AI rail (48px) */}
+        {!isSmall && aiCollapsed && (
+          <aside
+            className={cn('w-12 shrink-0 border-l flex flex-col items-center gap-2 py-2 transition-[width] duration-[220ms] ease-[cubic-bezier(0.22,1,0.36,1)]', borderSubtle, glassPanel)}
+          >
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={toggleAi}
+              aria-label="Expand AI Insights panel"
+              title="Expand AI Insights"
+            >
+              <PanelRightOpen className="h-4 w-4 text-[#2563EB]" />
+            </Button>
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#2563EB] via-[#06B6D4] to-[#8B5CF6] flex items-center justify-center shadow-md shadow-[#2563EB]/25">
+              <Sparkles className="h-4 w-4 text-white" />
+            </div>
+            <span className={cn('text-[10px] tracking-widest [writing-mode:vertical-rl] rotate-180 mt-1', textMuted)}>AI INSIGHTS</span>
+          </aside>
+        )}
+
+        {/* Mobile drawer backdrop */}
+        {isSmall && drawerOpen && (
+          <div
+            className="absolute inset-0 z-20 bg-slate-900/30 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setDrawerOpen(false)}
+            aria-hidden
+          />
+        )}
       </div>
+
 
       {/* Dialogs */}
       <StudioImportDialog open={importOpen} onOpenChange={setImportOpen} onImport={handleImport} />
