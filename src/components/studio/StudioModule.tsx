@@ -527,8 +527,19 @@ const StudioModule: React.FC = () => {
           )}
         </aside>
 
+        {/* File tree ↔ Editor splitter */}
+        <Splitter
+          orientation="vertical"
+          dark={dark}
+          label="Resize project explorer"
+          onDragStateChange={setDragging}
+          onDelta={tree.nudge}
+          onReset={tree.reset}
+        />
+
         {/* Editor + Console (stacked) */}
-        <section className="flex flex-col min-h-0 min-w-0">
+        <section className="flex flex-col min-h-0 min-w-0 flex-1">
+
           {/* Editor tabs */}
           <div className={cn('flex items-center border-b h-9 overflow-x-auto', borderSubtle, dark ? 'bg-black/30' : 'bg-white/60 backdrop-blur-xl')}>
             {openTabs.length === 0 ? (
