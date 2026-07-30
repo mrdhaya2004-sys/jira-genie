@@ -486,10 +486,18 @@ const StudioModule: React.FC = () => {
         </div>
       </header>
 
-      {/* Body: File tree | Editor+Console | AI panel */}
-      <div className="relative z-10 flex-1 min-h-0 grid grid-cols-[240px_1fr_360px] gap-0">
+      {/* Body: File tree | Editor+Console | AI panel — fully resizable split panes */}
+      <div ref={bodyRef} className="relative z-10 flex-1 min-h-0 flex overflow-hidden">
         {/* File tree */}
-        <aside className={cn('border-r flex flex-col min-h-0', borderSubtle, glassPanel)}>
+        <aside
+          style={{ width: tree.size }}
+          className={cn(
+            'border-r flex flex-col min-h-0 shrink-0',
+            !dragging && 'transition-[width] duration-[220ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+            borderSubtle, glassPanel,
+          )}
+        >
+
           <div className={cn('h-9 px-3 flex items-center border-b text-[11px] font-semibold uppercase tracking-widest', borderSubtle, textMuted)}>
             <Boxes className="h-3.5 w-3.5 mr-1.5" /> Project
           </div>
