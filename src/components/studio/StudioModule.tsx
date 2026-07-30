@@ -354,6 +354,47 @@ const StudioModule: React.FC = () => {
     duration: results.reduce((a, r) => a + r.durationMs, 0),
   }), [results]);
 
+  /* ---------------- Resizable split-pane layout ---------------- */
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [breakpoint, setBreakpoint] = useState<'lg' | 'md' | 'sm'>('lg');
+  const [dragging, setDragging] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const tree = usePersistedSize('tz-studio-tree-w', 240, 180, 380);
+  const ai = usePersistedSize('tz-studio-ai-w', 360, 280, 500);
+  const consolePane = usePersistedSize('tz-studio-console-h', 260, 140, 560);
+  const [aiCollapsed, setAiCollapsed] = usePersistedFlag('tz-studio-ai-collapsed', false);
+
+  useEffect(() => {
+    const measure = () => {
+      const w = window.innerWidth;
+      setBreakpoint(w < 900 ? 'sm' : w < 1280 ? 'md' : 'lg');
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
+
+  const isSmall = breakpoint === 'sm';
+  const showDockedAi = !isSmall && !aiCollapsed;
+
+  // Editor must keep >= 55% (AI panel <= 45%) and <= 85% (AI panel >= 15%) of the split area
+  const clampAi = useCallback((w: number) => {
+    const total = bodyRef.current?.clientWidth ?? 1280;
+    const area = Math.max(480, total - tree.size - 12);
+    const lo = Math.max(280, Math.round(area * 0.15));
+    const hi = Math.max(lo, Math.min(500, Math.round(area * 0.45)));
+    return Math.min(hi, Math.max(lo, w));
+  }, [tree.size]);
+
+  const aiWidth = clampAi(ai.size);
+
+  const toggleAi = useCallback(() => {
+    if (isSmall) { setDrawerOpen(o => !o); return; }
+    setAiCollapsed(c => !c);
+  }, [isSmall, setAiCollapsed]);
+
+
   // Root palette per theme
   const rootBg = dark
     ? 'bg-gradient-to-br from-[#0a0e1a] via-[#0b1226] to-[#0a0e1a]'
