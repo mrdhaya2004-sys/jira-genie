@@ -483,6 +483,18 @@ const StudioModule: React.FC = () => {
             {running ? <><Clock className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Running…</> : <><Play className="h-3.5 w-3.5 mr-1.5" /> Run</>}
           </Button>
           <Button size="sm" variant="outline" disabled={!project || running}><Bug className="h-3.5 w-3.5 mr-1.5" /> Debug</Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={toggleAi}
+            aria-label={(isSmall ? drawerOpen : !aiCollapsed) ? 'Hide AI Insights panel' : 'Show AI Insights panel'}
+            title="Toggle AI Insights panel"
+          >
+            {(isSmall ? drawerOpen : !aiCollapsed)
+              ? <PanelRightClose className="h-3.5 w-3.5" />
+              : <PanelRightOpen className="h-3.5 w-3.5" />}
+          </Button>
+
         </div>
       </header>
 
