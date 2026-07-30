@@ -586,15 +586,50 @@ const StudioModule: React.FC = () => {
               <EmptyEditor project={project} onImport={() => setImportOpen(true)} dark={dark} />
             )}
           </div>
+          {/* Editor ↔ Console splitter */}
+          <Splitter
+            orientation="horizontal"
+            dark={dark}
+            label="Resize console"
+            onDragStateChange={setDragging}
+            onDelta={(d) => consolePane.nudge(-d)}
+            onReset={consolePane.reset}
+          />
 
           {/* Console */}
-          <div className="h-[38%] min-h-[220px]">
+          <div
+            className={cn('shrink-0 min-h-0', !dragging && 'transition-[height] duration-[220ms] ease-[cubic-bezier(0.22,1,0.36,1)]')}
+            style={{ height: consolePane.size }}
+          >
             <StudioConsole lines={lines} onClear={clearTab} onTerminal={handleTerminal} dark={dark} />
           </div>
         </section>
 
+        {/* Editor ↔ AI Insights splitter */}
+        {showDockedAi && (
+          <Splitter
+            orientation="vertical"
+            dark={dark}
+            label="Resize AI Insights panel"
+            onDragStateChange={setDragging}
+            onDelta={(d) => ai.setSize(clampAi(aiWidth - d))}
+            onReset={() => ai.setSize(clampAi(360))}
+          />
+        )}
+
         {/* Right AI + Results */}
-        <aside className={cn('border-l flex flex-col min-h-0', borderSubtle, glassPanel)}>
+        {(showDockedAi || (isSmall && drawerOpen)) && (
+        <aside
+          style={isSmall ? undefined : { width: aiWidth }}
+          className={cn(
+            'border-l flex flex-col min-h-0 shrink-0 overflow-hidden',
+            isSmall
+              ? 'absolute right-0 top-0 bottom-0 z-30 w-[min(88vw,380px)] shadow-2xl animate-in slide-in-from-right duration-[220ms]'
+              : !dragging && 'transition-[width] duration-[220ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+            borderSubtle, glassPanel,
+          )}
+        >
+
           <Tabs value={rightTab} onValueChange={(v) => setRightTab(v as typeof rightTab)} className="flex flex-col h-full">
             <TabsList className={cn('w-full rounded-none bg-transparent border-b h-9', borderSubtle)}>
               <TabsTrigger value="ai" className={cn('flex-1 h-9 text-xs rounded-none', dark ? 'data-[state=active]:bg-white/5' : 'data-[state=active]:bg-blue-50/70 data-[state=active]:text-[#1D4ED8]')}>
