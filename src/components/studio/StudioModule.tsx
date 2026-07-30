@@ -12,8 +12,10 @@ import {
   FolderOpen, Play, Bug, Package, Terminal as TermIcon, Sparkles, X,
   CheckCircle2, XCircle, MinusCircle, Clock, Boxes, Cpu, Layers,
   Wrench, Rocket, ChevronRight, ScanSearch, Server, Palette, Check,
+  PanelRightClose, PanelRightOpen,
 } from 'lucide-react';
 import SmartBackButton from '@/components/common/SmartBackButton';
+import { Splitter, usePersistedSize, usePersistedFlag } from '@/components/common/SplitPane';
 import Tree from './StudioFileTree';
 import StudioConsole, { type ConsoleLine, type LogTab, type LogLevel } from './StudioConsole';
 import StudioImportDialog from './StudioImportDialog';
@@ -21,6 +23,7 @@ import StudioInstallerDialog from './StudioInstallerDialog';
 import StudioAIPanel, { type FailureAnalysis } from './StudioAIPanel';
 import { SAMPLE_PROJECTS, flattenFiles, type DetectedProject, type FileNode } from './sampleProjects';
 import { cn } from '@/lib/utils';
+
 
 const monacoLang = (lang: string) => ({
   java: 'java', kotlin: 'kotlin', kt: 'kotlin',
