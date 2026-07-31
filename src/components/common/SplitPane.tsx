@@ -133,7 +133,9 @@ export const Splitter: React.FC<SplitterProps> = ({
       onKeyDown={handleKeyDown}
       className={cn(
         'group relative shrink-0 z-20 touch-none outline-none',
-        'transition-[width,height,background-color] duration-150 ease-out',
+        dragging
+          ? 'transition-none'
+          : 'transition-[width,height,background-color] duration-150 ease-out',
         vertical
           ? 'w-[6px] hover:w-[10px] cursor-col-resize focus-visible:w-[10px]'
           : 'h-[6px] hover:h-[10px] cursor-row-resize focus-visible:h-[10px]',
@@ -142,7 +144,11 @@ export const Splitter: React.FC<SplitterProps> = ({
         'backdrop-blur-xl',
         className,
       )}
-      style={{ willChange: vertical ? 'width' : 'height' }}
+      style={{
+        willChange: dragging ? (vertical ? 'width' : 'height') : undefined,
+        contain: 'layout paint style',
+      }}
+
     >
       {/* Glow layer */}
       <div
