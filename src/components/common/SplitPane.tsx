@@ -31,8 +31,12 @@ export const Splitter: React.FC<SplitterProps> = ({
 }) => {
   const vertical = orientation === 'vertical';
   const [dragging, setDragging] = useState(false);
+  const draggingRef = useRef(false);
   const last = useRef(0);
+  const pending = useRef(0);
   const frame = useRef(0);
+  const onDeltaRef = useRef(onDelta);
+  onDeltaRef.current = onDelta;
 
   useEffect(() => {
     onDragStateChange?.(dragging);
@@ -49,29 +53,58 @@ export const Splitter: React.FC<SplitterProps> = ({
 
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
+  // Coalesce every pointer delta into one commit per animation frame:
+  // deltas accumulate (never dropped) and only one layout pass runs per frame.
+  const flush = useCallback(() => {
+    frame.current = 0;
+    const d = pending.current;
+    pending.current = 0;
+    if (d) onDeltaRef.current(d);
+  }, []);
+
+  const schedule = useCallback((delta: number) => {
+    pending.current += delta;
+    if (frame.current) return;
+    frame.current = requestAnimationFrame(flush);
+  }, [flush]);
+
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
     last.current = vertical ? e.clientX : e.clientY;
+    pending.current = 0;
+    draggingRef.current = true;
     setDragging(true);
   }, [vertical]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragging) return;
-    const cur = vertical ? e.clientX : e.clientY;
+    if (!draggingRef.current) return;
+    // Use coalesced events when available so a burst of moves costs one commit.
+    const events = typeof e.nativeEvent.getCoalescedEvents === 'function'
+      ? e.nativeEvent.getCoalescedEvents()
+      : [];
+    const cur = events.length
+      ? (vertical ? events[events.length - 1].clientX : events[events.length - 1].clientY)
+      : (vertical ? e.clientX : e.clientY);
     const delta = cur - last.current;
     if (!delta) return;
     last.current = cur;
-    cancelAnimationFrame(frame.current);
-    frame.current = requestAnimationFrame(() => onDelta(delta));
-  }, [dragging, vertical, onDelta]);
+    schedule(delta);
+  }, [vertical, schedule]);
 
   const endDrag = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
+    if (frame.current) {
+      cancelAnimationFrame(frame.current);
+      frame.current = 0;
+      flush();
+    }
+    draggingRef.current = false;
     setDragging(false);
-  }, []);
+  }, [flush]);
+
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     const step = e.shiftKey ? 32 : 12;
