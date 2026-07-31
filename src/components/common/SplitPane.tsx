@@ -209,7 +209,8 @@ export function usePersistedSize(key: string, initial: number, min: number, max:
     return () => window.clearTimeout(t);
   }, [key, size]);
 
-  const nudge2 = null;
+
+
 
 
   const nudge = useCallback((delta: number) => setSize(s => clamp(s + delta)), [clamp]);
