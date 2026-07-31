@@ -1893,3 +1893,159 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 }
+
+/* ==========================================================================
+   TZ ACTIVE STATE DESIGN SYSTEM
+   Premium selected/active state for tabs, toolbars, consoles, sidebars.
+   ========================================================================== */
+
+.tz-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+}
+
+.tz-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  min-height: 40px;
+  padding: 10px 18px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #64748B;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  isolation: isolate;
+  transform: translateZ(0);
+  transition:
+    background-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 250ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tz-tab > svg { color: currentColor; transition: color 200ms ease, transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+/* Inactive hover — light glass with soft blue tint */
+.tz-tab:hover:not([data-state="active"]):not([data-active="true"]) {
+  background: rgba(37, 99, 235, 0.07);
+  color: #1D4ED8;
+  transform: translateY(-2px);
+}
+.dark .tz-tab:hover:not([data-state="active"]):not([data-active="true"]) {
+  background: rgba(255, 255, 255, 0.07);
+  color: hsl(var(--foreground));
+}
+
+.tz-tab:active { transform: translateY(0) scale(0.97); transition-duration: 90ms; }
+
+/* Active — blue → cyan gradient glass pill */
+.tz-tab[data-state="active"],
+.tz-tab[data-active="true"],
+.tz-tab[aria-selected="true"],
+.tz-tab[aria-current="page"] {
+  background-image: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+  border-color: rgba(255, 255, 255, 0.30);
+  color: #FFFFFF;
+  box-shadow:
+    0 6px 18px -4px rgba(37, 99, 235, 0.45),
+    0 0 0 4px rgba(37, 99, 235, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transform: scale(1.02);
+}
+.tz-tab[data-state="active"] > svg,
+.tz-tab[data-active="true"] > svg,
+.tz-tab[aria-selected="true"] > svg,
+.tz-tab[aria-current="page"] > svg { color: #FFFFFF; }
+
+/* Animated 3px gradient indicator under the active tab */
+.tz-tab::after {
+  content: '';
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: -5px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2563EB, #06B6D4);
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 200ms ease;
+}
+.tz-tab[data-state="active"]::after,
+.tz-tab[data-active="true"]::after,
+.tz-tab[aria-selected="true"]::after,
+.tz-tab[aria-current="page"]::after { transform: scaleX(1); opacity: 1; }
+
+/* Accessible focus ring */
+.tz-tab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px rgba(37, 99, 235, 0.75), 0 0 18px rgba(37, 99, 235, 0.35);
+}
+
+/* Compact variant for dense bars (console, file tabs) */
+.tz-tab-sm { height: 32px; min-height: 32px; padding: 6px 12px; border-radius: 11px; gap: 6px; }
+.tz-tab-sm::after { left: 12px; right: 12px; bottom: -3px; height: 2px; }
+
+/* Sidebar / nav item active state: blue left indicator + glass + glow */
+.tz-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  color: #64748B;
+  transition:
+    background-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 250ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.tz-nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #2563EB, #06B6D4);
+  transform: translateY(-50%);
+  transition: height 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.tz-nav-item:hover:not([data-active="true"]):not([aria-current="page"]) {
+  background: rgba(37, 99, 235, 0.07);
+  color: #1D4ED8;
+  transform: translateY(-2px);
+}
+.dark .tz-nav-item:hover:not([data-active="true"]):not([aria-current="page"]) { background: rgba(255,255,255,0.07); color: hsl(var(--foreground)); }
+.tz-nav-item[data-active="true"],
+.tz-nav-item[aria-current="page"] {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(6, 182, 212, 0.10));
+  border-color: rgba(37, 99, 235, 0.28);
+  color: #1D4ED8;
+  box-shadow: 0 6px 18px -8px rgba(37, 99, 235, 0.45), inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.dark .tz-nav-item[data-active="true"],
+.dark .tz-nav-item[aria-current="page"] { color: #93C5FD; }
+.tz-nav-item[data-active="true"]::before,
+.tz-nav-item[aria-current="page"]::before { height: 60%; }
+.tz-nav-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px rgba(37, 99, 235, 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tz-tab, .tz-tab::after, .tz-nav-item, .tz-nav-item::before { transition: none !important; transform: none !important; }
+}
