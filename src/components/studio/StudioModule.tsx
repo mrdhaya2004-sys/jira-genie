@@ -662,14 +662,17 @@ const StudioModule: React.FC = () => {
         >
 
           <Tabs value={rightTab} onValueChange={(v) => setRightTab(v as typeof rightTab)} className="flex flex-col h-full">
-            <TabsList className={cn('w-full rounded-none bg-transparent border-b h-9', borderSubtle)}>
-              <TabsTrigger value="ai" className={cn('flex-1 h-9 text-xs rounded-none', dark ? 'data-[state=active]:bg-white/5' : 'data-[state=active]:bg-blue-50/70 data-[state=active]:text-[#1D4ED8]')}>
-                <Sparkles className="h-3.5 w-3.5 mr-1.5" /> AI Insights
+            <TabsList className={cn('tz-tabs w-full rounded-none bg-transparent border-b h-auto', borderSubtle)}>
+              <TabsTrigger value="ai" className="tz-tab tz-tab-sm flex-1 justify-center">
+                <Sparkles className="h-3.5 w-3.5" /> AI Insights
               </TabsTrigger>
-              <TabsTrigger value="results" className={cn('flex-1 h-9 text-xs rounded-none', dark ? 'data-[state=active]:bg-white/5' : 'data-[state=active]:bg-blue-50/70 data-[state=active]:text-[#1D4ED8]')}>
-                <Rocket className="h-3.5 w-3.5 mr-1.5" /> Results
-                {results.length > 0 && <Badge variant="secondary" className="ml-1.5 text-[10px] h-4">{results.length}</Badge>}
+              <TabsTrigger value="results" className="tz-tab tz-tab-sm flex-1 justify-center">
+                <Rocket className="h-3.5 w-3.5" /> Results
+                {results.length > 0 && (
+                  <span className={cn('ml-1 text-[10px]', rightTab === 'results' ? 'text-white/85' : textMuted)}>({results.length})</span>
+                )}
               </TabsTrigger>
+
               <Button
                 size="icon"
                 variant="ghost"
