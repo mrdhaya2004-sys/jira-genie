@@ -69,9 +69,8 @@ const StudioConsole: React.FC<Props> = ({ lines, onClear, onTerminal, dark = fal
   const timeCls = dark ? 'text-muted-foreground/50' : 'text-slate-400';
   const moduleCls = dark ? 'text-muted-foreground/70' : 'text-slate-500';
   const bodyText = dark ? 'text-slate-200' : 'text-slate-700';
-  const activeTab = dark
-    ? 'data-[state=active]:bg-white/5 data-[state=active]:text-foreground'
-    : 'data-[state=active]:bg-blue-50/70 data-[state=active]:text-[#1D4ED8]';
+
+
   const termBar = dark ? 'bg-black/30 border-white/10' : 'bg-slate-50/70 border-slate-200/70';
   const inputCls = dark ? 'bg-transparent border-white/10' : 'bg-white border-slate-200';
 
