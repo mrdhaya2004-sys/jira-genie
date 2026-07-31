@@ -553,7 +553,7 @@ const StudioModule: React.FC = () => {
         <section className="flex flex-col min-h-0 min-w-0 flex-1">
 
           {/* Editor tabs */}
-          <div className={cn('flex items-center border-b h-9 overflow-x-auto', borderSubtle, dark ? 'bg-black/30' : 'bg-white/60 backdrop-blur-xl')}>
+          <div className={cn('tz-tabs flex items-center border-b h-11 overflow-x-auto', borderSubtle, dark ? 'bg-black/30' : 'bg-white/60 backdrop-blur-xl')}>
             {openTabs.length === 0 ? (
               <div className={cn('px-3 text-xs', textMuted)}>Open a file from the project tree to start editing.</div>
             ) : openTabs.map(p => {
@@ -563,19 +563,18 @@ const StudioModule: React.FC = () => {
               return (
                 <div
                   key={p}
-                  className={cn(
-                    'group flex items-center gap-2 h-full px-3 border-r cursor-pointer text-xs transition-colors',
-                    borderSubtle,
-                    active
-                      ? (dark ? 'bg-white/5 text-foreground' : 'bg-[#DBEAFE]/60 text-[#1D4ED8] border-b-2 border-b-[#2563EB]')
-                      : (dark ? 'text-muted-foreground hover:bg-white/5' : 'text-slate-500 hover:bg-blue-50/60')
-                  )}
+                  role="tab"
+                  aria-selected={active}
+                  tabIndex={0}
+                  data-active={active ? 'true' : 'false'}
+                  className="tz-tab tz-tab-sm cursor-pointer shrink-0"
                   onClick={() => setActivePath(p)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActivePath(p); } }}
                 >
                   <span className="truncate max-w-[180px]">{f.name}</span>
                   <button
                     onClick={(e) => { e.stopPropagation(); closeTab(p); }}
-                    className={cn('opacity-40 hover:opacity-100 rounded p-0.5', dark ? 'hover:bg-white/10' : 'hover:bg-slate-200')}
+                    className={cn('opacity-50 hover:opacity-100 rounded p-0.5', active ? 'hover:bg-white/20' : dark ? 'hover:bg-white/10' : 'hover:bg-slate-200')}
                     aria-label="Close tab"
                   >
                     <X className="h-3 w-3" />
@@ -584,6 +583,7 @@ const StudioModule: React.FC = () => {
               );
             })}
           </div>
+
 
           {/* Editor */}
           <div className="flex-1 min-h-0 relative">
@@ -662,14 +662,17 @@ const StudioModule: React.FC = () => {
         >
 
           <Tabs value={rightTab} onValueChange={(v) => setRightTab(v as typeof rightTab)} className="flex flex-col h-full">
-            <TabsList className={cn('w-full rounded-none bg-transparent border-b h-9', borderSubtle)}>
-              <TabsTrigger value="ai" className={cn('flex-1 h-9 text-xs rounded-none', dark ? 'data-[state=active]:bg-white/5' : 'data-[state=active]:bg-blue-50/70 data-[state=active]:text-[#1D4ED8]')}>
-                <Sparkles className="h-3.5 w-3.5 mr-1.5" /> AI Insights
+            <TabsList className={cn('tz-tabs w-full rounded-none bg-transparent border-b h-auto', borderSubtle)}>
+              <TabsTrigger value="ai" className="tz-tab tz-tab-sm flex-1 justify-center">
+                <Sparkles className="h-3.5 w-3.5" /> AI Insights
               </TabsTrigger>
-              <TabsTrigger value="results" className={cn('flex-1 h-9 text-xs rounded-none', dark ? 'data-[state=active]:bg-white/5' : 'data-[state=active]:bg-blue-50/70 data-[state=active]:text-[#1D4ED8]')}>
-                <Rocket className="h-3.5 w-3.5 mr-1.5" /> Results
-                {results.length > 0 && <Badge variant="secondary" className="ml-1.5 text-[10px] h-4">{results.length}</Badge>}
+              <TabsTrigger value="results" className="tz-tab tz-tab-sm flex-1 justify-center">
+                <Rocket className="h-3.5 w-3.5" /> Results
+                {results.length > 0 && (
+                  <span className={cn('ml-1 text-[10px]', rightTab === 'results' ? 'text-white/85' : textMuted)}>({results.length})</span>
+                )}
               </TabsTrigger>
+
               <Button
                 size="icon"
                 variant="ghost"
