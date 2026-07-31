@@ -2049,3 +2049,5 @@
 @media (prefers-reduced-motion: reduce) {
   .tz-tab, .tz-tab::after, .tz-nav-item, .tz-nav-item::before { transition: none !important; transform: none !important; }
 }
+
+.tz-nav-sm { min-height: 30px; border-radius: 10px; }

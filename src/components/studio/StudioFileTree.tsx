@@ -44,9 +44,6 @@ const Tree: React.FC<TreeProps> = ({ nodes, activePath, onOpen, depth = 0, dark 
   const chev = dark ? 'text-muted-foreground' : 'text-slate-400';
   const folder = dark ? 'text-sky-400' : 'text-[#2563EB]';
   const folderDim = dark ? 'text-sky-400/80' : 'text-[#2563EB]/80';
-  const activeCls = dark
-    ? 'bg-primary/15 text-primary-foreground'
-    : 'bg-[#DBEAFE]/70 text-[#1D4ED8] font-medium border-l-2 border-[#2563EB]';
 
   return (
     <ul className="text-[13px]">
@@ -72,7 +69,7 @@ const Tree: React.FC<TreeProps> = ({ nodes, activePath, onOpen, depth = 0, dark 
               onClick={() => onOpen(n.path)}
               data-active={activePath === n.path ? 'true' : 'false'}
               className={cn(
-                'tz-nav-item w-full gap-2 px-2 py-1 text-left text-[13px]',
+                'tz-nav-item tz-nav-sm w-full gap-2 px-2 py-1 text-left text-[13px]',
                 activePath === n.path && 'font-medium'
               )}
               style={{ paddingLeft: 22 + depth * 12 }}
