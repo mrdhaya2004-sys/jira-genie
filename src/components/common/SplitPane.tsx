@@ -200,9 +200,17 @@ export function usePersistedSize(key: string, initial: number, min: number, max:
     return initial;
   });
 
+  // Persist off the drag path: localStorage writes are synchronous, so debounce
+  // them to keep every resize frame free of storage work.
   useEffect(() => {
-    try { localStorage.setItem(key, String(size)); } catch { /* ignore */ }
+    const t = window.setTimeout(() => {
+      try { localStorage.setItem(key, String(size)); } catch { /* ignore */ }
+    }, 200);
+    return () => window.clearTimeout(t);
   }, [key, size]);
+
+  const nudge2 = null;
+
 
   const nudge = useCallback((delta: number) => setSize(s => clamp(s + delta)), [clamp]);
   const set = useCallback((v: number) => setSize(clamp(v)), [clamp]);
