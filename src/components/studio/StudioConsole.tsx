@@ -79,24 +79,27 @@ const StudioConsole: React.FC<Props> = ({ lines, onClear, onTerminal, dark = fal
     <div className={cn('flex flex-col h-full border-t', rootBg)}>
       <Tabs value={tab} onValueChange={(v) => setTab(v as LogTab)} className="flex flex-col h-full">
         <div className={cn('flex items-center justify-between border-b px-2', barBorder)}>
-          <TabsList className="bg-transparent h-9 gap-0">
+          <TabsList className="tz-tabs bg-transparent h-auto gap-1.5 overflow-x-auto">
             {TABS.map(t => {
               const count = lines.filter(l => l.tab === t.id || (t.id === 'errors' && l.level === 'error')).length;
               return (
                 <TabsTrigger
                   key={t.id}
                   value={t.id}
-                  className={cn(
-                    'h-9 px-3 text-xs rounded-none border-b-2 border-transparent data-[state=active]:border-[#2563EB]',
-                    activeTab
-                  )}
+                  className="tz-tab tz-tab-sm"
                 >
                   {t.label}
-                  {count > 0 && <span className={cn('ml-1.5 text-[10px]', dark ? 'text-muted-foreground' : 'text-slate-400')}>({count})</span>}
+                  {count > 0 && (
+                    <span className={cn(
+                      'ml-1 text-[10px]',
+                      tab === t.id ? 'text-white/80' : dark ? 'text-muted-foreground' : 'text-slate-400'
+                    )}>({count})</span>
+                  )}
                 </TabsTrigger>
               );
             })}
           </TabsList>
+
           <div className="flex items-center gap-1">
             <Button size="sm" variant="ghost" onClick={() => onClear(tab)} className="h-7 text-xs">
               <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear
